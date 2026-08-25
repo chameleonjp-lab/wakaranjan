@@ -24,7 +24,8 @@ assert.deepEqual(redTiles.map(tile=>tile.code).sort(),['5m','5p','5s'],'one red 
 const hand=drawTiles(wall,13);
 assert.equal(hand.length,13,'drawTiles draws the requested number while available');
 assert.equal(remainingTiles(wall),123,'drawing thirteen tiles leaves 123 tiles');
-assert.equal(drawTile(wall)?.code,wall[0]?.code||null,'drawTile removes the next tile');
+const nextTile=wall[0];
+assert.equal(drawTile(wall)?.id,nextTile.id,'drawTile removes the next tile');
 assert.equal(remainingTiles(wall),122,'drawTile reduces the wall by one');
 
 const shortWall=createWall({tileCodes:['1m','5m'],redFives:{man:1},random:()=>0});
