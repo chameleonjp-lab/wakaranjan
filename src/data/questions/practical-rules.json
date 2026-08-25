@@ -1,0 +1,34 @@
+{
+  "schemaVersion":1,
+  "categories":[
+    {"id":"practical","name":"実戦判断","description":"本場・供託、牌効率、守備、順位条件を確認します。"},
+    {"id":"rule-diff","name":"ルール差","description":"標準ルールと、採用が分かれる項目を区別します。"}
+  ],
+  "questions":[
+    {"id":"q-practical-001","category":"practical","skill":"round-context","prompt":"2本場でロンあがりしました。基本点とは別に何点追加されますか？","choices":["200点","300点","600点","2000点"],"answerIndex":2,"explanation":"ロンは1本場につき300点なので、2本場なら600点です。","lessonRef":"lesson-intermediate-07"},
+    {"id":"q-practical-002","category":"practical","skill":"round-context","prompt":"場にリーチ棒が2本供託されています。あがり者が受け取る供託は？","choices":["200点","600点","1000点","2000点"],"answerIndex":3,"explanation":"リーチ棒は1本1000点なので2本で2000点です。","lessonRef":"lesson-intermediate-07"},
+    {"id":"q-practical-003","category":"practical","skill":"efficiency","prompt":"4萬5萬と4萬6萬。一般に受け入れの種類が多いのは？","choices":["4萬5萬","4萬6萬","同じ","必ず場況次第で比較不能"],"answerIndex":0,"explanation":"4萬5萬は3萬・6萬の両面、4萬6萬は5萬の嵌張です。","lessonRef":"lesson-intermediate-09"},
+    {"id":"q-practical-004","category":"practical","skill":"efficiency","prompt":"受け入れ枚数だけで、どんな局面でも切る牌が一つに決まりますか？","choices":["必ず決まる","決まらない。点数や守備も見る","親なら決まる","ドラがなければ決まる"],"answerIndex":1,"explanation":"受け入れは判断材料の一つで、打点・安全度・順位条件でも選択が変わります。","lessonRef":"lesson-intermediate-09"},
+    {"id":"q-practical-005","category":"practical","skill":"defense","prompt":"リーチした相手がすでに河へ捨てている牌を何と呼びますか？","choices":["現物","筋","壁","ドラ"],"answerIndex":0,"explanation":"その相手がすでに捨てている牌は現物です。","lessonRef":"lesson-intermediate-10"},
+    {"id":"q-practical-006","category":"practical","skill":"defense","prompt":"筋について最も正しい説明は？","choices":["必ず安全な牌","両面待ちを中心に危険度を考える手がかり","役の一種","現物と完全に同じ"],"answerIndex":1,"explanation":"筋は危険度を比較する材料で、安全を保証しません。","lessonRef":"lesson-intermediate-10"},
+    {"id":"q-practical-007","category":"practical","skill":"defense","prompt":"壁は何を利用して危険度を考えますか？","choices":["見えている同一牌の枚数","相手の年齢","点棒の色","ドラ表示牌だけ"],"answerIndex":0,"explanation":"同じ数字の牌が多く見えていることから、作りにくい順子を推測します。","lessonRef":"lesson-intermediate-10"},
+    {"id":"q-practical-008","category":"practical","skill":"multi-wait","prompt":"同じ13枚に複数の分け方があるとき、待ちはどう調べる？","choices":["最初の1通りだけ","可能な分け方を複数確認","ドラだけ見る","河だけ見る"],"answerIndex":1,"explanation":"一つの分け方だけでは待ち牌を見落とすことがあります。","lessonRef":"lesson-intermediate-08"},
+    {"id":"q-practical-009","category":"practical","skill":"ranking","prompt":"南場で順位条件を考えるとき、現在点と一緒に確認したいものは？","choices":["残り局数と親番","卓のメーカー","牌の傷","対局者の年齢"],"answerIndex":0,"explanation":"親番が残っているか、あと何局あるかで必要な点数や方針が変わります。","lessonRef":"lesson-advanced-06"},
+    {"id":"q-practical-010","category":"practical","skill":"ranking","prompt":"オーラスで2着からトップを目指すとき、最初にしたいことは？","choices":["必要なあがり点を計算する","必ず役満を狙う","必ず降りる","ドラを全部切る"],"answerIndex":0,"explanation":"順位が変わる条件を先に計算し、その条件に合わせて手作りを考えます。","lessonRef":"lesson-advanced-06"},
+    {"id":"q-practical-011","category":"practical","skill":"decision","prompt":"相手のリーチ後、総合判断で比べるものは？","choices":["自分の打点・進み具合と放銃リスク","牌の色だけ","相手の名前","山の高さだけ"],"answerIndex":0,"explanation":"押す価値と放銃リスクを局面条件と合わせて比較します。","lessonRef":"lesson-advanced-07"},
+    {"id":"q-practical-012","category":"practical","skill":"decision","prompt":"実戦判断問題で『絶対にこれだけが正解』としにくい理由は？","choices":["点数・巡目・安全度など条件で選択が変わるから","麻雀にルールがないから","牌が読めないから","役が存在しないから"],"answerIndex":0,"explanation":"実戦判断は複数条件で変わるため、前提と理由を明示します。","lessonRef":"lesson-advanced-07"},
+
+    {"id":"q-rule-001","category":"rule-diff","skill":"simultaneous-ron","prompt":"ワカランジャン標準で、同じ捨て牌に複数人がロンした場合は？","choices":["全員あがり","頭ハネで1人だけ","親だけ","点数が高い人だけ"],"answerIndex":1,"explanation":"本サイト標準は頭ハネです。","lessonRef":"lesson-special-01"},
+    {"id":"q-rule-002","category":"rule-diff","skill":"limit-rule","prompt":"通常役だけで13翻以上になった場合、本サイト標準では？","choices":["役満","三倍満上限","倍満","満貫"],"answerIndex":1,"explanation":"数え役満を採用せず、通常役は三倍満が上限です。","lessonRef":"lesson-special-02"},
+    {"id":"q-rule-003","category":"rule-diff","skill":"limit-rule","prompt":"ワカランジャン標準の30符4翻は？","choices":["満貫へ切り上げる","7700点で固定","役満","点数なし"],"answerIndex":0,"explanation":"本サイト標準は切り上げ満貫を採用します。","lessonRef":"lesson-special-03"},
+    {"id":"q-rule-004","category":"rule-diff","skill":"double-yakuman","prompt":"四暗刻単騎などの特殊形を、本サイト標準では自動的にダブル役満にしますか？","choices":["する","しない","親だけする","ツモだけする"],"answerIndex":1,"explanation":"特殊形を理由とするダブル役満は自動採用しません。","lessonRef":"lesson-special-06"},
+    {"id":"q-rule-005","category":"rule-diff","skill":"local-rule","prompt":"食い替えの禁止範囲について最も適切なのは？","choices":["どのルールでも完全に同じ","採用規定を確認する","必ず自由","役満の時だけ禁止"],"answerIndex":1,"explanation":"禁止範囲はルール差があるため、採用規定を確認します。","lessonRef":"lesson-special-07"},
+    {"id":"q-rule-006","category":"rule-diff","skill":"penalty","prompt":"チョンボの罰則はどの卓でも完全に同じですか？","choices":["同じ","規定によって異なる","親だけ違う","子だけ違う"],"answerIndex":1,"explanation":"罰則や局の扱いは団体・サービスごとに異なります。","lessonRef":"lesson-special-07"},
+    {"id":"q-rule-007","category":"rule-diff","skill":"local-yaku","prompt":"人和について正しい扱いは？","choices":["必ず標準役満","採否や打点がルールで異なる","必ず1翻","ドラと同じ"],"answerIndex":1,"explanation":"人和は採用の有無や打点が統一されていません。","lessonRef":"lesson-special-08"},
+    {"id":"q-rule-008","category":"rule-diff","skill":"local-rule","prompt":"流し満貫は？","choices":["どのルールでも必ず採用","採用しないルールもある","通常の1翻役","ドラの一種"],"answerIndex":1,"explanation":"流し満貫の採用状況はルールによって異なります。","lessonRef":"lesson-special-04"},
+    {"id":"q-rule-009","category":"rule-diff","skill":"local-rule","prompt":"途中流局について正しい説明は？","choices":["種類や採否にルール差がある","必ず一種類だけ","役満の別名","点数区分"],"answerIndex":0,"explanation":"途中流局の条件や採否はルールによって異なります。","lessonRef":"lesson-special-04"},
+    {"id":"q-rule-010","category":"rule-diff","skill":"pao","prompt":"責任払いが関係する代表的な役満として本サイトで扱うものは？","choices":["大三元・大四喜・四槓子","リーチ・タンヤオ・ピンフ","七対子だけ","国士無双だけ"],"answerIndex":0,"explanation":"標準ルールでは大三元・大四喜・四槓子の責任払いを扱います。","lessonRef":"lesson-advanced-05"},
+    {"id":"q-rule-011","category":"rule-diff","skill":"local-yaku","prompt":"ローカル役を標準問題へどう扱う？","choices":["無条件で正解にする","標準問題には混ぜない","全部役満にする","全部1翻にする"],"answerIndex":1,"explanation":"標準ルールとローカル役を混ぜず、別枠で扱います。","lessonRef":"lesson-special-08"},
+    {"id":"q-rule-012","category":"rule-diff","skill":"ruleset","prompt":"初めての卓で、対局前に確認したいものは？","choices":["赤牌・同時ロン・数え役満などの採用ルール","卓の値段だけ","牌の製造年だけ","対局者の服装"],"answerIndex":0,"explanation":"細かな採用ルールがあがり可否や点数に影響します。","lessonRef":"lesson-special-05"}
+  ]
+}
