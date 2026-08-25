@@ -13,7 +13,10 @@ export function validateScoringReference(){
     [{han:6,fu:30,dealer:false,win:'ron'},12000,'子跳満ロン'],
     [{han:8,fu:30,dealer:false,win:'ron'},16000,'子倍満ロン'],
     [{han:11,fu:30,dealer:false,win:'ron'},24000,'子三倍満ロン'],
-    [{han:13,fu:30,dealer:false,win:'ron'},32000,'子役満ロン']
+    [{han:13,fu:30,dealer:false,win:'ron'},24000,'子13翻は三倍満上限'],
+    [{han:20,fu:30,dealer:true,win:'ron'},36000,'親20翻も三倍満上限'],
+    [{han:0,fu:20,dealer:false,win:'ron',yakuman:1},32000,'子役満ロン'],
+    [{han:0,fu:20,dealer:true,win:'ron',yakuman:2},96000,'親ダブル役満ロン']
   ];
   for(const [input,expected,label] of cases){const actual=calculateScore(input).total;if(actual!==expected)errors.push({label,expected,actual})}
   const tsumo=calculateScore({han:3,fu:30,dealer:false,win:'tsumo'});
