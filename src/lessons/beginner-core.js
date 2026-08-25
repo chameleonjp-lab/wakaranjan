@@ -33,5 +33,5 @@ export function renderBeginner06(app,ctx){
   app.innerHTML=`<section class="lesson-head"><div class="eyebrow">初級 6</div><h1>ドラ</h1><p class="lead">ドラは持っていると点数を増やします。ただし、ドラだけではあがれません。</p></section><section class="panel"><h2>表示牌の「次」がドラ</h2><p>${d.rule}</p><div class="callout">9の次は1、北の次は東、中の次は白に戻ります。</div></section>`;
   const grid=document.createElement('div');grid.className='shape-grid';d.examples.forEach(e=>{const a=document.createElement('article');a.className='shape-card';a.innerHTML='<h2>表示牌 → ドラ</h2><div class="tile-row"></div>';const row=a.querySelector('.tile-row');row.append(tile(ctx,e.indicator));const arrow=document.createElement('strong');arrow.textContent='→';row.append(arrow,tile(ctx,e.dora));grid.append(a)});app.append(grid);
   quiz(app,[{q:'ドラ表示牌が九筒です。ドラは？',options:['八筒','九筒','一筒'],answer:2,explain:'数牌は9の次が1に戻るため、一筒がドラです。'},{q:'ドラ表示牌が北です。ドラは？',options:['東','南','白'],answer:0,explain:'風牌は東→南→西→北→東の順です。'},{q:'役がなく、ドラだけ2枚あります。あがれますか？',options:['あがれる','あがれない'],answer:1,explain:'ドラは翻を追加しますが役ではありません。別に1つ以上の役が必要です。'}]);
-  addNav(app,'lesson-beginner-05','home');
+  addNav(app,'lesson-beginner-05','lesson-beginner-07');
 }
