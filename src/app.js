@@ -35,8 +35,8 @@ function renderHome(ctx){
     <h2 class="section-title">初級の総復習</h2><a class="lesson-card" href="#beginner-review"><strong>ランダム12問に挑戦</strong><small>待ち・鳴き・リーチ・フリテン・役・ドラを横断します</small></a>
     <h2 class="section-title">中級：点数計算の基礎</h2>${renderLessonList(intermediate)}
     <h2 class="section-title">中級 点数計算の総復習</h2><a class="lesson-card" href="#intermediate-review"><strong>ランダム12問に挑戦</strong><small>翻・符・親子・ロン/ツモ・満貫以上を確認します</small></a>
-    <h2 class="section-title">点数計算</h2><a class="lesson-card" href="#automatic-calculator"><strong>牌を14枚並べて自動計算（試作）</strong><small>門前の通常形・七対子から役、符、点数を自動判定します</small></a>
-    <div class="callout" style="margin-top:18px">入門と初級、中級の点数計算基礎に加え、自動計算の試作版を利用できます。</div>`;
+    <h2 class="section-title">点数計算</h2><a class="lesson-card" href="#automatic-calculator"><strong>牌と条件から役・符・点数を自動計算</strong><small>副露・カン・標準役・役満・ドラまで指定できます</small></a>
+    <div class="callout" style="margin-top:18px">入門から点数計算まで利用できます。点数計算機は責任払い、本場・供託、河を使うフリテン判定など一部の特例を今後追加します。</div>`;
 }
 
 function renderUnavailable(id,ctx){

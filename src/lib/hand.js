@@ -1,6 +1,7 @@
 const SUITS=['m','p','s'];
 const TERMINAL_HONOR=/^[19][mps]$|^[1-7]z$/;
 const HONOR=/^[1-7]z$/;
+const KOKUSHI_CODES=['1m','9m','1p','9p','1s','9s','1z','2z','3z','4z','5z','6z','7z'];
 
 export function tileIndex(code){
   const m=code.match(/^([1-9])([mps])$/);
@@ -28,34 +29,47 @@ function removeSet(counts,start,type){
   if(next[start]&&next[start+1]&&next[start+2]){next[start]--;next[start+1]--;next[start+2]--;return next}
   return null;
 }
-function meldSearch(counts,melds,out){
+function meldSearch(counts,melds,out,targetMelds){
   const first=counts.findIndex(n=>n>0);
-  if(first<0){out.push(melds);return}
+  if(first<0){if(melds.length===targetMelds)out.push(melds);return}
+  if(melds.length>=targetMelds)return;
   const trip=removeSet(counts,first,'triplet');
-  if(trip)meldSearch(trip,[...melds,{type:'triplet',tiles:[indexCode(first),indexCode(first),indexCode(first)]}],out);
+  if(trip)meldSearch(trip,[...melds,{type:'triplet',tiles:[indexCode(first),indexCode(first),indexCode(first)]}],out,targetMelds);
   const seq=removeSet(counts,first,'sequence');
-  if(seq)meldSearch(seq,[...melds,{type:'sequence',tiles:[indexCode(first),indexCode(first+1),indexCode(first+2)]}],out);
+  if(seq)meldSearch(seq,[...melds,{type:'sequence',tiles:[indexCode(first),indexCode(first+1),indexCode(first+2)]}],out,targetMelds);
 }
-export function decomposeStandard(codes){
-  if(codes.length!==14)return [];
+export function decomposeStandardPartial(codes,targetMelds=4){
+  if(!Number.isInteger(targetMelds)||targetMelds<0||targetMelds>4)return [];
+  if(codes.length!==targetMelds*3+2)return [];
   const counts=countTiles(codes);const out=[];
   for(let i=0;i<34;i++){
     if(counts[i]<2)continue;
-    const rest=[...counts];rest[i]-=2;const melds=[];meldSearch(rest,[],melds);
-    for(const m of melds)if(m.length===4)out.push({type:'standard',pair:indexCode(i),melds:m});
+    const rest=[...counts];rest[i]-=2;const melds=[];meldSearch(rest,[],melds,targetMelds);
+    for(const m of melds)out.push({type:'standard',pair:indexCode(i),melds:m});
   }
   return out;
 }
+export function decomposeStandard(codes){return decomposeStandardPartial(codes,4)}
 export function decomposeChiitoitsu(codes){
   if(codes.length!==14)return [];
   const counts=countTiles(codes);
   const pairs=counts.map((n,i)=>n===2?indexCode(i):null).filter(Boolean);
   return pairs.length===7&&counts.every(n=>n===0||n===2)?[{type:'chiitoitsu',pairs}]:[];
 }
-export function decomposeHand(codes){return [...decomposeStandard(codes),...decomposeChiitoitsu(codes)]}
+export function decomposeKokushi(codes){
+  if(codes.length!==14)return [];
+  const counts=countTiles(codes);
+  const required=KOKUSHI_CODES.map(tileIndex);
+  if(counts.some((n,i)=>n>0&&!required.includes(i)))return [];
+  if(!required.every(i=>counts[i]>=1))return [];
+  const pairIndex=required.find(i=>counts[i]===2);
+  if(pairIndex===undefined||!required.every(i=>counts[i]===1||i===pairIndex&&counts[i]===2))return [];
+  return [{type:'kokushi',pair:indexCode(pairIndex)}];
+}
+export function decomposeHand(codes){return [...decomposeStandard(codes),...decomposeChiitoitsu(codes),...decomposeKokushi(codes)]}
 
 export function waitCandidates(decomp,winTile){
-  if(decomp.type==='chiitoitsu')return [{...decomp,wait:'tanki',winGroup:'pair'}];
+  if(decomp.type==='chiitoitsu'||decomp.type==='kokushi')return [{...decomp,wait:'tanki',winGroup:'pair'}];
   const variants=[];
   if(decomp.pair===winTile)variants.push({...decomp,wait:'tanki',winGroup:'pair'});
   decomp.melds.forEach((m,idx)=>{
