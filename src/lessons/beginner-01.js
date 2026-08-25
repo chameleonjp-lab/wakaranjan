@@ -1,6 +1,6 @@
-import {createTileElement} from '../components/tile.js';
+import {createTile} from '../components/tile.js';
 
-function tile(ctx,code,interactive=false){return createTileElement(ctx.tileByCode.get(code),{interactive})}
+function tile(ctx,code,interactive=false){return createTile(ctx.tileByCode.get(code),{interactive})}
 
 export function renderBeginner01(app,ctx){
   const waits=ctx.waitTypes;
@@ -35,7 +35,8 @@ export function renderBeginner01(app,ctx){
     const quiz=document.createElement('section');
     quiz.className='panel wait-quiz';
     const current=waits[quizIndex];
-    const candidates=[...new Set([...current.waits,...ctx.tiles.filter(t=>!current.waits.includes(t.code)).slice(0,3).map(t=>t.code)])].slice(0,4));
+    const distractors=ctx.tiles.filter(t=>!current.waits.includes(t.code)).slice(0,3).map(t=>t.code);
+    const candidates=[...new Set([...current.waits,...distractors])].slice(0,4);
     candidates.sort(()=>Math.random()-.5);
     quiz.innerHTML=`<div class="eyebrow">確認 ${quizIndex+1} / ${waits.length}</div><h2>${current.nameJa}：待ち牌をすべて選んでください</h2><div class="shape quiz-shape"></div><div class="tile-grid quiz-candidates"></div><div class="feedback" aria-live="polite"></div><div class="action-row"></div>`;
     current.shape.forEach(c=>quiz.querySelector('.quiz-shape').append(tile(ctx,c)));
