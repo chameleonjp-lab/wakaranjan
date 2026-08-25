@@ -55,6 +55,7 @@ assert.equal(kakanState.concealedTiles.includes('2z'),false,'kakan consumes the 
 const minkanState=applyKan({type:'minkan',concealedTiles:['7p','7p','7p','2m'],openMelds:[],discardTile:'7p',from:'toimen',ownTurn:false});
 assert.deepEqual(minkanState.concealedTiles,['2m'],'minkan consumes three hand tiles');
 assert.equal(minkanState.openMelds[0].from,'toimen','minkan keeps its source');
+assert.equal(minkanState.kanCount,1,'applyKan defaults an omitted kan count to zero');
 
 assert.equal(canDeclareKan({type:'ankan',concealedTiles:['1z','1z','1z','1z'],ownTurn:true,kanCount:MAX_KANS_PER_HAND}).code,'max-kans','the fourth-kan limit rejects a fifth kan');
 assert.equal(validateKan({type:'not-a-kan',concealedTiles:[],ownTurn:true}).code,'invalid-type','unknown kan types are rejected');
