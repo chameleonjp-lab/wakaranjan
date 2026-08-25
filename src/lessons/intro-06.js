@@ -1,4 +1,5 @@
 import {createTile} from '../components/tile.js';
+import {markLessonComplete} from '../lib/progress.js';
 
 const INITIAL_HAND=['1m','2m','3m','4p','5p','6p','2s','3s','4s','7s','8s','5z','5z'];
 const DRAW='1z';
@@ -44,7 +45,7 @@ export function renderIntro06(app,ctx){
     if(state==='waiting-ron') addButton('ロンする',ron);
     if(state==='complete'){
       feedback.className='feedback good';
-      feedback.innerHTML='<strong>入門クリア。</strong><br>「1枚取る→1枚捨てる→テンパイ→リーチ→ロン」を一度通せました。点数計算はこのあと別の章で学びます。';
+      feedback.innerHTML='<strong>入門クリア。</strong><br>「1枚取る→1枚捨てる→テンパイ→リーチ→ロン」を一度通せました。学習済みとして記録しました。';
       addButton('もう一度やる',reset,'secondary');
       const a=document.createElement('a');a.className='secondary';a.href='#lesson-beginner-01';a.textContent='初級へ進む';actions.append(a);
     }
@@ -62,7 +63,7 @@ export function renderIntro06(app,ctx){
     setTimeout(()=>{if(state==='tenpai'){state='waiting-riichi';message='門前のテンパイなので、次はリーチを宣言します。';rerender()}},350);
   };
   const riichi=()=>{if(state!=='waiting-riichi')return;state='waiting-ron';message='リーチしました。他家の捨て牌を待ちます。';rerender()};
-  const ron=()=>{if(state!=='waiting-ron')return;hand.push(WIN);state='complete';message='ロン。あがりです。';rerender()};
+  const ron=()=>{if(state!=='waiting-ron')return;hand.push(WIN);state='complete';message='ロン。あがりです。';markLessonComplete('lesson-intro-06');rerender()};
   const reset=()=>{state='ready';hand=[...INITIAL_HAND];river=[];message='もう一度、最初から進めます。';rerender()};
 
   rerender();
