@@ -82,15 +82,16 @@ function advanceHand(state,honba){
  * - A non-dealer win moves to the next hand and resets honba.
  * - Riichi sticks stay on the table until a win collects them.
  */
-export function createMatchState({matchType='east-only',scores=DEFAULT_SCORES,roundWind='east',handNumber=1,dealerSeat='east',honba=0,riichiSticks=0,kanDoraIndicators=[]}={}){
+export function createMatchState({matchType='east-only',scores=DEFAULT_SCORES,roundWind='east',handNumber=1,dealerSeat='east',honba=0,riichiSticks=0,kanCount=0,kanDoraIndicators=[]}={}){
   if(!MATCH_TYPES.includes(matchType))throw new RangeError('unknown matchType');
   if(!WIND_ORDER.includes(roundWind))throw new RangeError('unknown roundWind');
   assertInteger(handNumber,'handNumber',{minimum:1,maximum:4});
   assertSeat(dealerSeat);
   assertInteger(honba,'honba');
   assertInteger(riichiSticks,'riichiSticks');
+  assertInteger(kanCount,'kanCount',{maximum:MAX_KANS_PER_HAND});
   const normalizedKanDoraIndicators=normalizeTileList(kanDoraIndicators,'kanDoraIndicators');
-  if(normalizedKanDoraIndicators.length>MAX_KANS_PER_HAND)throw new RangeError('kanDoraIndicators cannot exceed four');
+  if(normalizedKanDoraIndicators.length>kanCount)throw new RangeError('kanDoraIndicators cannot exceed kanCount');
   return {
     matchType,
     phase:'playing',
@@ -99,7 +100,7 @@ export function createMatchState({matchType='east-only',scores=DEFAULT_SCORES,ro
     dealerSeat,
     honba,
     riichiSticks,
-    kanCount:0,
+    kanCount,
     kanDoraIndicators:normalizedKanDoraIndicators,
     pendingKan:null,
     lastKan:null,
