@@ -22,7 +22,9 @@ function yakuFor(v,{win='ron',riichi=false,seatWind='1z',roundWind='1z'}={}){
     const pinfu=seqs.length===4&&!valuePair(v.pair,seatWind,roundWind)&&v.wait==='ryanmen';
     if(pinfu)yaku.push({id:'yaku-pinfu',name:'ピンフ',han:1});
     const counts=new Map();for(const m of seqs){const k=seqKey(m);counts.set(k,(counts.get(k)||0)+1)}
-    if([...counts.values()].some(n=>n>=2))yaku.push({id:'yaku-iipeikou',name:'一盃口',han:1});
+    const peikouPairs=[...counts.values()].reduce((n,c)=>n+Math.floor(c/2),0);
+    if(peikouPairs>=2)yaku.push({id:'yaku-ryanpeikou',name:'二盃口',han:3});
+    else if(peikouPairs===1)yaku.push({id:'yaku-iipeikou',name:'一盃口',han:1});
     for(let n=1;n<=7;n++){
       const pat=[`${n}m${n+1}m${n+2}m`,`${n}p${n+1}p${n+2}p`,`${n}s${n+1}s${n+2}s`];
       if(pat.every(k=>counts.has(k))){yaku.push({id:'yaku-sanshoku-doujun',name:'三色同順',han:2});break}
