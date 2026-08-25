@@ -80,3 +80,63 @@ export function remainingTiles(wall){
   assertWall(wall);
   return wall.length;
 }
+
+
+export const DEAD_WALL_SIZE=14;
+
+function assertRoundWall(roundWall){
+  if(!roundWall||!Array.isArray(roundWall.live)||!Array.isArray(roundWall.rinshan)||!Array.isArray(roundWall.doraIndicators)||!Array.isArray(roundWall.uraIndicators))throw new TypeError('roundWall is invalid');
+  if(!Number.isInteger(roundWall.rinshanIndex)||!Number.isInteger(roundWall.doraIndex))throw new TypeError('roundWall indexes are invalid');
+}
+
+/**
+ * Split a shuffled wall into the live wall and the 14-tile dead wall.
+ *
+ * The four rinshan tiles and five dora/ura indicator slots are kept as
+ * separate physical tiles so later kan handling can consume them explicitly.
+ */
+export function createRoundWall(options={}){
+  const tiles=createWall(options);
+  if(tiles.length<=DEAD_WALL_SIZE)throw new RangeError('wall must contain more than fourteen tiles');
+  const deadStart=tiles.length-DEAD_WALL_SIZE;
+  const dead=tiles.slice(deadStart);
+  return {
+    live:tiles.slice(0,deadStart),
+    rinshan:dead.slice(0,4),
+    doraIndicators:dead.slice(4,9),
+    uraIndicators:dead.slice(9,14),
+    rinshanIndex:0,
+    doraIndex:0
+  };
+}
+
+export function drawLiveTile(roundWall){
+  assertRoundWall(roundWall);
+  return drawTile(roundWall.live);
+}
+
+export function drawRinshanTile(roundWall){
+  assertRoundWall(roundWall);
+  if(roundWall.rinshanIndex>=roundWall.rinshan.length)return null;
+  const tile=roundWall.rinshan[roundWall.rinshanIndex];
+  roundWall.rinshanIndex+=1;
+  return tile;
+}
+
+export function revealDoraIndicator(roundWall){
+  assertRoundWall(roundWall);
+  if(roundWall.doraIndex>=roundWall.doraIndicators.length)return null;
+  const tile=roundWall.doraIndicators[roundWall.doraIndex];
+  roundWall.doraIndex+=1;
+  return tile;
+}
+
+export function liveTilesRemaining(roundWall){
+  assertRoundWall(roundWall);
+  return roundWall.live.length;
+}
+
+export function deadWallRemaining(roundWall){
+  assertRoundWall(roundWall);
+  return roundWall.rinshan.length-roundWall.rinshanIndex+roundWall.doraIndicators.length+roundWall.uraIndicators.length;
+}
