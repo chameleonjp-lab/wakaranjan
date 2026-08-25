@@ -102,6 +102,13 @@ for(const [yakuId,example] of Object.entries(examples)){
 }
 
 assert.match(appSource,/loadJson\(['\"]\.\/src\/data\/rules\.json['\"]\)/,'標準ルールJSONをapp.jsが読み込んでいません');
+assert.match(appSource,/import \{renderStudyRecord\} from '\.\/tools\/study-record\.js'/,'学習記録ページをapp.jsが読み込んでいません');
+assert.match(appSource,/['\"]study-record['\"]:\(\)=>renderStudyRecord/,'学習記録ページのルートがありません');
+assert.match(appSource,/href="#study-record"/,'ホームから学習記録への導線がありません');
+assert.equal(existsSync(join(root,'src/tools/study-record.js')),true,'学習記録ページのモジュールがありません');
+const problemHubSource=readFileSync(join(root,'src/questions/problem-hub.js'),'utf8');
+assert.match(problemHubSource,/export function getProblemStudyRecord/,'問題の学習記録取得関数がありません');
+assert.match(problemHubSource,/export function clearProblemStudyRecord/,'問題の学習記録削除関数がありません');
 assert.match(appSource,/['\"]rules['\"]:\(\)=>renderRules/,'標準ルールページのルートがありません');
 assert.match(appSource,/rulesets:rulesData\.rulesets/,'標準ルールセットが実行時コンテキストにありません');
 assert.match(appSource,/standardRules:rulesData\.rulesets\.find/,'標準ルールの選択が実行時コンテキストにありません');
