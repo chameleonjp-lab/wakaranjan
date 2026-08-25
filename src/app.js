@@ -6,6 +6,7 @@ import {renderIntro05} from './lessons/intro-05.js';
 import {renderIntro06} from './lessons/intro-06.js';
 import {renderIntroReview} from './questions/intro-review.js';
 import {renderBeginner01} from './lessons/beginner-01.js';
+import {renderBeginner02} from './lessons/beginner-02.js';
 
 const app=document.querySelector('#app');
 
@@ -25,8 +26,8 @@ function renderHome(ctx){
     <h2 class="section-title">入門の総復習</h2>
     <a class="lesson-card" href="#intro-review"><strong>ランダム12問に挑戦</strong><small>15問の問題データから毎回12問を出題します</small></a>
     <h2 class="section-title">初級</h2>
-    <div class="lesson-list">${beginner.map(l=>`<a class="lesson-card" href="#${l.id}"><strong>${l.order}. ${l.title}</strong><small>約${l.estimatedMinutes}分${l.order>1?' ・ 準備中':''}</small></a>`).join('')}</div>
-    <div class="callout" style="margin-top:18px">入門は1-1〜1-6と総復習まで利用できます。初級は「待ちの基本」から順番に追加しています。</div>`;
+    <div class="lesson-list">${beginner.map(l=>`<a class="lesson-card" href="#${l.id}"><strong>${l.order}. ${l.title}</strong><small>約${l.estimatedMinutes}分${l.order>2?' ・ 準備中':''}</small></a>`).join('')}</div>
+    <div class="callout" style="margin-top:18px">入門は総復習まで利用できます。初級は「待ちの基本」「鳴き」まで実装済みです。</div>`;
 }
 
 function renderUnavailable(id,ctx){
@@ -45,6 +46,7 @@ function route(ctx){
   else if(id==='lesson-intro-06') renderIntro06(app,ctx);
   else if(id==='intro-review') renderIntroReview(app,ctx);
   else if(id==='lesson-beginner-01') renderBeginner01(app,ctx);
+  else if(id==='lesson-beginner-02') renderBeginner02(app,ctx);
   else renderUnavailable(id,ctx);
   window.scrollTo({top:0,behavior:'auto'});
   app.focus({preventScroll:true});
@@ -52,17 +54,19 @@ function route(ctx){
 
 async function start(){
   try{
-    const [tileData,lessonData,introReview,waitData]=await Promise.all([
+    const [tileData,lessonData,introReview,waitData,callData]=await Promise.all([
       loadJson('./src/data/tiles.json'),
       loadJson('./src/data/lessons.json'),
       loadJson('./src/data/questions/intro/review.json'),
-      loadJson('./src/data/waits.json')
+      loadJson('./src/data/waits.json'),
+      loadJson('./src/data/calls.json')
     ]);
     const ctx={
       tiles:tileData.tiles,
       lessons:lessonData.lessons,
       introReview,
       waitTypes:waitData.waitTypes,
+      calls:callData.calls,
       tileByCode:new Map(tileData.tiles.map(t=>[t.code,t])),
       tileById:new Map(tileData.tiles.map(t=>[t.id,t])),
       lessonById:new Map(lessonData.lessons.map(l=>[l.id,l]))
