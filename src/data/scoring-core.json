@@ -1,0 +1,26 @@
+{
+  "schemaVersion":1,
+  "ruleset":"wakaranjan-standard-v1",
+  "lessons":[
+    {"id":"lesson-intermediate-01","title":"翻を数える","order":1,"summary":"役とドラを合計して翻数を数える。場ゾロ2翻は教材の表示上は数えない。","points":["役ごとの翻数を足す","ドラは役ではないが翻を増やす","鳴くと翻数が下がる役がある"]},
+    {"id":"lesson-intermediate-02","title":"符を数える","order":2,"summary":"基本20符に、あがり方・待ち・面子・雀頭の符を加える。最後に10符単位へ切り上げる。","points":["門前ロンは10符","ツモは原則2符。ただしピンフツモは20符","辺張・嵌張・単騎は2符","七対子は25符固定"]},
+    {"id":"lesson-intermediate-03","title":"親と子・ロンとツモ","order":3,"summary":"ロンは放銃者1人が払い、ツモは3人が分担する。親は子より高い。","points":["子ロンは基本点×4","親ロンは基本点×6","子ツモは子が基本点、親が基本点×2","親ツモは3人とも基本点×2"]},
+    {"id":"lesson-intermediate-04","title":"点数表を読む","order":4,"summary":"翻と符から点数を決める。満貫以上は符に関係なく上限区分で決まる。","points":["5翻は満貫","6〜7翻は跳満","8〜10翻は倍満","11〜12翻は三倍満","13翻以上は役満扱い"]},
+    {"id":"lesson-intermediate-05","title":"点数計算を練習する","order":5,"summary":"翻・符・親子・ロンツモを順に確認し、最終点数を求める。","points":["30符4翻と60符3翻は切り上げ満貫","最も高い点になる形で計算する"]}
+  ],
+  "fuItems":[
+    {"id":"base","label":"基本符","fu":20},
+    {"id":"closed-ron","label":"門前ロン","fu":10},
+    {"id":"tsumo","label":"ツモ","fu":2},
+    {"id":"wait-edge","label":"辺張待ち","fu":2},
+    {"id":"wait-closed","label":"嵌張待ち","fu":2},
+    {"id":"wait-pair","label":"単騎待ち","fu":2}
+  ],
+  "limits":[
+    {"name":"満貫","han":"5翻、または規定の切り上げ","childRon":8000,"dealerRon":12000},
+    {"name":"跳満","han":"6〜7翻","childRon":12000,"dealerRon":18000},
+    {"name":"倍満","han":"8〜10翻","childRon":16000,"dealerRon":24000},
+    {"name":"三倍満","han":"11〜12翻","childRon":24000,"dealerRon":36000},
+    {"name":"役満","han":"13翻以上相当または役満役","childRon":32000,"dealerRon":48000}
+  ]
+}
