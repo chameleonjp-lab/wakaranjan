@@ -1,5 +1,8 @@
 import {renderIntro01} from './lessons/intro-01.js';
 import {renderIntro02} from './lessons/intro-02.js';
+import {renderIntro03} from './lessons/intro-03.js';
+import {renderIntro04} from './lessons/intro-04.js';
+import {renderIntro05} from './lessons/intro-05.js';
 
 const app=document.querySelector('#app');
 
@@ -14,8 +17,8 @@ function renderHome(ctx){
   app.innerHTML=`
     <section class="hero"><div class="eyebrow">麻雀を知らなくても大丈夫</div><h1>牌を触りながら、少しずつ覚える。</h1><p>最初は専門用語を覚えなくて構いません。「1枚取る、1枚捨てる」から始めます。</p></section>
     <h2 class="section-title">入門</h2>
-    <div class="lesson-list">${intro.map(l=>`<a class="lesson-card" href="#${l.id}"><strong>${l.order}. ${l.title}</strong><small>約${l.estimatedMinutes}分${l.order>2?' ・ 準備中':''}</small></a>`).join('')}</div>
-    <div class="callout" style="margin-top:18px">現在は入門1-1と1-2を実装しています。後続章は、同じ牌データと表示部品を使って順番に追加します。</div>`;
+    <div class="lesson-list">${intro.map(l=>`<a class="lesson-card" href="#${l.id}"><strong>${l.order}. ${l.title}</strong><small>約${l.estimatedMinutes}分${l.order>5?' ・ 準備中':''}</small></a>`).join('')}</div>
+    <div class="callout" style="margin-top:18px">現在は入門1-1〜1-5を実装しています。次は案内付き一局を追加します。</div>`;
 }
 
 function renderUnavailable(id,ctx){
@@ -28,6 +31,9 @@ function route(ctx){
   if(id==='home') renderHome(ctx);
   else if(id==='lesson-intro-01') renderIntro01(app,ctx);
   else if(id==='lesson-intro-02') renderIntro02(app,ctx);
+  else if(id==='lesson-intro-03') renderIntro03(app,ctx);
+  else if(id==='lesson-intro-04') renderIntro04(app,ctx);
+  else if(id==='lesson-intro-05') renderIntro05(app,ctx);
   else renderUnavailable(id,ctx);
   window.scrollTo({top:0,behavior:'auto'});
   app.focus({preventScroll:true});
@@ -43,6 +49,7 @@ async function start(){
       tiles:tileData.tiles,
       lessons:lessonData.lessons,
       tileByCode:new Map(tileData.tiles.map(t=>[t.code,t])),
+      tileById:new Map(tileData.tiles.map(t=>[t.id,t])),
       lessonById:new Map(lessonData.lessons.map(l=>[l.id,l]))
     };
     addEventListener('hashchange',()=>route(ctx));
