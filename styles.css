@@ -9,3 +9,9 @@
 .wall-status-card strong{display:block;margin-top:3px;color:#173d2b;font-size:1.2rem}
 .wall-practice-steps{grid-template-columns:repeat(2,minmax(0,1fr))}
 @media(max-width:540px){.wall-status-grid{grid-template-columns:1fr}}
+
+.flow-current-state{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:12px 14px;border:1px solid #d7cebf;border-radius:12px;background:#edf5ef}
+.flow-current-state span{color:#657067}
+.flow-current-state strong{color:#173d2b;font-size:1.1rem}
+.flow-transition{margin-top:14px;padding:12px;border-radius:10px;background:#f1eee6;color:#435047}
+@media(max-width:540px){.flow-current-state{align-items:flex-start;flex-direction:column;gap:4px}}
