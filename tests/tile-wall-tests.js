@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {createRoundWall,createWall,deadWallRemaining,drawLiveTile,drawRinshanTile,drawTile,drawTiles,liveTilesRemaining,remainingTiles,revealDoraIndicator} from '../src/lib/tile-wall.js';
+import {createRoundWall,createWall,deadWallRemaining,drawLiveTile,drawRinshanTile,drawTile,drawTiles,liveTilesRemaining,remainingTiles,revealDoraIndicator,resolveKan} from '../src/lib/tile-wall.js';
 
 const CODES=[
   '1m','2m','3m','4m','5m','6m','7m','8m','9m',
@@ -63,3 +63,18 @@ for(let index=1;index<5;index+=1)assert.ok(revealDoraIndicator(roundWall),`dora 
 assert.equal(revealDoraIndicator(roundWall),null,'only five dora indicators are available');
 
 console.log('✓ tile wall generation and draw contracts validated.');
+
+const kanRoundWall=createRoundWall({random:()=>0});
+assert.ok(revealDoraIndicator(kanRoundWall),'the initial dora indicator is revealed before kan handling');
+const kanLiveBefore=liveTilesRemaining(kanRoundWall);
+for(let index=0;index<4;index+=1){
+  const result=resolveKan(kanRoundWall);
+  assert.equal(result.ok,true,'kan '+(index+1)+' consumes a rinshan tile and reveals kan dora');
+  assert.ok(result.rinshan,'kan returns the rinshan tile');
+  assert.ok(result.doraIndicator,'kan returns the additional dora indicator');
+}
+assert.equal(liveTilesRemaining(kanRoundWall),kanLiveBefore,'kan does not consume the live wall');
+assert.equal(deadWallRemaining(kanRoundWall),10,'four kan replacements consume four rinshan tiles');
+assert.equal(resolveKan(kanRoundWall).code,'rinshan-exhausted','a fifth kan cannot draw another rinshan tile');
+
+console.log('✓ kan wall replacement contracts validated.');
