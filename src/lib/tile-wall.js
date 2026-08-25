@@ -140,3 +140,20 @@ export function deadWallRemaining(roundWall){
   assertRoundWall(roundWall);
   return roundWall.rinshan.length-roundWall.rinshanIndex+roundWall.doraIndicators.length+roundWall.uraIndicators.length;
 }
+
+/**
+ * Resolve the physical wall effects of a kan as one atomic operation.
+ *
+ * A kan consumes one rinshan tile and reveals the next kan-dora indicator.
+ * If either slot is exhausted, the wall is left unchanged.
+ */
+export function resolveKan(roundWall){
+  assertRoundWall(roundWall);
+  if(roundWall.rinshanIndex>=roundWall.rinshan.length)return {ok:false,code:'rinshan-exhausted',message:'嶺上牌が残っていません。'};
+  if(roundWall.doraIndex>=roundWall.doraIndicators.length)return {ok:false,code:'dora-indicator-exhausted',message:'追加のドラ表示牌が残っていません。'};
+  const rinshan=roundWall.rinshan[roundWall.rinshanIndex];
+  const doraIndicator=roundWall.doraIndicators[roundWall.doraIndex];
+  roundWall.rinshanIndex+=1;
+  roundWall.doraIndex+=1;
+  return {ok:true,code:'ok',message:'嶺上牌を引き、追加のドラ表示牌をめくりました。',rinshan,doraIndicator};
+}
