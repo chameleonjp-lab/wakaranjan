@@ -2,6 +2,13 @@ import assert from 'node:assert/strict';
 import {completeHand,createMatchState,declareKan,resolveKan,roundLabel} from '../src/lib/round-state.js';
 
 const initial=createMatchState();
+const restored=createMatchState({
+  kanCount:1,
+  kanDoraIndicators:[{code:'5m',red:false}]
+});
+assert.equal(restored.kanCount,1,'a restored hand retains its kan count');
+assert.equal(restored.kanDoraIndicators[0].code,'5m','a restored hand retains its added dora');
+assert.throws(()=>createMatchState({kanDoraIndicators:[{code:'5m'}]}),/cannot exceed kanCount/,'dora indicators cannot exceed the restored kan count');
 const meld={type:'ankan',tiles:['7p','7p','7p','7p'],open:false};
 const declared=declareKan(initial,{type:'ankan',seat:'east',meld});
 assert.equal(initial.kanCount,0,'declaring a kan does not mutate the previous state');
