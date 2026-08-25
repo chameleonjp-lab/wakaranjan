@@ -1,4 +1,4 @@
-import {tileElement} from '../components/tile.js';
+import {createTile} from '../components/tile.js';
 
 const examples=[
   {title:'順子（シュンツ）',codes:['2m','3m','4m'],ok:true,desc:'同じ種類で数字が3つ続く組です。'},
@@ -15,9 +15,9 @@ export function renderIntro04(app,ctx){
   const grid=app.querySelector('#shapeExamples');
   examples.forEach(ex=>{
     const card=document.createElement('article');card.className='shape-card';card.innerHTML=`<h3>${ex.title}</h3><div class="shape-tiles"></div><p>${ex.desc}</p>`;
-    ex.codes.forEach(c=>card.querySelector('.shape-tiles').append(tileElement(getTile(ctx,c),{compact:true})));
+    ex.codes.forEach(c=>card.querySelector('.shape-tiles').append(createTile(getTile(ctx,c))));
     grid.append(card);
   });
   const blocks=[['1m','2m','3m'],['4p','5p','6p'],['2s','3s','4s'],['east','east','east'],['white','white']];
-  blocks.forEach((codes,i)=>{const b=document.createElement('div');b.className='hand-block';b.setAttribute('aria-label',i<4?'3枚の組':'2枚の組');codes.forEach(c=>b.append(tileElement(getTile(ctx,c),{compact:true})));app.querySelector('#completeHand').append(b);});
+  blocks.forEach((codes,i)=>{const b=document.createElement('div');b.className='hand-block';b.setAttribute('aria-label',i<4?'3枚の組':'2枚の組');codes.forEach(c=>b.append(createTile(getTile(ctx,c))));app.querySelector('#completeHand').append(b);});
 }
