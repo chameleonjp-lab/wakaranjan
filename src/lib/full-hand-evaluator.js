@@ -5,43 +5,43 @@ const DRAGONS=new Set(['5z','6z','7z']);
 const WINDS=new Set(['1z','2z','3z','4z']);
 const GREEN=new Set(['2s','3s','4s','6s','8s','6z']);
 const TERMINALS=new Set(['1m','9m','1p','9p','1s','9s']);
-const KOKUSHI=new Set([...TERMINALS,'1z','2z','3z','4z','5z','6z','7z']);
+const RED_FIVES=new Set(['5m','5p','5s']);
 const validMeldTypes=new Set(['chi','pon','minkan','ankan','kakan']);
 
 function indicatorNext(code){
-  const n=Number(code[0]);const suit=code[1];
-  if('mps'.includes(suit))return `${n===9?1:n+1}${suit}`;
-  if(suit!=='z')return null;
-  if(n<=4)return `${n===4?1:n+1}z`;
+  const m=/^([1-9])([mps])$/.exec(code);
+  if(m){const n=Number(m[1]);return `${n===9?1:n+1}${m[2]}`}
+  const z=/^([1-7])z$/.exec(code);if(!z)return null;
+  const n=Number(z[1]);if(n<=4)return `${n===4?1:n+1}z`;
   return `${n===7?5:n+1}z`;
 }
 
 function normalizeMeld(raw,index){
   if(!raw||!validMeldTypes.has(raw.type))throw new Error(`副露${index+1}の種類が不正です。`);
   if(!Array.isArray(raw.tiles))throw new Error(`副露${index+1}の牌がありません。`);
-  const tiles=[...raw.tiles];
-  countTiles(tiles);
+  const tiles=[...raw.tiles];countTiles(tiles);
   if(raw.type==='chi'){
     if(tiles.length!==3||tiles.some(isHonor))throw new Error(`副露${index+1}のチーが不正です。`);
-    const sorted=[...tiles].sort();const suit=sorted[0][1];const nums=sorted.map(t=>Number(t[0])).sort((a,b)=>a-b);
-    if(sorted.some(t=>t[1]!==suit)||nums[1]!==nums[0]+1||nums[2]!==nums[1]+1)throw new Error(`副露${index+1}のチーが順子ではありません。`);
-    return {type:'sequence',source:'declared',callType:'chi',tiles,open:true,kan:false};
+    const suit=tiles[0][1];if(tiles.some(t=>t[1]!==suit))throw new Error(`副露${index+1}のチーが同じ種類の数牌ではありません。`);
+    const nums=tiles.map(t=>Number(t[0])).sort((a,b)=>a-b);
+    if(nums[1]!==nums[0]+1||nums[2]!==nums[1]+1)throw new Error(`副露${index+1}のチーが順子ではありません。`);
+    const sorted=nums.map(n=>`${n}${suit}`);
+    return {type:'sequence',source:'declared',callType:'chi',tiles:sorted,open:true,kan:false};
   }
   const expected=raw.type==='pon'?3:4;
   if(tiles.length!==expected||!tiles.every(t=>t===tiles[0]))throw new Error(`副露${index+1}の${raw.type}が同一牌で構成されていません。`);
   return {type:'triplet',source:'declared',callType:raw.type,tiles,open:raw.type!=='ankan',kan:raw.type!=='pon'};
 }
 
-function allPhysicalTiles(concealed,melds){return [...concealed,...melds.flatMap(m=>m.tiles)]}
-function isClosed(melds){return melds.every(m=>!m.open)}
-function hasTerminal(m){return m.tiles.some(t=>TERMINALS.has(t))}
-function hasTerminalOrHonor(m){return m.tiles.some(isTerminalOrHonor)}
-function hasHonor(m){return m.tiles.some(isHonor)}
-function isValuePair(pair,seatWind,roundWind){return DRAGONS.has(pair)||pair===seatWind||pair===roundWind}
-function closedHan(closed,closedValue,openValue){return closed?closedValue:openValue}
-function tripLike(m){return m.type==='triplet'}
-function seqLike(m){return m.type==='sequence'}
-function tripCode(m){return tripLike(m)?m.tiles[0]:null}
+const allPhysicalTiles=(concealed,melds)=>[...concealed,...melds.flatMap(m=>m.tiles)];
+const isClosed=melds=>melds.every(m=>!m.open);
+const hasTerminal=m=>m.tiles.some(t=>TERMINALS.has(t));
+const hasTerminalOrHonor=m=>m.tiles.some(isTerminalOrHonor);
+const isValuePair=(pair,seatWind,roundWind)=>DRAGONS.has(pair)||pair===seatWind||pair===roundWind;
+const closedHan=(closed,closedValue,openValue)=>closed?closedValue:openValue;
+const tripLike=m=>m.type==='triplet';
+const seqLike=m=>m.type==='sequence';
+const tripCode=m=>tripLike(m)?m.tiles[0]:null;
 function uniqueYaku(items){const map=new Map();for(const y of items)if(!map.has(y.id))map.set(y.id,y);return [...map.values()]}
 
 function concealedTripletForSanankou(m,index,v,win){
@@ -83,8 +83,7 @@ function normalYaku(v,ctx){
     const dragonTrips=['5z','6z','7z'].filter(c=>trips.some(m=>tripCode(m)===c));
     if(dragonTrips.length===2&&DRAGONS.has(v.pair))y.push({id:'yaku-shousangen',name:'小三元',han:2});
 
-    const pinfu=closed&&seqs.length===4&&!isValuePair(v.pair,seatWind,roundWind)&&v.wait==='ryanmen';
-    if(pinfu)y.push({id:'yaku-pinfu',name:'ピンフ',han:1});
+    if(closed&&seqs.length===4&&!isValuePair(v.pair,seatWind,roundWind)&&v.wait==='ryanmen')y.push({id:'yaku-pinfu',name:'ピンフ',han:1});
 
     if(closed){
       const seqCounts=new Map();
@@ -95,12 +94,11 @@ function normalYaku(v,ctx){
     }
 
     for(let n=1;n<=7;n++){
-      const has=suit=>seqs.some(m=>m.tiles[0]===`${n}${suit}`&&m.tiles[1]===`${n+1}${suit}`&&m.tiles[2]===`${n+2}${suit}`);
+      const has=suit=>seqs.some(m=>m.tiles.join('')===`${n}${suit}${n+1}${suit}${n+2}${suit}`);
       if(['m','p','s'].every(has)){y.push({id:'yaku-sanshoku-doujun',name:'三色同順',han:closedHan(closed,2,1)});break}
     }
     for(const suit of ['m','p','s']){
-      const starts=[1,4,7];
-      if(starts.every(n=>seqs.some(m=>m.tiles.join('')===`${n}${suit}${n+1}${suit}${n+2}${suit}`))){y.push({id:'yaku-ittsuu',name:'一気通貫',han:closedHan(closed,2,1)});break}
+      if([1,4,7].every(n=>seqs.some(m=>m.tiles.join('')===`${n}${suit}${n+1}${suit}${n+2}${suit}`))){y.push({id:'yaku-ittsuu',name:'一気通貫',han:closedHan(closed,2,1)});break}
     }
 
     const groups=[...melds,{type:'pair',tiles:[v.pair,v.pair]}];
@@ -125,8 +123,8 @@ function isChuuren(tiles,closed){
 
 function yakumanYaku(v,ctx){
   const {allTiles:tiles,closed,win,tenhou,chiihou}=ctx;const melds=v.allMelds||[];const y=[];
-  if(tenhou&&closed)y.push({id:'yaku-tenhou',name:'天和',yakuman:1});
-  if(chiihou&&closed)y.push({id:'yaku-chiihou',name:'地和',yakuman:1});
+  if(tenhou)y.push({id:'yaku-tenhou',name:'天和',yakuman:1});
+  if(chiihou)y.push({id:'yaku-chiihou',name:'地和',yakuman:1});
   if(v.type==='kokushi')y.push({id:'yaku-kokushi',name:'国士無双',yakuman:1});
   if(v.type==='standard'){
     const trips=melds.filter(tripLike);const codes=trips.map(tripCode);
@@ -148,7 +146,7 @@ function yakumanYaku(v,ctx){
 function fuFor(v,ctx){
   if(v.type==='chiitoitsu')return {fu:25,items:[['七対子',25]]};
   if(v.type!=='standard')return {fu:0,items:[]};
-  const yaku=normalYaku(v,ctx);const pinfu=yaku.some(y=>y.id==='yaku-pinfu');
+  const pinfu=normalYaku(v,ctx).some(y=>y.id==='yaku-pinfu');
   if(pinfu&&ctx.win==='tsumo')return {fu:20,items:[['ピンフツモ',20]]};
   let fu=20;const items=[['副底',20]];
   if(ctx.closed&&ctx.win==='ron'){fu+=10;items.push(['門前ロン',10])}
@@ -156,8 +154,7 @@ function fuFor(v,ctx){
   if(isValuePair(v.pair,ctx.seatWind,ctx.roundWind)){fu+=2;items.push(['翻牌の雀頭',2])}
   v.allMelds.forEach((m,i)=>{
     if(!tripLike(m))return;
-    const yao=isTerminalOrHonor(m.tiles[0]);
-    let open=m.open;
+    const yao=isTerminalOrHonor(m.tiles[0]);let open=m.open;
     if(m.source!=='declared'&&ctx.win==='ron'&&v.wait==='shanpon'&&v.winGroup===i)open=true;
     const add=m.kan?(yao?(open?16:32):(open?8:16)):(yao?(open?4:8):(open?2:4));
     fu+=add;items.push([`${yao?'么九牌':'中張牌'}の${open?'明':'暗'}${m.kan?'槓':'刻'}`,add]);
@@ -168,14 +165,26 @@ function fuFor(v,ctx){
   return {fu:rounded,items};
 }
 
+function redDoraInfo(allTiles,ctx){
+  if(Array.isArray(ctx.redDoraCodes)){
+    const codes=[...new Set(ctx.redDoraCodes)];
+    for(const code of codes){if(!RED_FIVES.has(code))throw new Error(`赤ドラ指定が不正です: ${code}`);if(!allTiles.includes(code))throw new Error(`${code} を赤牌として指定しましたが、手牌・副露にありません。`)}
+    return {count:codes.length,detail:codes.length?[{name:'赤ドラ',count:codes.length,codes}]:[]};
+  }
+  const red=Math.max(0,Number(ctx.redDora)||0);const fiveCount=allTiles.filter(t=>RED_FIVES.has(t)).length;
+  if(red>3||red>fiveCount)throw new Error('赤ドラ枚数が手牌・副露の5牌と一致しません。');
+  return {count:red,detail:red?[{name:'赤ドラ',count:red}]:[]};
+}
+
 function doraBreakdown(allTiles,ctx){
-  const groups=[['表ドラ',ctx.doraIndicators||[]],['槓ドラ',ctx.kanDoraIndicators||[]]];
-  if(ctx.riichi||ctx.doubleRiichi){groups.push(['裏ドラ',ctx.uraIndicators||[]],['槓裏ドラ',ctx.kanUraIndicators||[]])}
+  const groups=[['表ドラ',ctx.doraIndicators||[]]];
+  if(!ctx.chankan)groups.push(['槓ドラ',ctx.kanDoraIndicators||[]]);
+  if(ctx.riichi||ctx.doubleRiichi){groups.push(['裏ドラ',ctx.uraIndicators||[]]);if(!ctx.chankan)groups.push(['槓裏ドラ',ctx.kanUraIndicators||[]])}
   const detail=[];let count=0;
   for(const [name,indicators] of groups){
-    for(const indicator of indicators){const dora=indicatorNext(indicator);if(!dora)continue;const n=allTiles.filter(t=>t===dora).length;if(n){count+=n;detail.push({name,indicator,dora,count:n})}}
+    for(const indicator of indicators){const dora=indicatorNext(indicator);if(!dora)throw new Error(`ドラ表示牌が不正です: ${indicator}`);const n=allTiles.filter(t=>t===dora).length;if(n){count+=n;detail.push({name,indicator,dora,count:n})}}
   }
-  const red=Math.max(0,Number(ctx.redDora)||0);count+=red;if(red)detail.push({name:'赤ドラ',count:red});
+  const red=redDoraInfo(allTiles,ctx);count+=red.count;detail.push(...red.detail);
   return {count,detail};
 }
 
@@ -199,24 +208,31 @@ export function evaluateHand(input={}){
   const expected=14-declared.length*3;
   if(concealed.length!==expected)return {ok:false,error:`手牌は、副露${declared.length}組なら${expected}枚（あがり牌を含む）指定してください。`};
   if(!input.winTile||!concealed.includes(input.winTile))return {ok:false,error:'あがり牌を手牌に含めて指定してください。'};
-  const physical=allPhysicalTiles(concealed,declared);
-  try{countTiles(physical)}catch(e){return {ok:false,error:e.message}}
-  const closed=isClosed(declared);
+  const physical=allPhysicalTiles(concealed,declared);try{countTiles(physical)}catch(e){return {ok:false,error:e.message}}
+  const closed=isClosed(declared);const win=input.win||'ron';
+  if(!['ron','tsumo'].includes(win))return {ok:false,error:'あがり方はロンまたはツモを指定してください。'};
   if((input.riichi||input.doubleRiichi||input.ippatsu)&&!closed)return {ok:false,error:'副露した手ではリーチ・ダブルリーチ・一発を指定できません。'};
-  if(input.haitei&&input.win!=='tsumo')return {ok:false,error:'海底摸月はツモあがりで指定してください。'};
-  if(input.houtei&&input.win!=='ron')return {ok:false,error:'河底撈魚はロンあがりで指定してください。'};
-  if(input.rinshan&&(input.win!=='tsumo'||!declared.some(m=>m.kan)))return {ok:false,error:'嶺上開花はカン後のツモあがりで指定してください。'};
-  if(input.chankan&&input.win!=='ron')return {ok:false,error:'搶槓はロンあがりで指定してください。'};
+  if(input.ippatsu&&!input.riichi&&!input.doubleRiichi)return {ok:false,error:'一発はリーチまたはダブルリーチと一緒に指定してください。'};
+  if(input.haitei&&win!=='tsumo')return {ok:false,error:'海底摸月はツモあがりで指定してください。'};
+  if(input.houtei&&win!=='ron')return {ok:false,error:'河底撈魚はロンあがりで指定してください。'};
+  if(input.rinshan&&(win!=='tsumo'||!declared.some(m=>m.kan)))return {ok:false,error:'嶺上開花はカン後のツモあがりで指定してください。'};
+  if(input.chankan&&win!=='ron')return {ok:false,error:'搶槓はロンあがりで指定してください。'};
+  if([input.haitei,input.houtei,input.rinshan,input.chankan].filter(Boolean).length>1)return {ok:false,error:'海底・河底・嶺上・搶槓は同時に複数指定できません。'};
+  if(input.tenhou&&(win!=='tsumo'||!input.dealer||declared.length))return {ok:false,error:'天和は親の配牌時のツモあがりとして指定してください。'};
+  if(input.chiihou&&(win!=='tsumo'||input.dealer||declared.length))return {ok:false,error:'地和は子の第一ツモのあがりとして指定してください。'};
+  if(input.tenhou&&input.chiihou)return {ok:false,error:'天和と地和は同時に指定できません。'};
 
-  const ctx={...input,win:input.win||'ron',seatWind:input.seatWind||'1z',roundWind:input.roundWind||'1z',closed,allTiles:physical};
-  const variants=buildVariants(concealed,declared,input.winTile);if(!variants.length)return {ok:false,error:'現在の牌と副露では、あがり形に分解できません。'};
+  const ctx={...input,win,seatWind:input.dealer?'1z':(input.seatWind||'2z'),roundWind:input.roundWind||'1z',closed,allTiles:physical};
+  let variants;try{variants=buildVariants(concealed,declared,input.winTile)}catch(e){return {ok:false,error:e.message}}
+  if(!variants.length)return {ok:false,error:'現在の牌と副露では、あがり形に分解できません。'};
   const candidates=[];
   for(const v of variants){
     const yakuman=yakumanYaku(v,ctx);const yakumanValue=yakuman.reduce((n,y)=>n+y.yakuman,0);
-    if(yakumanValue>0){const score=calculateScore({yakumanValue,dealer:Boolean(input.dealer),win:ctx.win});candidates.push({decomposition:v,yakuman,yakumanValue,yaku:[],yakuHan:0,dora:0,doraDetail:[],han:0,fu:0,fuItems:[],score});continue}
+    if(yakumanValue>0){const score=calculateScore({han:0,fu:20,yakuman:yakumanValue,dealer:Boolean(input.dealer),win});candidates.push({decomposition:v,yakuman,yakumanValue,yaku:[],yakuHan:0,dora:0,doraDetail:[],han:0,fu:0,fuItems:[],score});continue}
     if(v.type==='kokushi')continue;
     const yaku=normalYaku(v,ctx);const yakuHan=yaku.reduce((n,y)=>n+y.han,0);if(yakuHan<1)continue;
-    const dora=doraBreakdown(physical,ctx);const {fu,items}=fuFor(v,ctx);const han=yakuHan+dora.count;const score=calculateScore({han,fu,dealer:Boolean(input.dealer),win:ctx.win});
+    let dora;try{dora=doraBreakdown(physical,ctx)}catch(e){return {ok:false,error:e.message}}
+    const {fu,items}=fuFor(v,ctx);const han=yakuHan+dora.count;const score=calculateScore({han,fu,dealer:Boolean(input.dealer),win});
     candidates.push({decomposition:v,yaku,yakuHan,dora:dora.count,doraDetail:dora.detail,han,fu,fuItems:items,score,yakuman:[],yakumanValue:0});
   }
   if(!candidates.length)return {ok:false,error:'あがり形ですが役がありません。ドラだけではあがれません。'};
