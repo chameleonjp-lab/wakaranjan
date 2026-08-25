@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "ruleset": "wakaranjan-standard-v1",
+  "setId": "intro-review-v1",
+  "sessionSize": 12,
+  "questions": [
+    {"id":"question-intro-review-001","level":"intro","category":"game-flow","lessonRef":"lesson-intro-01","prompt":"自分の番になったとき、基本的に最初にすることは？","choices":["山から1枚取る","2枚捨てる","すぐにロンと言う","牌をすべて公開する"],"answerIndex":0,"explanation":"基本は、山から1枚取って手牌を14枚にしてから1枚捨てます。"},
+    {"id":"question-intro-review-002","level":"intro","category":"game-flow","lessonRef":"lesson-intro-01","prompt":"1枚ツモした直後の手牌は、通常何枚？","choices":["12枚","13枚","14枚","15枚"],"answerIndex":2,"explanation":"普段は13枚で、自分の番に1枚取ると14枚になります。"},
+    {"id":"question-intro-review-003","level":"intro","category":"basic-shape","lessonRef":"lesson-intro-01","prompt":"基本のあがり形として正しいものは？","choices":["3枚の組を4つ＋同じ牌2枚","3枚の組を3つ＋同じ牌3枚","同じ牌2枚を7組だけ","どんな14枚でもよい"],"answerIndex":0,"explanation":"入門では、まず「3枚の組を4つ＋同じ牌2枚」を基本形として覚えます。七対子などの特殊形は後で学びます。"},
+    {"id":"question-intro-review-004","level":"intro","category":"tile-reading","lessonRef":"lesson-intro-02","prompt":"一萬の読み方は？","choices":["イーワン","イーピン","イーソー","トン"],"answerIndex":0,"explanation":"一萬はイーワンと読みます。"},
+    {"id":"question-intro-review-005","level":"intro","category":"tile-name","lessonRef":"lesson-intro-02","prompt":"東・南・西・北・白・發・中をまとめて何と呼ぶ？","choices":["萬子","筒子","索子","字牌"],"answerIndex":3,"explanation":"数字ではなく文字が書かれた7種類は字牌です。"},
+    {"id":"question-intro-review-006","level":"intro","category":"tile-name","lessonRef":"lesson-intro-02","prompt":"赤五萬は、通常の五萬とは別の種類の牌？","choices":["はい、別の35種類目の牌","いいえ、五萬の特別な見た目","字牌の一種","役満専用の牌"],"answerIndex":1,"explanation":"赤5は別の牌種ではなく、通常の5と同じ種類の牌を特別な見た目で表したものです。"},
+    {"id":"question-intro-review-007","level":"intro","category":"table-state","lessonRef":"lesson-intro-03","prompt":"自分が持っている牌のまとまりを何と呼ぶ？","choices":["山","河","手牌","場風"],"answerIndex":2,"explanation":"自分が持っている牌を手牌と呼びます。"},
+    {"id":"question-intro-review-008","level":"intro","category":"table-state","lessonRef":"lesson-intro-03","prompt":"各プレイヤーが捨てた牌を並べる場所は？","choices":["山","河","手牌","雀頭"],"answerIndex":1,"explanation":"捨て牌を並べる場所を河と呼びます。"},
+    {"id":"question-intro-review-009","level":"intro","category":"meld-type","lessonRef":"lesson-intro-04","prompt":"同じ種類の数牌で数字が3つ続く組を何と呼ぶ？","choices":["順子","刻子","対子","河"],"answerIndex":0,"explanation":"たとえば二萬・三萬・四萬のような3枚組は順子です。"},
+    {"id":"question-intro-review-010","level":"intro","category":"meld-type","lessonRef":"lesson-intro-04","prompt":"同じ牌3枚の組を何と呼ぶ？","choices":["順子","刻子","対子","雀頭だけ"],"answerIndex":1,"explanation":"同じ牌3枚の組は刻子です。"},
+    {"id":"question-intro-review-011","level":"intro","category":"meld-type","lessonRef":"lesson-intro-04","prompt":"基本のあがり形で使う同じ牌2枚の組を何と呼ぶ？","choices":["雀頭","山","河","順子"],"answerIndex":0,"explanation":"基本のあがり形では、同じ牌2枚の組を雀頭として使います。"},
+    {"id":"question-intro-review-012","level":"intro","category":"win-type","lessonRef":"lesson-intro-05","prompt":"自分であがり牌を引いてあがることは？","choices":["ロン","ツモ","ポン","チー"],"answerIndex":1,"explanation":"自分であがり牌を引くあがり方がツモです。"},
+    {"id":"question-intro-review-013","level":"intro","category":"win-type","lessonRef":"lesson-intro-05","prompt":"他の人が捨てたあがり牌であがることは？","choices":["ロン","ツモ","カン","テンパイ"],"answerIndex":0,"explanation":"他の人の捨て牌であがることがロンです。"},
+    {"id":"question-intro-review-014","level":"intro","category":"yaku-required","lessonRef":"lesson-intro-05","prompt":"形が完成する牌なら、いつでも必ずロンできる？","choices":["必ずできる","役など別の条件も満たす必要がある","赤牌なら必ずできる","親だけ必ずできる"],"answerIndex":1,"explanation":"待ち牌で形が完成しても、実際にあがるには役などの条件があります。待ち牌とロン可能牌は同じ意味ではありません。"},
+    {"id":"question-intro-review-015","level":"intro","category":"guided-round","lessonRef":"lesson-intro-06","prompt":"あと1枚であがり形になる状態を何と呼ぶ？","choices":["テンパイ","フリテン","副露","ドラ"],"answerIndex":0,"explanation":"あと1枚であがり形になる状態がテンパイです。"}
+  ]
+}
