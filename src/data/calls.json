@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "calls": [
+    {
+      "id": "call-chi",
+      "termId": "term-chi",
+      "nameJa": "チー",
+      "description": "自分の左側の人（上家）が捨てた牌を1枚使い、同じ種類で数字が3つ続く組を作る鳴き。",
+      "from": ["kamicha"],
+      "requires": "sequence",
+      "example": {
+        "hand": ["3m", "4m"],
+        "discard": "5m",
+        "meld": ["3m", "4m", "5m"]
+      }
+    },
+    {
+      "id": "call-pon",
+      "termId": "term-pon",
+      "nameJa": "ポン",
+      "description": "他の3人の誰かが捨てた牌を1枚使い、同じ牌3枚の組を作る鳴き。",
+      "from": ["kamicha", "toimen", "shimocha"],
+      "requires": "triplet",
+      "example": {
+        "hand": ["5z", "5z"],
+        "discard": "5z",
+        "meld": ["5z", "5z", "5z"]
+      }
+    },
+    {
+      "id": "call-kan-open",
+      "termId": "term-kan",
+      "nameJa": "大明槓",
+      "description": "他の3人の誰かが捨てた牌を1枚使い、手元の同じ牌3枚と合わせて4枚組にするカン。",
+      "from": ["kamicha", "toimen", "shimocha"],
+      "requires": "quad",
+      "example": {
+        "hand": ["7p", "7p", "7p"],
+        "discard": "7p",
+        "meld": ["7p", "7p", "7p", "7p"]
+      }
+    }
+  ]
+}
