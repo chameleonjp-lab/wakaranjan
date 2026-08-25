@@ -54,7 +54,7 @@ assert.equal(liveTilesRemaining(roundWall),108,'live draw reduces only the live 
 
 const firstDora=revealDoraIndicator(roundWall);
 assert.ok(firstDora,'the first dora indicator can be revealed');
-assert.equal(deadWallRemaining(roundWall),10,'revealing a dora indicator does not remove a physical dead-wall tile');
+assert.equal(deadWallRemaining(roundWall),14,'revealing a dora indicator does not remove a physical dead-wall tile');
 for(let index=0;index<3;index+=1)assert.ok(drawRinshanTile(roundWall),`rinshan draw ${index+1} is available`);
 assert.ok(drawRinshanTile(roundWall),'the fourth rinshan draw is available');
 assert.equal(drawRinshanTile(roundWall),null,'the fifth rinshan draw is unavailable');
