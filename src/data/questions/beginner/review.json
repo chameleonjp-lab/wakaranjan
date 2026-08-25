@@ -1,0 +1,26 @@
+{
+  "schemaVersion":1,
+  "setId":"beginner-review-v1",
+  "ruleset":"wakaranjan-standard-v1",
+  "sessionSize":12,
+  "questions":[
+    {"id":"question-beginner-001","lessonRef":"lesson-beginner-01","prompt":"4萬・5萬の両面待ち。待ち牌は？","choices":["3萬だけ","6萬だけ","3萬と6萬"],"answerIndex":2,"explanation":"4・5は3でも6でも順子が完成します。"},
+    {"id":"question-beginner-002","lessonRef":"lesson-beginner-01","prompt":"4筒・6筒の形は何待ち？","choices":["両面待ち","嵌張待ち","単騎待ち"],"answerIndex":1,"explanation":"真ん中の5筒だけで完成する嵌張待ちです。"},
+    {"id":"question-beginner-003","lessonRef":"lesson-beginner-01","prompt":"白白・中中のどちらかを3枚組にして完成する待ちは？","choices":["双碰待ち","辺張待ち","両面待ち"],"answerIndex":0,"explanation":"2組の対子のどちらかを刻子にする双碰待ちです。"},
+    {"id":"question-beginner-004","lessonRef":"lesson-beginner-02","prompt":"対面が5萬を捨て、手元に3萬・4萬があります。チーできますか？","choices":["できる","できない"],"answerIndex":1,"explanation":"チーに使える捨て牌は上家のものだけです。"},
+    {"id":"question-beginner-005","lessonRef":"lesson-beginner-02","prompt":"ポンは誰の捨て牌からできますか？","choices":["上家だけ","対面だけ","他の3人の誰からでも"],"answerIndex":2,"explanation":"同じ牌2枚が手元にあれば、他家3人の誰の捨て牌でもポンできます。"},
+    {"id":"question-beginner-006","lessonRef":"lesson-beginner-02","prompt":"鳴いた手について正しい説明は？","choices":["手の一部が公開される","必ずリーチできる","牌が全部非公開になる"],"answerIndex":0,"explanation":"チー・ポン・明槓では作った組を公開します。"},
+    {"id":"question-beginner-007","lessonRef":"lesson-beginner-03","prompt":"ポンしたあとテンパイしました。通常のリーチは？","choices":["できる","できない"],"answerIndex":1,"explanation":"通常のリーチには門前であることが必要です。"},
+    {"id":"question-beginner-008","lessonRef":"lesson-beginner-03","prompt":"リーチ宣言で供託する点棒は？","choices":["100点棒","1000点棒","5000点棒"],"answerIndex":1,"explanation":"リーチ棒として1000点棒を1本供託します。"},
+    {"id":"question-beginner-009","lessonRef":"lesson-beginner-03","prompt":"リーチ後にあがり牌をロンせず見逃しました。その後は？","choices":["ロンできる","ロンできないがツモはできる"],"answerIndex":1,"explanation":"リーチ後の見逃しはフリテンとなり、その局はロンできません。"},
+    {"id":"question-beginner-010","lessonRef":"lesson-beginner-04","prompt":"3萬・6萬待ちで、自分の河に3萬があります。他家の6萬でロンできますか？","choices":["できる","できない"],"answerIndex":1,"explanation":"待ち牌の一つを自分で捨てているため、待ち全体がフリテンです。"},
+    {"id":"question-beginner-011","lessonRef":"lesson-beginner-04","prompt":"フリテン中、自分であがり牌をツモりました。","choices":["ツモあがりできる","あがれない"],"answerIndex":0,"explanation":"フリテンで禁止されるのはロンです。ツモあがりは可能です。"},
+    {"id":"question-beginner-012","lessonRef":"lesson-beginner-04","prompt":"同巡内フリテンが通常解消するのは？","choices":["自分の次のツモと打牌が終わった後","局が終わった後だけ","すぐに解消する"],"answerIndex":0,"explanation":"見逃した同巡内フリテンは、自分の次の摸打が終わると解消します。"},
+    {"id":"question-beginner-013","lessonRef":"lesson-beginner-05","prompt":"2〜8の数牌だけで作る役は？","choices":["タンヤオ","対々和","一気通貫"],"answerIndex":0,"explanation":"タンヤオは1・9・字牌を使いません。"},
+    {"id":"question-beginner-014","lessonRef":"lesson-beginner-05","prompt":"白を3枚そろえると成立する役は？","choices":["役牌 白","ピンフ","七対子"],"answerIndex":0,"explanation":"白・發・中は刻子または槓子にすると役牌になります。"},
+    {"id":"question-beginner-015","lessonRef":"lesson-beginner-05","prompt":"同じ牌2枚の組を7組作る特殊な役は？","choices":["七対子","一盃口","混一色"],"answerIndex":0,"explanation":"七対子は7組の対子で作る特殊なあがり形です。"},
+    {"id":"question-beginner-016","lessonRef":"lesson-beginner-06","prompt":"ドラ表示牌が9筒です。ドラは？","choices":["9筒","1筒","8筒"],"answerIndex":1,"explanation":"数牌は9の次が1に戻ります。"},
+    {"id":"question-beginner-017","lessonRef":"lesson-beginner-06","prompt":"ドラ表示牌が北です。ドラは？","choices":["東","白","西"],"answerIndex":0,"explanation":"風牌は東→南→西→北→東の順です。"},
+    {"id":"question-beginner-018","lessonRef":"lesson-beginner-06","prompt":"役なしでドラを3枚持っています。あがれますか？","choices":["あがれる","あがれない"],"answerIndex":1,"explanation":"ドラは役ではないため、別に1翻以上の役が必要です。"}
+  ]
+}

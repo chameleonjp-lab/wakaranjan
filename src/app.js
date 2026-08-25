@@ -5,8 +5,10 @@ import {renderIntro04} from './lessons/intro-04.js';
 import {renderIntro05} from './lessons/intro-05.js';
 import {renderIntro06} from './lessons/intro-06.js';
 import {renderIntroReview} from './questions/intro-review.js';
+import {renderBeginnerReview} from './questions/beginner-review.js';
 import {renderBeginner01} from './lessons/beginner-01.js';
 import {renderBeginner02} from './lessons/beginner-02.js';
+import {renderBeginner03,renderBeginner04,renderBeginner05,renderBeginner06} from './lessons/beginner-core.js';
 
 const app=document.querySelector('#app');
 
@@ -26,8 +28,10 @@ function renderHome(ctx){
     <h2 class="section-title">入門の総復習</h2>
     <a class="lesson-card" href="#intro-review"><strong>ランダム12問に挑戦</strong><small>15問の問題データから毎回12問を出題します</small></a>
     <h2 class="section-title">初級</h2>
-    <div class="lesson-list">${beginner.map(l=>`<a class="lesson-card" href="#${l.id}"><strong>${l.order}. ${l.title}</strong><small>約${l.estimatedMinutes}分${l.order>2?' ・ 準備中':''}</small></a>`).join('')}</div>
-    <div class="callout" style="margin-top:18px">入門は総復習まで利用できます。初級は「待ちの基本」「鳴き」まで実装済みです。</div>`;
+    <div class="lesson-list">${beginner.map(l=>`<a class="lesson-card" href="#${l.id}"><strong>${l.order}. ${l.title}</strong><small>約${l.estimatedMinutes}分</small></a>`).join('')}</div>
+    <h2 class="section-title">初級の総復習</h2>
+    <a class="lesson-card" href="#beginner-review"><strong>ランダム12問に挑戦</strong><small>18問から、待ち・鳴き・リーチ・フリテン・役・ドラを横断して出題します</small></a>
+    <div class="callout" style="margin-top:18px">入門と初級の基本コースを最後まで学べます。</div>`;
 }
 
 function renderUnavailable(id,ctx){
@@ -47,6 +51,11 @@ function route(ctx){
   else if(id==='intro-review') renderIntroReview(app,ctx);
   else if(id==='lesson-beginner-01') renderBeginner01(app,ctx);
   else if(id==='lesson-beginner-02') renderBeginner02(app,ctx);
+  else if(id==='lesson-beginner-03') renderBeginner03(app,ctx);
+  else if(id==='lesson-beginner-04') renderBeginner04(app,ctx);
+  else if(id==='lesson-beginner-05') renderBeginner05(app,ctx);
+  else if(id==='lesson-beginner-06') renderBeginner06(app,ctx);
+  else if(id==='beginner-review') renderBeginnerReview(app,ctx);
   else renderUnavailable(id,ctx);
   window.scrollTo({top:0,behavior:'auto'});
   app.focus({preventScroll:true});
@@ -54,19 +63,25 @@ function route(ctx){
 
 async function start(){
   try{
-    const [tileData,lessonData,introReview,waitData,callData]=await Promise.all([
+    const [tileData,lessonData,introReview,beginnerReview,waitData,callData,beginnerCore,yakuData]=await Promise.all([
       loadJson('./src/data/tiles.json'),
       loadJson('./src/data/lessons.json'),
       loadJson('./src/data/questions/intro/review.json'),
+      loadJson('./src/data/questions/beginner/review.json'),
       loadJson('./src/data/waits.json'),
-      loadJson('./src/data/calls.json')
+      loadJson('./src/data/calls.json'),
+      loadJson('./src/data/beginner-core.json'),
+      loadJson('./src/data/yaku.json')
     ]);
     const ctx={
       tiles:tileData.tiles,
       lessons:lessonData.lessons,
       introReview,
+      beginnerReview,
       waitTypes:waitData.waitTypes,
       calls:callData.calls,
+      beginnerCore,
+      yaku:yakuData.yaku,
       tileByCode:new Map(tileData.tiles.map(t=>[t.code,t])),
       tileById:new Map(tileData.tiles.map(t=>[t.id,t])),
       lessonById:new Map(lessonData.lessons.map(l=>[l.id,l]))

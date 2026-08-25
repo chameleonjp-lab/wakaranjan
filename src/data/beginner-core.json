@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "riichi": {
+    "requirements": [
+      "門前である",
+      "テンパイしている",
+      "リーチと発声して宣言牌を横向きにする",
+      "1000点棒を供託する"
+    ],
+    "afterDeclaration": [
+      "基本はツモした牌をそのまま捨てて手の形を変えない",
+      "あがり牌を見逃すと以後はフリテンになる",
+      "条件を満たす暗槓は例外として可能"
+    ],
+    "note": "ワカランジャン標準はMリーグ公式規定を基準にする。フリテンリーチも可能。"
+  },
+  "furiten": [
+    {"id":"furiten-self-discard","name":"自分の河によるフリテン","description":"自分の待ち牌のどれかを過去に自分で捨てていると、ロンできない。","clears":"そのテンパイ形のままでは解消しない。手変わりで待ちが変われば再判定する。"},
+    {"id":"furiten-same-turn","name":"同巡内フリテン","description":"自分のあがり牌が捨てられたのにロンしなかった場合、その一巡はロンできない。","clears":"自分の次のツモと打牌が終わると解消する。"},
+    {"id":"furiten-riichi-pass","name":"リーチ後の見逃し","description":"リーチ後にあがり牌をロンしなかった場合、その後はロンできない。","clears":"その局では解消しない。ツモあがりはできる。"}
+  ],
+  "beginnerYakuIds": [
+    "yaku-riichi","yaku-menzen-tsumo","yaku-tanyao","yaku-haku","yaku-hatsu","yaku-chun","yaku-pinfu","yaku-iipeikou","yaku-chiitoitsu","yaku-toitoi","yaku-sanshoku-doujun","yaku-ittsuu","yaku-honitsu"
+  ],
+  "dora": {
+    "rule":"ドラ表示牌の次の牌がドラになる。ドラを持つと翻は増えるが、ドラだけではあがれない。",
+    "examples":[
+      {"indicator":"4m","dora":"5m"},
+      {"indicator":"9p","dora":"1p"},
+      {"indicator":"4z","dora":"1z"},
+      {"indicator":"5z","dora":"6z"},
+      {"indicator":"7z","dora":"5z"}
+    ],
+    "cycles":{"winds":["1z","2z","3z","4z"],"dragons":["5z","6z","7z"]}
+  }
+}
