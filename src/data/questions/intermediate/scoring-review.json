@@ -1,0 +1,24 @@
+{
+  "schemaVersion":1,
+  "ruleset":"wakaranjan-standard-v1",
+  "setId":"intermediate-scoring-review-v1",
+  "sessionSize":12,
+  "questions":[
+    {"id":"question-intermediate-scoring-001","lessonRef":"lesson-intermediate-01","prompt":"リーチ1翻、タンヤオ1翻、ドラ2枚。合計は？","choices":["2翻","3翻","4翻"],"answerIndex":2,"explanation":"役2翻にドラ2翻を加えて4翻です。"},
+    {"id":"question-intermediate-scoring-002","lessonRef":"lesson-intermediate-01","prompt":"役なし、ドラ4枚だけであがれますか？","choices":["あがれる","あがれない"],"answerIndex":1,"explanation":"ドラは役ではないので、別の役が必要です。"},
+    {"id":"question-intermediate-scoring-003","lessonRef":"lesson-intermediate-02","prompt":"基本20符＋門前ロン10符＋嵌張待ち2符。最終符は？","choices":["30符","32符","40符"],"answerIndex":2,"explanation":"合計32符を10符単位に切り上げ、40符です。"},
+    {"id":"question-intermediate-scoring-004","lessonRef":"lesson-intermediate-02","prompt":"七対子の符は？","choices":["20符","25符","30符"],"answerIndex":1,"explanation":"七対子は25符固定です。"},
+    {"id":"question-intermediate-scoring-005","lessonRef":"lesson-intermediate-02","prompt":"辺張・嵌張・単騎の待ちに付く符は？","choices":["0符","2符","4符"],"answerIndex":1,"explanation":"この3種類の待ちは2符です。"},
+    {"id":"question-intermediate-scoring-006","lessonRef":"lesson-intermediate-03","prompt":"ロンあがりの支払いは？","choices":["放銃者1人が払う","3人が同額を払う"],"answerIndex":0,"explanation":"ロンは放銃者が三家分を1人で払います。"},
+    {"id":"question-intermediate-scoring-007","lessonRef":"lesson-intermediate-03","prompt":"子のツモあがりでは誰の支払いが大きい？","choices":["親","子2人","全員同じ"],"answerIndex":0,"explanation":"親は子の2倍を支払います。"},
+    {"id":"question-intermediate-scoring-008","lessonRef":"lesson-intermediate-04","prompt":"5翻は？","choices":["満貫","跳満","倍満"],"answerIndex":0,"explanation":"5翻は満貫です。"},
+    {"id":"question-intermediate-scoring-009","lessonRef":"lesson-intermediate-04","prompt":"8翻は？","choices":["跳満","倍満","三倍満"],"answerIndex":1,"explanation":"8〜10翻は倍満です。"},
+    {"id":"question-intermediate-scoring-010","lessonRef":"lesson-intermediate-04","prompt":"子の満貫ロンは？","choices":["8,000点","12,000点","16,000点"],"answerIndex":0,"explanation":"子の満貫ロンは8,000点です。"},
+    {"id":"question-intermediate-scoring-011","lessonRef":"lesson-intermediate-04","prompt":"親の満貫ロンは？","choices":["8,000点","12,000点","18,000点"],"answerIndex":1,"explanation":"親の満貫ロンは12,000点です。"},
+    {"id":"question-intermediate-scoring-012","lessonRef":"lesson-intermediate-05","prompt":"子・30符3翻・ロンは？","choices":["2,000点","3,900点","5,200点"],"answerIndex":1,"explanation":"子の30符3翻ロンは3,900点です。"},
+    {"id":"question-intermediate-scoring-013","lessonRef":"lesson-intermediate-05","prompt":"親・30符3翻・ロンは？","choices":["3,900点","5,800点","7,700点"],"answerIndex":1,"explanation":"親の30符3翻ロンは5,800点です。"},
+    {"id":"question-intermediate-scoring-014","lessonRef":"lesson-intermediate-05","prompt":"子・40符3翻・ロンは？","choices":["3,900点","5,200点","6,400点"],"answerIndex":1,"explanation":"子の40符3翻ロンは5,200点です。"},
+    {"id":"question-intermediate-scoring-015","lessonRef":"lesson-intermediate-05","prompt":"ワカランジャン標準で30符4翻は？","choices":["7,700点","満貫","跳満"],"answerIndex":1,"explanation":"切り上げ満貫を採用するため満貫です。"},
+    {"id":"question-intermediate-scoring-016","lessonRef":"lesson-intermediate-05","prompt":"ワカランジャン標準で60符3翻は？","choices":["7,700点","満貫","跳満"],"answerIndex":1,"explanation":"切り上げ満貫を採用するため満貫です。"}
+  ]
+}
