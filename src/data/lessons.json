@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "lessons": [
+    {"id":"lesson-intro-01","level":"intro","order":1,"title":"麻雀は何をするゲームか","estimatedMinutes":4,"prerequisites":[],"terms":["term-tsumo","term-dahai"],"questionTags":["game-flow","basic-shape"]},
+    {"id":"lesson-intro-02","level":"intro","order":2,"title":"牌の種類と読み","estimatedMinutes":6,"prerequisites":["lesson-intro-01"],"terms":["term-mahjong-tile","term-manzu","term-pinzu","term-souzu","term-jihai","term-akapai"],"questionTags":["tile-name","tile-reading"]},
+    {"id":"lesson-intro-03","level":"intro","order":3,"title":"手牌と卓","estimatedMinutes":5,"prerequisites":["lesson-intro-02"],"terms":["term-tehai","term-yama","term-kawa","term-bakaze","term-jikaze"],"questionTags":["table-state","turn-order"]},
+    {"id":"lesson-intro-04","level":"intro","order":4,"title":"面子と雀頭","estimatedMinutes":6,"prerequisites":["lesson-intro-03"],"terms":["term-mentsu","term-shuntsu","term-koutsu","term-kantsu","term-toitsu","term-jantou"],"questionTags":["meld-type","winning-shape"]},
+    {"id":"lesson-intro-05","level":"intro","order":5,"title":"あがり","estimatedMinutes":5,"prerequisites":["lesson-intro-04"],"terms":["term-tsumo","term-ron"],"questionTags":["win-type","yaku-required"]},
+    {"id":"lesson-intro-06","level":"intro","order":6,"title":"最初の案内付き一局","estimatedMinutes":7,"prerequisites":["lesson-intro-05"],"terms":["term-tenpai","term-riichi","term-ron"],"questionTags":["guided-round"]},
+    {"id":"lesson-beginner-01","level":"beginner","order":1,"title":"待ちの基本","estimatedMinutes":7,"prerequisites":["lesson-intro-06"],"terms":["term-machi","term-tenpai"],"questionTags":["wait-basic"]},
+    {"id":"lesson-beginner-02","level":"beginner","order":2,"title":"鳴き","estimatedMinutes":7,"prerequisites":["lesson-beginner-01"],"terms":["term-furo","term-chi","term-pon","term-kan"],"questionTags":["call-decision"]},
+    {"id":"lesson-beginner-03","level":"beginner","order":3,"title":"リーチ","estimatedMinutes":6,"prerequisites":["lesson-beginner-02"],"terms":["term-menzen","term-riichi","term-tenpai"],"questionTags":["riichi"]},
+    {"id":"lesson-beginner-04","level":"beginner","order":4,"title":"フリテン","estimatedMinutes":7,"prerequisites":["lesson-beginner-03"],"terms":["term-furiten","term-ron","term-kawa"],"questionTags":["furiten"]},
+    {"id":"lesson-beginner-05","level":"beginner","order":5,"title":"初級役","estimatedMinutes":9,"prerequisites":["lesson-beginner-04"],"terms":["term-sangenpai","term-kazehai"],"questionTags":["yaku-basic"]},
+    {"id":"lesson-beginner-06","level":"beginner","order":6,"title":"ドラ","estimatedMinutes":5,"prerequisites":["lesson-beginner-05"],"terms":["term-dora","term-dora-indicator","term-akapai"],"questionTags":["dora"]}
+  ]
+}

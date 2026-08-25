@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "rulesets": [
+    {
+      "id": "wakaranjan-standard-v1",
+      "displayNameJa": "ワカランジャン標準ルール v1",
+      "players": 4,
+      "tileCount": 136,
+      "redFives": {"man": 1, "pin": 1, "sou": 1},
+      "openTanyao": true,
+      "kiriageMangan": true,
+      "kazoeYakuman": false,
+      "multipleRon": "head-bump",
+      "doubleYakumanVariants": false,
+      "yakumanStacking": true,
+      "localYaku": false,
+      "notes": [
+        "ドラは役ではなく追加翻として扱う。",
+        "標準問題ではローカル役を採用しない。",
+        "ダブル役満扱いの特殊形は特例・ルール差編で扱う。"
+      ]
+    }
+  ]
+}
