@@ -90,7 +90,7 @@ for(const [yakuId,example] of Object.entries(examples)){
 
 assert.match(appSource,/const isDataLesson=ctx\.dataLessonById\.has\(id\)/,'データ駆動章の判定がありません');
 assert.match(appSource,/else if\(isDataLesson\)renderDataLesson/,'データ駆動章のルートがありません');
-assert.match(appSource,/&&!isDataLesson\)\{attachLessonSupport/,'データ駆動章へ手書き教材補助を重複追加しない条件がありません');
+assert.match(appSource,/if\(!isDataLesson\)attachLessonSupport\(app,ctx,id\);attachLessonProgress\(app,id\)/,'データ駆動章では補助教材だけを除外し、進捗表示を残す条件がありません');
 for(const lesson of dataLessons)assert.ok(lessonIds.has(lesson.id),`${lesson.id} が統合教材に含まれていません`);
 
 console.log(`✓ 実行時データ統合、参照、全38章の品質項目、96問、重複補助表示防止を検査しました。`);
