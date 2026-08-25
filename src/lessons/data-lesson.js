@@ -1,0 +1,6 @@
+export function renderDataLesson(app,ctx,lesson){
+  let answered=false;
+  app.innerHTML=`<section class="lesson-head"><div class="eyebrow">${lesson.level==='advanced'?'上級':'特例・ルール差編'}</div><h1>${lesson.title}</h1><p class="lead">${lesson.lead}</p></section><section class="panel"><h2>要点</h2><ol class="explain-list">${lesson.points.map(x=>`<li>${x}</li>`).join('')}</ol></section><section class="panel"><h2>確認問題</h2><p>${lesson.check.prompt}</p><div id="data-lesson-options" class="quiz-options"></div><div id="data-lesson-feedback" class="feedback" aria-live="polite"></div></section><div class="lesson-nav"><a class="secondary" href="#home">一覧へ戻る</a></div>`;
+  const out=app.querySelector('#data-lesson-options'),feedback=app.querySelector('#data-lesson-feedback');
+  lesson.check.choices.forEach((choice,i)=>{const b=document.createElement('button');b.type='button';b.textContent=choice;b.addEventListener('click',()=>{if(answered)return;answered=true;const ok=i===lesson.check.answerIndex;feedback.className=`feedback ${ok?'good':'bad'}`;feedback.innerHTML=`<strong>${ok?'正解':'不正解'}</strong><br>${lesson.check.explanation}`;[...out.children].forEach((el,n)=>{el.disabled=true;if(n===lesson.check.answerIndex)el.dataset.correct='true';if(n===i&&!ok)el.dataset.wrong='true'})});out.append(b)});
+}
