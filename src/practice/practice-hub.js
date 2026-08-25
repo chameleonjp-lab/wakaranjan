@@ -9,7 +9,7 @@ const CALL_STEPS=[
 ];
 const RIICHI_HAND=['1m','2m','3m','3p','4p','5p','6s','7s','8s','2z','2z','5z','5z'];
 const FURITEN_STEPS=[
-  {title:'自分の河に待ち牌がある',hand:RIICHI_HAND,river:['5z'],prompt:'自分の河に待ち牌の5z（五萬ではなく白）がある状態で、他家が5zを捨てました。ロンできますか？',choices:['ロンできる','ロンできない'],answer:1,explanation:'自分が待ち牌を捨てているため、フリテンです。フリテン中はロンできません。ただし、ツモならあがれます。'},
+  {title:'自分の河に待ち牌がある',hand:RIICHI_HAND,river:['5z'],prompt:'自分の河に待ち牌の白がある状態で、他家が5zを捨てました。ロンできますか？',choices:['ロンできる','ロンできない'],answer:1,explanation:'自分が待ち牌を捨てているため、フリテンです。フリテン中はロンできません。ただし、ツモならあがれます。'},
   {title:'同巡内に見逃した',hand:RIICHI_HAND,river:['2z'],prompt:'自分の河に待ち牌はありません。直前に他家が5zを捨てたときロンを見逃し、同じ巡内にもう一度5zが捨てられました。ロンできますか？',choices:['ロンできる','ロンできない'],answer:1,explanation:'ロンを見逃した同じ巡の間は、同じ待ち牌でロンできません。自分の番を経ると解除されます。'}
 ];
 
@@ -47,7 +47,7 @@ function renderCalls(app,ctx){
     app.querySelector('#call-hand').append(tileBlock(ctx,'あなたの手牌',step.hand));
     app.querySelector('#call-discard').append(tile(ctx,step.discard,{drawn:true}));
     const options=app.querySelector('#call-options');const feedback=app.querySelector('#call-feedback');const actions=app.querySelector('#call-actions');
-    step.choices.forEach((choice,choiceIndex)=>{const b=document.createElement('button');b.type='button';b.className='practice-choice';b.textContent=choice;b.onclick=()=>{if(answered)return;answered=true;const ok=choiceIndex===step.answer;feedback.className='feedback '+(ok?'good':'bad');feedback.innerHTML='<strong>'+(ok?'正解':'もう一度確認')+'</strong><br>'+step.explanation;[...options.children].forEach(el=>el.disabled=true);const next=document.createElement('button');next.type='button';next.className='primary';next.textContent=index===CALL_STEPS.length-1?'鳴きの練習を終える':'次の場面';next.onclick=()=>{if(index===CALL_STEPS.length-1){location.hash='#practice';return}index++;answered=false;render()};actions.append(next)}});options.append(b)});
+    step.choices.forEach((choice,choiceIndex)=>{const b=document.createElement('button');b.type='button';b.className='practice-choice';b.textContent=choice;b.onclick=()=>{if(answered)return;answered=true;const ok=choiceIndex===step.answer;feedback.className='feedback '+(ok?'good':'bad');feedback.innerHTML='<strong>'+(ok?'正解':'もう一度確認')+'</strong><br>'+step.explanation;[...options.children].forEach(el=>el.disabled=true);const next=document.createElement('button');next.type='button';next.className='primary';next.textContent=index===CALL_STEPS.length-1?'鳴きの練習を終える':'次の場面';next.onclick=()=>{if(index===CALL_STEPS.length-1){location.hash='#practice';return}index++;answered=false;render()};actions.append(next)};options.append(b)});
   };
   render();
 }
@@ -72,7 +72,7 @@ function renderFuriten(app,ctx){
     app.querySelector('#furiten-hand').append(tileBlock(ctx,'あなたの手牌（テンパイ）',step.hand));
     const river=app.querySelector('#furiten-river');step.river.forEach(code=>river.append(tile(ctx,code)));
     const options=app.querySelector('#furiten-options');const feedback=app.querySelector('#furiten-feedback');const actions=app.querySelector('#furiten-actions');
-    step.choices.forEach((choice,choiceIndex)=>{const b=document.createElement('button');b.type='button';b.className='practice-choice';b.textContent=choice;b.onclick=()=>{if(answered)return;answered=true;const ok=choiceIndex===step.answer;feedback.className='feedback '+(ok?'good':'bad');feedback.innerHTML='<strong>'+(ok?'正解':'もう一度確認')+'</strong><br>'+step.explanation;[...options.children].forEach(el=>el.disabled=true);const next=document.createElement('button');next.type='button';next.className='primary';next.textContent=index===FURITEN_STEPS.length-1?'フリテンの練習を終える':'次の場面';next.onclick=()=>{if(index===FURITEN_STEPS.length-1){location.hash='#practice';return}index++;answered=false;render()};actions.append(next)}});options.append(b)});
+    step.choices.forEach((choice,choiceIndex)=>{const b=document.createElement('button');b.type='button';b.className='practice-choice';b.textContent=choice;b.onclick=()=>{if(answered)return;answered=true;const ok=choiceIndex===step.answer;feedback.className='feedback '+(ok?'good':'bad');feedback.innerHTML='<strong>'+(ok?'正解':'もう一度確認')+'</strong><br>'+step.explanation;[...options.children].forEach(el=>el.disabled=true);const next=document.createElement('button');next.type='button';next.className='primary';next.textContent=index===FURITEN_STEPS.length-1?'フリテンの練習を終える':'次の場面';next.onclick=()=>{if(index===FURITEN_STEPS.length-1){location.hash='#practice';return}index++;answered=false;render()};actions.append(next)};options.append(b)});
   };
   render();
 }
