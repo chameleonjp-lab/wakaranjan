@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {createWall,drawTile,drawTiles,remainingTiles} from '../src/lib/tile-wall.js';
+import {createRoundWall,createWall,deadWallRemaining,drawLiveTile,drawRinshanTile,drawTile,drawTiles,liveTilesRemaining,remainingTiles,revealDoraIndicator} from '../src/lib/tile-wall.js';
 
 const CODES=[
   '1m','2m','3m','4m','5m','6m','7m','8m','9m',
@@ -37,5 +37,29 @@ assert.equal(drawTile(empty),null,'drawing from an empty wall returns null');
 assert.deepEqual(drawTiles(empty,3),[],'drawing from an empty wall returns no tiles');
 assert.throws(()=>drawTiles([], -1),/non-negative integer/,'negative draw counts are rejected');
 assert.throws(()=>createWall({random:()=>1}),/from 0/,'invalid random values are rejected');
+
+const roundWall=createRoundWall({random:()=>0});
+assert.equal(liveTilesRemaining(roundWall),122,'a round wall keeps 122 live tiles');
+assert.equal(deadWallRemaining(roundWall),14,'a round wall keeps a fourteen-tile dead wall');
+const roundTiles=[...roundWall.live,...roundWall.rinshan,...roundWall.doraIndicators,...roundWall.uraIndicators];
+assert.equal(roundTiles.length,136,'live and dead wall partitions contain all physical tiles');
+assert.equal(new Set(roundTiles.map(tile=>tile.id)).size,136,'wall partitions do not duplicate physical tiles');
+
+const initialRoundHand=drawTiles(roundWall.live,13);
+assert.equal(initialRoundHand.length,13,'the round wall can deal an initial hand');
+assert.equal(liveTilesRemaining(roundWall),109,'dealing thirteen leaves 109 live tiles');
+const nextLive=roundWall.live[0];
+assert.equal(drawLiveTile(roundWall)?.id,nextLive.id,'live draw uses the live wall');
+assert.equal(liveTilesRemaining(roundWall),108,'live draw reduces only the live wall');
+
+const firstDora=revealDoraIndicator(roundWall);
+assert.ok(firstDora,'the first dora indicator can be revealed');
+assert.equal(deadWallRemaining(roundWall),14,'revealing a dora indicator does not remove a physical dead-wall tile');
+for(let index=0;index<3;index+=1)assert.ok(drawRinshanTile(roundWall),`rinshan draw ${index+1} is available`);
+assert.ok(drawRinshanTile(roundWall),'the fourth rinshan draw is available');
+assert.equal(drawRinshanTile(roundWall),null,'the fifth rinshan draw is unavailable');
+assert.equal(deadWallRemaining(roundWall),10,'rinshan draws are tracked separately from live draws');
+for(let index=1;index<5;index+=1)assert.ok(revealDoraIndicator(roundWall),`dora indicator ${index+1} is available`);
+assert.equal(revealDoraIndicator(roundWall),null,'only five dora indicators are available');
 
 console.log('✓ tile wall generation and draw contracts validated.');
