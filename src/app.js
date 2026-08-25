@@ -11,6 +11,7 @@ import {renderBeginner02} from './lessons/beginner-02.js';
 import {renderBeginner03,renderBeginner04,renderBeginner05,renderBeginner06} from './lessons/beginner-core.js';
 import {renderIntermediate01,renderIntermediate02,renderIntermediate03,renderIntermediate04,renderIntermediate05} from './lessons/intermediate-scoring.js';
 import {renderIntermediateReview} from './questions/intermediate-review.js';
+import {renderAutomaticCalculator} from './tools/automatic-calculator.js';
 
 const app=document.querySelector('#app');
 
@@ -34,7 +35,8 @@ function renderHome(ctx){
     <h2 class="section-title">初級の総復習</h2><a class="lesson-card" href="#beginner-review"><strong>ランダム12問に挑戦</strong><small>待ち・鳴き・リーチ・フリテン・役・ドラを横断します</small></a>
     <h2 class="section-title">中級：点数計算の基礎</h2>${renderLessonList(intermediate)}
     <h2 class="section-title">中級 点数計算の総復習</h2><a class="lesson-card" href="#intermediate-review"><strong>ランダム12問に挑戦</strong><small>翻・符・親子・ロン/ツモ・満貫以上を確認します</small></a>
-    <div class="callout" style="margin-top:18px">入門と初級に加え、中級の点数計算基礎まで学べます。</div>`;
+    <h2 class="section-title">点数計算</h2><a class="lesson-card" href="#automatic-calculator"><strong>牌を14枚並べて自動計算（試作）</strong><small>門前の通常形・七対子から役、符、点数を自動判定します</small></a>
+    <div class="callout" style="margin-top:18px">入門と初級、中級の点数計算基礎に加え、自動計算の試作版を利用できます。</div>`;
 }
 
 function renderUnavailable(id,ctx){
@@ -47,7 +49,8 @@ function route(ctx){
   const routes={
     'lesson-intro-01':()=>renderIntro01(app,ctx),'lesson-intro-02':()=>renderIntro02(app,ctx),'lesson-intro-03':()=>renderIntro03(app,ctx),'lesson-intro-04':()=>renderIntro04(app,ctx),'lesson-intro-05':()=>renderIntro05(app,ctx),'lesson-intro-06':()=>renderIntro06(app,ctx),
     'intro-review':()=>renderIntroReview(app,ctx),'lesson-beginner-01':()=>renderBeginner01(app,ctx),'lesson-beginner-02':()=>renderBeginner02(app,ctx),'lesson-beginner-03':()=>renderBeginner03(app,ctx),'lesson-beginner-04':()=>renderBeginner04(app,ctx),'lesson-beginner-05':()=>renderBeginner05(app,ctx),'lesson-beginner-06':()=>renderBeginner06(app,ctx),'beginner-review':()=>renderBeginnerReview(app,ctx),
-    'lesson-intermediate-01':()=>renderIntermediate01(app,ctx),'lesson-intermediate-02':()=>renderIntermediate02(app,ctx),'lesson-intermediate-03':()=>renderIntermediate03(app,ctx),'lesson-intermediate-04':()=>renderIntermediate04(app,ctx),'lesson-intermediate-05':()=>renderIntermediate05(app,ctx),'intermediate-review':()=>renderIntermediateReview(app,ctx)
+    'lesson-intermediate-01':()=>renderIntermediate01(app,ctx),'lesson-intermediate-02':()=>renderIntermediate02(app,ctx),'lesson-intermediate-03':()=>renderIntermediate03(app,ctx),'lesson-intermediate-04':()=>renderIntermediate04(app,ctx),'lesson-intermediate-05':()=>renderIntermediate05(app,ctx),'intermediate-review':()=>renderIntermediateReview(app,ctx),
+    'automatic-calculator':()=>renderAutomaticCalculator(app,ctx)
   };
   if(id==='home')renderHome(ctx);else (routes[id]||(()=>renderUnavailable(id,ctx)))();
   window.scrollTo({top:0,behavior:'auto'});app.focus({preventScroll:true});
