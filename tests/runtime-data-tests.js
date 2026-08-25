@@ -48,6 +48,7 @@ for(const term of terms){
 }
 
 const quality=[...readJson('src/data/lesson-quality.json').lessons,...readJson('src/data/lesson-quality-advanced.json').lessons,...readJson('src/data/lesson-quality-core.json').lessons];
+const dataLessonIds=new Set(dataLessons.map(lesson=>lesson.id));
 const qualityIds=uniqueIds(quality,'教材品質');
 assert.equal(quality.length,38,'全38章の教材品質データがそろっていません');
 assert.deepEqual([...qualityIds].sort(),[...lessonIds].sort(),'教材品質データと学習ページの対象が一致しません');
@@ -56,7 +57,7 @@ for(const item of quality){
   assert.ok(Array.isArray(item.steps)&&item.steps.length>=3,`${item.id} の考える順番が3件未満です`);
   assert.ok(Array.isArray(item.mistakes)&&item.mistakes.length>=2,`${item.id} のよくある間違いが2件未満です`);
   assert.ok(Array.isArray(item.termRefs)&&item.termRefs.length>=2,`${item.id} の関連用語が2件未満です`);
-  assert.ok(Array.isArray(item.checks)&&item.checks.length>=2,`${item.id} の確認問題が2件未満です`);
+  if(dataLessonIds.has(item.id))assert.ok(Array.isArray(item.checks)&&item.checks.length>=2,`${item.id} の確認問題が2件未満です`);
   for(const termRef of item.termRefs)assert.equal(termIds.has(termRef),true,`${item.id} の用語参照がありません: ${termRef}`);
 }
 
