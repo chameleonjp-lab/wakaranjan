@@ -5,6 +5,7 @@ import {renderIntro04} from './lessons/intro-04.js';
 import {renderIntro05} from './lessons/intro-05.js';
 import {renderIntro06} from './lessons/intro-06.js';
 import {renderIntroReview} from './questions/intro-review.js';
+import {renderBeginner01} from './lessons/beginner-01.js';
 
 const app=document.querySelector('#app');
 
@@ -16,18 +17,21 @@ async function loadJson(path){
 
 function renderHome(ctx){
   const intro=ctx.lessons.filter(l=>l.level==='intro').sort((a,b)=>a.order-b.order);
+  const beginner=ctx.lessons.filter(l=>l.level==='beginner').sort((a,b)=>a.order-b.order);
   app.innerHTML=`
     <section class="hero"><div class="eyebrow">麻雀を知らなくても大丈夫</div><h1>牌を触りながら、少しずつ覚える。</h1><p>最初は専門用語を覚えなくて構いません。「1枚取る、1枚捨てる」から始めます。</p></section>
     <h2 class="section-title">入門</h2>
     <div class="lesson-list">${intro.map(l=>`<a class="lesson-card" href="#${l.id}"><strong>${l.order}. ${l.title}</strong><small>約${l.estimatedMinutes}分</small></a>`).join('')}</div>
     <h2 class="section-title">入門の総復習</h2>
     <a class="lesson-card" href="#intro-review"><strong>ランダム12問に挑戦</strong><small>15問の問題データから毎回12問を出題します</small></a>
-    <div class="callout" style="margin-top:18px">入門1-1〜1-6まで実装済みです。学習後は総復習で、間違えた内容の解説へ戻れます。</div>`;
+    <h2 class="section-title">初級</h2>
+    <div class="lesson-list">${beginner.map(l=>`<a class="lesson-card" href="#${l.id}"><strong>${l.order}. ${l.title}</strong><small>約${l.estimatedMinutes}分${l.order>1?' ・ 準備中':''}</small></a>`).join('')}</div>
+    <div class="callout" style="margin-top:18px">入門は1-1〜1-6と総復習まで利用できます。初級は「待ちの基本」から順番に追加しています。</div>`;
 }
 
 function renderUnavailable(id,ctx){
   const lesson=ctx.lessonById.get(id);
-  app.innerHTML=`<section class="hero"><div class="eyebrow">準備中</div><h1>${lesson?.title||'このページ'}</h1><p>この章はまだ実装前です。前の章の内容は利用できます。</p><div class="action-row"><a class="secondary" href="#home">入門一覧へ戻る</a></div></section>`;
+  app.innerHTML=`<section class="hero"><div class="eyebrow">準備中</div><h1>${lesson?.title||'このページ'}</h1><p>この章はまだ実装前です。前の章の内容は利用できます。</p><div class="action-row"><a class="secondary" href="#home">一覧へ戻る</a></div></section>`;
 }
 
 function route(ctx){
@@ -40,6 +44,7 @@ function route(ctx){
   else if(id==='lesson-intro-05') renderIntro05(app,ctx);
   else if(id==='lesson-intro-06') renderIntro06(app,ctx);
   else if(id==='intro-review') renderIntroReview(app,ctx);
+  else if(id==='lesson-beginner-01') renderBeginner01(app,ctx);
   else renderUnavailable(id,ctx);
   window.scrollTo({top:0,behavior:'auto'});
   app.focus({preventScroll:true});
@@ -47,15 +52,17 @@ function route(ctx){
 
 async function start(){
   try{
-    const [tileData,lessonData,introReview]=await Promise.all([
+    const [tileData,lessonData,introReview,waitData]=await Promise.all([
       loadJson('./src/data/tiles.json'),
       loadJson('./src/data/lessons.json'),
-      loadJson('./src/data/questions/intro/review.json')
+      loadJson('./src/data/questions/intro/review.json'),
+      loadJson('./src/data/waits.json')
     ]);
     const ctx={
       tiles:tileData.tiles,
       lessons:lessonData.lessons,
       introReview,
+      waitTypes:waitData.waitTypes,
       tileByCode:new Map(tileData.tiles.map(t=>[t.code,t])),
       tileById:new Map(tileData.tiles.map(t=>[t.id,t])),
       lessonById:new Map(lessonData.lessons.map(l=>[l.id,l]))

@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "waitTypes": [
+    {"id":"wait-ryanmen","nameJa":"両面待ち","readingJa":"リャンメンまち","shape":["4m","5m"],"waits":["3m","6m"],"description":"数字が続く2枚の両側で順子が完成する待ち。待ち牌が2種類ある。","point":"4・5なら、3でも6でも3枚続きになる。"},
+    {"id":"wait-kanchan","nameJa":"嵌張待ち","readingJa":"カンチャンまち","shape":["4p","6p"],"waits":["5p"],"description":"数字が1つ飛んだ2枚の真ん中で順子が完成する待ち。","point":"4・6の間に入る5だけを待つ。"},
+    {"id":"wait-penchan","nameJa":"辺張待ち","readingJa":"ペンチャンまち","shape":["1s","2s"],"waits":["3s"],"description":"1・2、または8・9から順子を完成させる端の待ち。","point":"1・2なら3だけ。8・9なら7だけを待つ。"},
+    {"id":"wait-shanpon","nameJa":"双碰待ち","readingJa":"シャンポンまち","shape":["5z","5z","7z","7z"],"waits":["5z","7z"],"description":"2組の対子のどちらかが3枚組になれば完成する待ち。","point":"どちらか一方が刻子になり、もう一方が雀頭になる。"},
+    {"id":"wait-tanki","nameJa":"単騎待ち","readingJa":"タンキまち","shape":["3m"],"waits":["3m"],"description":"雀頭になる同じ牌を1枚だけ待つ形。","point":"最後に同じ牌が来れば2枚組の雀頭になる。"}
+  ]
+}
