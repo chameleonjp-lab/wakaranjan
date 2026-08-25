@@ -1,4 +1,4 @@
-import {tileElement} from './tile.js';
+import {createTile} from './tile.js';
 
 const seats=['south','west','north','east'];
 const labels={south:'あなた（南）',west:'右の人（西）',north:'向かい（北）',east:'左の人（東）'};
@@ -30,7 +30,7 @@ export function renderSimpleTable(ctx,{interactive=false,onRegionSelect=null}={}
   river.innerHTML='<strong>河</strong><span class="river-tiles"></span>';
   ['9m','1p','east','7s'].forEach(code=>{
     const tile=ctx.tileByCode.get(code)||ctx.tileById?.get(`tile-${code}`);
-    if(tile) river.querySelector('.river-tiles').append(tileElement(tile,{compact:true}));
+    if(tile) river.querySelector('.river-tiles').append(createTile(tile));
   });
   if(interactive) river.addEventListener('click',()=>onRegionSelect?.('river'));
   wrap.append(river);
