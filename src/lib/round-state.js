@@ -16,7 +16,7 @@ function assertInteger(value,name,{minimum=0,maximum=Number.MAX_SAFE_INTEGER}={}
 function normalizeScores(scores={}){
   if(scores===null||typeof scores!=='object')throw new TypeError('scores must be an object');
   const next={...DEFAULT_SCORES,...scores};
-  for(const seat of SEAT_ORDER)assertInteger(next[seat],\`scores.\${seat}\`,{minimum:-Number.MAX_SAFE_INTEGER});
+  for(const seat of SEAT_ORDER)assertInteger(next[seat],'scores.'+seat,{minimum:-Number.MAX_SAFE_INTEGER});
   return next;
 }
 
@@ -25,7 +25,7 @@ function applyScoreDeltas(scores,scoreDeltas={}){
   const next={...scores};
   for(const [seat,delta] of Object.entries(scoreDeltas)){
     assertSeat(seat);
-    assertInteger(delta,\`scoreDeltas.\${seat}\`,{minimum:-Number.MAX_SAFE_INTEGER});
+    assertInteger(delta,'scoreDeltas.'+seat,{minimum:-Number.MAX_SAFE_INTEGER});
     next[seat]+=delta;
   }
   return next;
@@ -33,7 +33,7 @@ function applyScoreDeltas(scores,scoreDeltas={}){
 
 function assertPlaying(state){
   if(!state||state.phase!=='playing')throw new Error('the match is not playable');
-  for(const seat of SEAT_ORDER)assertInteger(state.scores?.[seat],\`scores.\${seat}\`,{minimum:-Number.MAX_SAFE_INTEGER});
+  for(const seat of SEAT_ORDER)assertInteger(state.scores?.[seat],'scores.'+seat,{minimum:-Number.MAX_SAFE_INTEGER});
   assertSeat(state.dealerSeat);
   assertInteger(state.honba,'honba');
   assertInteger(state.riichiSticks,'riichiSticks');
