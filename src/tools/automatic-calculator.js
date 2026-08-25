@@ -5,7 +5,7 @@ import {formatPayment} from '../lib/score.js';
 const WIND_OPTIONS=[['1z','東'],['2z','南'],['3z','西'],['4z','北']];
 
 export function renderAutomaticCalculator(app,ctx){
-  const state={hand:[],winTile:'',win:'ron',riichi:false,dealer:false,seatWind:'1z',roundWind:'1z'};
+  const state={hand:[],winTile:'',win:'ron',riichi:false,dealer:false,seatWind:'2z',roundWind:'1z'};
   const example=['2m','3m','4m','3p','4p','5p','4s','5s','6s','6s','7s','8s','5m','5m'];
 
   const render=()=>{
@@ -15,9 +15,9 @@ export function renderAutomaticCalculator(app,ctx){
     <section class="panel"><h2>2. 条件を指定</h2><div class="calc-form">
       <label>あがり牌<select id="win-tile"><option value="">選んでください</option>${[...new Set(state.hand)].map(c=>`<option value="${c}" ${state.winTile===c?'selected':''}>${ctx.tileByCode.get(c)?.nameJa||c}</option>`).join('')}</select></label>
       <label>あがり方<select id="win-kind"><option value="ron" ${state.win==='ron'?'selected':''}>ロン</option><option value="tsumo" ${state.win==='tsumo'?'selected':''}>ツモ</option></select></label>
-      <label>自風<select id="seat-wind">${WIND_OPTIONS.map(([c,n])=>`<option value="${c}" ${state.seatWind===c?'selected':''}>${n}</option>`).join('')}</select></label>
+      <label>自風<select id="seat-wind" ${state.dealer?'disabled':''}>${WIND_OPTIONS.map(([c,n])=>`<option value="${c}" ${(state.dealer?'1z':state.seatWind)===c?'selected':''}>${n}</option>`).join('')}</select></label>
       <label>場風<select id="round-wind">${WIND_OPTIONS.slice(0,2).map(([c,n])=>`<option value="${c}" ${state.roundWind===c?'selected':''}>${n}</option>`).join('')}</select></label>
-      <label class="check"><input id="dealer" type="checkbox" ${state.dealer?'checked':''}> 親として計算</label>
+      <label class="check"><input id="dealer" type="checkbox" ${state.dealer?'checked':''}> 親として計算（自風は東）</label>
       <label class="check"><input id="riichi" type="checkbox" ${state.riichi?'checked':''}> リーチ済み</label>
     </div><div class="action-row"><button id="calculate" class="primary" type="button">役と点数を計算</button></div><div id="calc-result" class="feedback" aria-live="polite"></div></section>
     <section class="callout"><strong>現在の対応範囲</strong><br>門前14枚、通常形、七対子、リーチ、門前ツモ、タンヤオ、役牌、ピンフ、一盃口・二盃口、対々和、三色同順、一気通貫、混一色、清一色と基本の符計算に対応しています。副露、カン、役満、ドラ表示牌・赤ドラの自動入力は後続対応です。</section>
@@ -27,16 +27,16 @@ export function renderAutomaticCalculator(app,ctx){
     state.hand.forEach((code,index)=>{const tile=ctx.tileByCode.get(code);hand.append(createTile(tile,{interactive:true,onSelect:()=>{state.hand.splice(index,1);if(!state.hand.includes(state.winTile))state.winTile='';render()}}))});
     const palette=app.querySelector('#calc-palette');
     ctx.tiles.forEach(tile=>{const count=state.hand.filter(c=>c===tile.code).length;const el=createTile(tile,{interactive:true,onSelect:()=>{if(state.hand.length<14&&count<4){state.hand.push(tile.code);render()}}});if(state.hand.length>=14||count>=4)el.disabled=true;palette.append(el)});
-    app.querySelector('#example').onclick=()=>{state.hand=[...example];state.winTile='5m';state.win='ron';state.riichi=true;render()};
+    app.querySelector('#example').onclick=()=>{state.hand=[...example];state.winTile='5m';state.win='ron';state.riichi=true;state.dealer=false;state.seatWind='2z';render()};
     app.querySelector('#clear').onclick=()=>{state.hand=[];state.winTile='';render()};
     app.querySelector('#win-tile').onchange=e=>state.winTile=e.target.value;
     app.querySelector('#win-kind').onchange=e=>state.win=e.target.value;
     app.querySelector('#seat-wind').onchange=e=>state.seatWind=e.target.value;
     app.querySelector('#round-wind').onchange=e=>state.roundWind=e.target.value;
-    app.querySelector('#dealer').onchange=e=>state.dealer=e.target.checked;
+    app.querySelector('#dealer').onchange=e=>{state.dealer=e.target.checked;render()};
     app.querySelector('#riichi').onchange=e=>state.riichi=e.target.checked;
     app.querySelector('#calculate').onclick=()=>{
-      const out=evaluateClosedHand({tiles:state.hand,winTile:state.winTile,win:state.win,riichi:state.riichi,dealer:state.dealer,seatWind:state.seatWind,roundWind:state.roundWind});
+      const out=evaluateClosedHand({tiles:state.hand,winTile:state.winTile,win:state.win,riichi:state.riichi,dealer:state.dealer,seatWind:state.dealer?'1z':state.seatWind,roundWind:state.roundWind});
       const box=app.querySelector('#calc-result');
       if(!out.ok){box.className='feedback bad';box.textContent=out.error;return}
       const b=out.best;box.className='feedback good';
