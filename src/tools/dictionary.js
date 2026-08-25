@@ -1,4 +1,4 @@
-const CATEGORY_LABELS={basic:'基本',tile:'牌',table:'卓・進行',action:'操作',state:'状態',rule:'ルール',score:'点数','hand-shape':'手牌の形'};
+const CATEGORY_LABELS={basic:'基本',tile:'牌',table:'卓・進行',action:'操作',state:'状態',rule:'ルール',score:'点数','hand-shape':'手牌の形',strategy:'考え方',defense:'守備'};
 const KANA_GROUPS=[['あ','あいうえお'],['か','かきくけこがぎぐげご'],['さ','さしすせそざじずぜぞ'],['た','たちつてとだぢづでど'],['な','なにぬねの'],['は','はひふへほばびぶべぼぱぴぷぺぽ'],['ま','まみむめも'],['や','やゆよ'],['ら','らりるれろ'],['わ','わをん']];
 const norm=s=>(s||'').toString().normalize('NFKC').toLowerCase().replace(/\s+/g,'');
 const kataToHira=s=>(s||'').replace(/[ァ-ヶ]/g,c=>String.fromCharCode(c.charCodeAt(0)-0x60));
