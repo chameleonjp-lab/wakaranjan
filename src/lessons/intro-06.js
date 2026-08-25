@@ -1,11 +1,11 @@
-import {createTileElement} from '../components/tile.js';
+import {createTile} from '../components/tile.js';
 
 const INITIAL_HAND=['1m','2m','3m','4p','5p','6p','2s','3s','4s','7s','8s','5z','5z'];
 const DRAW='1z';
 const DISCARD='1z';
 const WIN='9s';
 
-function tileNode(ctx,code,opts={}){return createTileElement(ctx.tileByCode.get(code),opts)}
+function tileNode(ctx,code,opts={}){return createTile(ctx.tileByCode.get(code),opts)}
 
 export function renderIntro06(app,ctx){
   let state='ready';
@@ -46,7 +46,7 @@ export function renderIntro06(app,ctx){
       feedback.className='feedback good';
       feedback.innerHTML='<strong>入門クリア。</strong><br>「1枚取る→1枚捨てる→テンパイ→リーチ→ロン」を一度通せました。点数計算はこのあと別の章で学びます。';
       addButton('もう一度やる',reset,'secondary');
-      const a=document.createElement('a');a.className='secondary';a.href='#home';a.textContent='入門一覧へ戻る';actions.append(a);
+      const a=document.createElement('a');a.className='secondary';a.href='#lesson-beginner-01';a.textContent='初級へ進む';actions.append(a);
     }
     if(state==='drawn') feedback.textContent='14枚になりました。今回は今ツモした東を捨てて進めます。別の牌を押すと理由を表示します。';
     if(state==='tenpai') feedback.textContent='これでテンパイです。索子の6か9が来れば形が完成します。';
