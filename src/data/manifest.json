@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "datasetVersion": "0.1.0",
+  "ruleset": "wakaranjan-standard-v1",
+  "files": {
+    "tiles": "./tiles.json",
+    "yaku": "./yaku.json",
+    "terms": "./terms.json",
+    "rules": "./rules.json",
+    "lessons": "./lessons.json"
+  },
+  "expected": {
+    "tileTypes": 34,
+    "redFives": 3
+  }
+}
