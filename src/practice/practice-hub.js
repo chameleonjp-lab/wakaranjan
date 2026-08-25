@@ -1,6 +1,7 @@
 import {appendTileRow,createTile} from '../components/tile.js';
 import {renderEastRound} from './east-round.js';
 import {renderWallPractice} from './wall-practice.js';
+import {renderKanPractice} from './kan-practice.js';
 import {renderRoundFlow} from './round-flow.js';
 
 const INITIAL_HAND=['2m','3m','4m','5p','6p','7p','2s','3s','4s','6s','7s','1z','1z'];
@@ -25,7 +26,7 @@ function tileBlock(ctx,label,codes,className='practice-tile-block'){
   return box;
 }
 function renderPracticeIndex(app){
-  app.innerHTML='<section class="lesson-head"><div class="eyebrow">対局練習</div><h1>牌を動かして、判断を練習する。</h1><p class="lead">短い練習で一つずつ確認します。時間制限はなく、間違えてもすぐにやり直せます。</p></section><section class="callout"><strong>練習の順番</strong><br>まずツモと捨て牌、次に鳴き、リーチ、フリテンへ進みます。案内付き一局では、流れをまとめて体験できます。</section><section class="feature-grid practice-grid"><a class="feature-card practice-card" href="#practice?mode=draw-discard"><strong>ツモと捨て牌</strong><span>1枚取って、1枚捨てる基本操作</span><small>実装済み</small></a><a class="feature-card practice-card" href="#practice?mode=wall"><strong>牌山と王牌（基礎）</strong><span>通常の牌山からツモし、王牌とドラ表示牌を確認</span><small>実装済み・次段階の基盤</small></a><a class="feature-card practice-card" href="#practice?mode=round-flow"><strong>局進行の基礎</strong><span>親の交代、連荘、本場、東風戦の終了</span><small>実装済み・状態処理を使用</small></a><a class="feature-card practice-card" href="#practice?mode=calls"><strong>鳴き</strong><span>チー・ポンができる場面を判断</span><small>実装済み</small></a><a class="feature-card practice-card" href="#practice?mode=riichi"><strong>リーチとあがり</strong><span>テンパイ、リーチ、ロンの順番</span><small>実装済み</small></a><a class="feature-card practice-card" href="#practice?mode=furiten"><strong>フリテン</strong><span>ロンできない場面とツモの関係</span><small>実装済み</small></a><a class="feature-card practice-card" href="#lesson-intro-06"><strong>案内付き一局</strong><span>ツモからロンまでを通して体験</span><small>入門教材で実装済み</small></a><a class="feature-card practice-card" href="#practice?mode=east-round"><strong>模擬東風戦（案内版）</strong><span>4局を通して、局の進行・親子・点数の変化を確認</span><small>実装済み・学習用固定シナリオ</small></a></section>'+nav();
+  app.innerHTML='<section class="lesson-head"><div class="eyebrow">対局練習</div><h1>牌を動かして、判断を練習する。</h1><p class="lead">短い練習で一つずつ確認します。時間制限はなく、間違えてもすぐにやり直せます。</p></section><section class="callout"><strong>練習の順番</strong><br>まずツモと捨て牌、次に鳴き、リーチ、フリテンへ進みます。案内付き一局では、流れをまとめて体験できます。</section><section class="feature-grid practice-grid"><a class="feature-card practice-card" href="#practice?mode=draw-discard"><strong>ツモと捨て牌</strong><span>1枚取って、1枚捨てる基本操作</span><small>実装済み</small></a><a class="feature-card practice-card" href="#practice?mode=wall"><strong>牌山と王牌（基礎）</strong><span>通常の牌山からツモし、王牌とドラ表示牌を確認</span><small>実装済み・次段階の基盤</small></a><a class="feature-card practice-card" href="#practice?mode=kan"><strong>カン・嶺上ツモ・追加ドラ</strong><span>暗槓・大明槓・加槓を区別し、カン後の処理を確認</span><small>実装済み・学習用固定シナリオ</small></a><a class="feature-card practice-card" href="#practice?mode=round-flow"><strong>局進行の基礎</strong><span>親の交代、連荘、本場、東風戦の終了</span><small>実装済み・状態処理を使用</small></a><a class="feature-card practice-card" href="#practice?mode=calls"><strong>鳴き</strong><span>チー・ポンができる場面を判断</span><small>実装済み</small></a><a class="feature-card practice-card" href="#practice?mode=riichi"><strong>リーチとあがり</strong><span>テンパイ、リーチ、ロンの順番</span><small>実装済み</small></a><a class="feature-card practice-card" href="#practice?mode=furiten"><strong>フリテン</strong><span>ロンできない場面とツモの関係</span><small>実装済み</small></a><a class="feature-card practice-card" href="#lesson-intro-06"><strong>案内付き一局</strong><span>ツモからロンまでを通して体験</span><small>入門教材で実装済み</small></a><a class="feature-card practice-card" href="#practice?mode=east-round"><strong>模擬東風戦（案内版）</strong><span>4局を通して、局の進行・親子・点数の変化を確認</span><small>実装済み・学習用固定シナリオ</small></a></section>'+nav();
 }
 function renderDrawDiscard(app,ctx){
   let state='ready';let hand=[...INITIAL_HAND];let river=[];
@@ -83,6 +84,7 @@ export function renderPracticeHub(app,ctx){
   const mode=new URLSearchParams((location.hash.split('?')[1]||'')).get('mode');
   if(mode==='draw-discard')return renderDrawDiscard(app,ctx);
   if(mode==='wall')return renderWallPractice(app,ctx);
+  if(mode==='kan')return renderKanPractice(app,ctx);
   if(mode==='round-flow')return renderRoundFlow(app);
   if(mode==='calls')return renderCalls(app,ctx);
   if(mode==='riichi')return renderRiichi(app,ctx);
