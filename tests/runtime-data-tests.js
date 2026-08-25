@@ -25,6 +25,19 @@ for(const ref of assetRefs){
 const tiles=readJson('src/data/tiles.json').tiles;
 const tileIds=uniqueIds(tiles,'牌');
 const tileCodes=new Set(tiles.map(tile=>tile.code));
+
+const rulesData=readJson('src/data/rules.json');
+assert.equal(rulesData.schemaVersion,1,'標準ルールのスキーマバージョンが不正です');
+assert.ok(Array.isArray(rulesData.rulesets)&&rulesData.rulesets.length>=1,'標準ルールセットがありません');
+const standardRules=rulesData.rulesets.find(rule=>rule.id==='wakaranjan-standard-v1');
+assert.ok(standardRules,'ワカランジャン標準ルール v1 がありません');
+assert.equal(standardRules.scope.players,4,'標準ルールは4人麻雀である必要があります');
+assert.equal(standardRules.scope.tileCount,136,'標準ルールの使用牌は136枚である必要があります');
+assert.equal(Object.values(standardRules.scope.redFives).reduce((sum,value)=>sum+value,0),3,'赤牌は3枚である必要があります');
+assert.equal(standardRules.winning.furitenRon,false,'フリテン時のロンは不可である必要があります');
+assert.equal(standardRules.scoring.kazoeYakuman,false,'数え役満は標準ルールで不採用です');
+assert.equal(standardRules.multipleRon,'head-bump','同時ロンは頭ハネである必要があります');
+assert.ok(standardRules.notes.length>=3,'標準ルールの補足が不足しています');
 assert.equal(tiles.length,34,'通常牌は34種類必要です');
 assert.equal(tileCodes.size,34,'牌コードが重複しています');
 
@@ -88,6 +101,11 @@ for(const [yakuId,example] of Object.entries(examples)){
   for(const code of [...(example.tiles||[]),example.winTile])if(code)assert.equal(tileCodes.has(code),true,`${yakuId} の成立例に未定義牌があります: ${code}`);
 }
 
+assert.match(appSource,/loadJson\(['\"]\.\/src\/data\/rules\.json['\"]\)/,'標準ルールJSONをapp.jsが読み込んでいません');
+assert.match(appSource,/['\"]rules['\"]:\(\)=>renderRules/,'標準ルールページのルートがありません');
+assert.match(appSource,/rulesets:rulesData\.rulesets/,'標準ルールセットが実行時コンテキストにありません');
+assert.match(appSource,/standardRules:rulesData\.rulesets\.find/,'標準ルールの選択が実行時コンテキストにありません');
+assert.equal(existsSync(join(root,'src/tools/rules.js')),true,'標準ルールページのモジュールがありません');
 assert.match(appSource,/const isDataLesson=ctx\.dataLessonById\.has\(id\)/,'データ駆動章の判定がありません');
 assert.match(appSource,/else if\(isDataLesson\)renderDataLesson/,'データ駆動章のルートがありません');
 assert.match(appSource,/if\(!isDataLesson\)attachLessonSupport\(app,ctx,id\);attachLessonProgress\(app,id\)/,'データ駆動章では補助教材だけを除外し、進捗表示を残す条件がありません');
