@@ -103,6 +103,12 @@ for(const [yakuId,example] of Object.entries(examples)){
 
 assert.match(appSource,/loadJson\(['\"]\.\/src\/data\/rules\.json['\"]\)/,'標準ルールJSONをapp.jsが読み込んでいません');
 assert.match(appSource,/import \{renderStudyRecord\} from '\.\/tools\/study-record\.js'/,'学習記録ページをapp.jsが読み込んでいません');
+assert.match(appSource,/import \{renderPracticeHub\} from '\.\/practice\/practice-hub\.js'/,'対局練習ページをapp.jsが読み込んでいません');
+assert.match(appSource,/['\"]practice['\"]:\(\)=>renderPracticeHub/,'対局練習ページのルートがありません');
+assert.match(appSource,/href="#practice"/,'ホームから対局練習への導線がありません');
+assert.equal(existsSync(join(root,'src/practice/practice-hub.js')),true,'対局練習モジュールがありません');
+const practiceSource=readFileSync(join(root,'src/practice/practice-hub.js'),'utf8');
+for(const mode of ['draw-discard','calls','riichi','furiten'])assert.match(practiceSource,new RegExp(mode),`${mode}の練習がありません`);
 assert.match(appSource,/['\"]study-record['\"]:\(\)=>renderStudyRecord/,'学習記録ページのルートがありません');
 assert.match(appSource,/href="#study-record"/,'ホームから学習記録への導線がありません');
 assert.equal(existsSync(join(root,'src/tools/study-record.js')),true,'学習記録ページのモジュールがありません');
