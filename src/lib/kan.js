@@ -137,7 +137,7 @@ export function applyKan(input={}){
     ...result,
     concealedTiles:removed,
     openMelds:nextMelds,
-    kanCount:input.kanCount+1,
+    kanCount:(input.kanCount??0)+1,
     nextAction:'draw-rinshan',
     pendingRinshan:true,
     pendingDoraIndicator:true
