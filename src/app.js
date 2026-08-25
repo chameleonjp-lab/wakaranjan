@@ -3,6 +3,7 @@ import {renderIntro02} from './lessons/intro-02.js';
 import {renderIntro03} from './lessons/intro-03.js';
 import {renderIntro04} from './lessons/intro-04.js';
 import {renderIntro05} from './lessons/intro-05.js';
+import {renderIntro06} from './lessons/intro-06.js';
 
 const app=document.querySelector('#app');
 
@@ -17,8 +18,8 @@ function renderHome(ctx){
   app.innerHTML=`
     <section class="hero"><div class="eyebrow">麻雀を知らなくても大丈夫</div><h1>牌を触りながら、少しずつ覚える。</h1><p>最初は専門用語を覚えなくて構いません。「1枚取る、1枚捨てる」から始めます。</p></section>
     <h2 class="section-title">入門</h2>
-    <div class="lesson-list">${intro.map(l=>`<a class="lesson-card" href="#${l.id}"><strong>${l.order}. ${l.title}</strong><small>約${l.estimatedMinutes}分${l.order>5?' ・ 準備中':''}</small></a>`).join('')}</div>
-    <div class="callout" style="margin-top:18px">現在は入門1-1〜1-5を実装しています。次は案内付き一局を追加します。</div>`;
+    <div class="lesson-list">${intro.map(l=>`<a class="lesson-card" href="#${l.id}"><strong>${l.order}. ${l.title}</strong><small>約${l.estimatedMinutes}分</small></a>`).join('')}</div>
+    <div class="callout" style="margin-top:18px">入門1-1〜1-6まで実装済みです。最後の案内付き一局まで通して学べます。</div>`;
 }
 
 function renderUnavailable(id,ctx){
@@ -34,6 +35,7 @@ function route(ctx){
   else if(id==='lesson-intro-03') renderIntro03(app,ctx);
   else if(id==='lesson-intro-04') renderIntro04(app,ctx);
   else if(id==='lesson-intro-05') renderIntro05(app,ctx);
+  else if(id==='lesson-intro-06') renderIntro06(app,ctx);
   else renderUnavailable(id,ctx);
   window.scrollTo({top:0,behavior:'auto'});
   app.focus({preventScroll:true});
