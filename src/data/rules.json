@@ -4,16 +4,82 @@
     {
       "id": "wakaranjan-standard-v1",
       "displayNameJa": "ワカランジャン標準ルール v1",
-      "players": 4,
-      "tileCount": 136,
-      "redFives": {"man": 1, "pin": 1, "sou": 1},
+      "scope": {
+        "game": "日本式四人リーチ麻雀",
+        "players": 4,
+        "dealerCount": 1,
+        "childCount": 3,
+        "tileCount": 136,
+        "redFives": {
+          "man": 1,
+          "pin": 1,
+          "sou": 1
+        }
+      },
+      "winning": {
+        "minimumHan": 1,
+        "requiresNonDoraYaku": true,
+        "standardShape": "4面子1雀頭",
+        "specialShapes": [
+          "七対子",
+          "国士無双"
+        ],
+        "furitenRon": false
+      },
+      "calls": {
+        "chi": "上家からのみ",
+        "pon": "他の3人の誰からでも",
+        "kan": [
+          "暗槓",
+          "大明槓",
+          "加槓"
+        ],
+        "closedOnlyYakuNotAvailableAfterCall": true
+      },
+      "riichi": {
+        "enabled": true,
+        "requiresClosedHand": true,
+        "requiresTenpai": true,
+        "includes": [
+          "供託",
+          "リーチ棒",
+          "一発",
+          "裏ドラ"
+        ]
+      },
+      "flow": {
+        "drawHandling": "流局・テンパイ/ノーテン",
+        "renchan": true,
+        "honba": true
+      },
+      "scoring": {
+        "redDora": true,
+        "uraDora": true,
+        "kanDora": true,
+        "kanUraDora": true,
+        "rounding": "100点単位に切り上げ",
+        "kiriageMangan": true,
+        "chiitoitsuFu": 25,
+        "pinfuTsumoFu": 20,
+        "kazoeYakuman": false,
+        "kazoeYakumanMax": "三倍満",
+        "limits": [
+          "満貫",
+          "跳満",
+          "倍満",
+          "三倍満",
+          "役満"
+        ],
+        "honba": true,
+        "riichiSticks": true
+      },
       "openTanyao": true,
-      "kiriageMangan": true,
-      "kazoeYakuman": false,
+      "atozuke": true,
       "multipleRon": "head-bump",
       "doubleYakumanVariants": false,
       "yakumanStacking": true,
       "localYaku": false,
+      "sanma": false,
       "notes": [
         "ドラは役ではなく追加翻として扱う。",
         "標準問題ではローカル役を採用しない。",
