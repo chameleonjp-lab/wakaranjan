@@ -29,7 +29,7 @@ function route(ctx){
   else if(id==='lesson-intro-01') renderIntro01(app,ctx);
   else if(id==='lesson-intro-02') renderIntro02(app,ctx);
   else renderUnavailable(id,ctx);
-  window.scrollTo({top:0,behavior:'instant'});
+  window.scrollTo({top:0,behavior:'auto'});
   app.focus({preventScroll:true});
 }
 
