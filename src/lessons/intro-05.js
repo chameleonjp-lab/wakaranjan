@@ -1,12 +1,12 @@
-import {tileElement} from '../components/tile.js';
+import {createTile} from '../components/tile.js';
 
 function getTile(ctx,code){return ctx.tileByCode.get(code)||ctx.tileById.get(`tile-${code}`);}
 
 function handRow(ctx,codes,winCode){
   const row=document.createElement('div');row.className='hand-row';
-  codes.forEach(c=>row.append(tileElement(getTile(ctx,c),{compact:true})));
+  codes.forEach(c=>row.append(createTile(getTile(ctx,c))));
   const gap=document.createElement('span');gap.className='win-gap';gap.textContent='＋';row.append(gap);
-  row.append(tileElement(getTile(ctx,winCode),{compact:true,drawn:true}));
+  row.append(createTile(getTile(ctx,winCode),{drawn:true}));
   return row;
 }
 
