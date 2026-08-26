@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {createRoundWall} from '../src/lib/tile-wall.js';
 import {claimRon,completeExhaustiveDraw,completeTsumo,checkRon,checkTsumo,createHandFlow,discardTile,drawForTurn,HAND_PHASES,passDiscard} from '../src/lib/hand-flow.js';
 
 const wallOptions={random:()=>0.5};
@@ -23,6 +24,17 @@ assert.equal(tsumo.result.type,'win','the completed state keeps a win result');
 assert.equal(tsumo.result.win,'tsumo','the result records the win kind');
 assert.equal(tsumo.roundState.lastOutcome,'win','the round state receives the win outcome');
 assert.ok(tsumo.roundState.scores.east>winningEast.scores?.east||tsumo.roundState.scores.east>25000,'the winner receives the integrated payment');
+assert.equal(tsumoCheck.best.dora,2,'red fives in the physical hand are counted as red dora');
+assert.equal(tsumoCheck.best.doraDetail[0].count,2,'the red dora count is retained in the result');
+
+const uraWall=createRoundWall({random:()=>0.5,redFives:{man:0,pin:0,sou:0}});
+uraWall.doraIndicators[0]={...uraWall.doraIndicators[0],code:'4z'};
+uraWall.uraIndicators[0]={...uraWall.uraIndicators[0],code:'3m'};
+const uraStart=createHandFlow({roundWall:uraWall,initialHands:winningEast});
+const uraCheck=checkTsumo(uraStart,{options:{riichi:true}});
+assert.equal(uraCheck.ok,true,uraCheck.error);
+assert.equal(uraCheck.best.dora,1,'a riichi hand counts the initial ura dora');
+assert.equal(uraCheck.best.doraDetail[0].name,'裏ドラ','the ura dora source is retained in the result');
 
 const winningSouth={
   east:['1m','1m','1m','1m','2m','3m','4m','5m','6m','7m','8m','9m','1p','5m'],
