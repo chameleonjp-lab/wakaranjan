@@ -4,6 +4,20 @@ import {createHandFlowScenario,HAND_FLOW_SCENARIOS,isHandFlowScenarioPhase} from
 
 const wallOptions={random:()=>0.5};
 
+const originalRandom=Math.random;
+let randomStartA;
+let randomStartB;
+try{
+  Math.random=()=>0;
+  randomStartA=createHandFlowScenario('random');
+  Math.random=()=>0.99;
+  randomStartB=createHandFlowScenario('random');
+}finally{
+  Math.random=originalRandom;
+}
+assert.notDeepEqual(randomStartA.players.east.hand.map(tile=>tile.id),randomStartB.players.east.hand.map(tile=>tile.id),'the normal scenario keeps random wall behavior');
+assert.equal(HAND_FLOW_SCENARIOS.random.deterministicWall,false,'only fixed scenarios opt into a deterministic wall');
+
 const callStart=createHandFlowScenario('call',{wallOptions});
 assert.equal(callStart.players.east.hand.at(-1).code,'5m','the call scenario gives the dealer a 5m as the drawn tile');
 const callResponse=discardTile(callStart,{seat:'east',tileId:callStart.drawnTileId});
