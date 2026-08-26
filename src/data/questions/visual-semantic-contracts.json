@@ -16,6 +16,16 @@
     "q-visual-ron-003": {"winTile":"5m","riichi":true,"hasYaku":true,"furiten":true,"canRon":false},
     "q-visual-ron-005": {"winTile":"5m","riichi":false,"hasYaku":true,"furiten":false,"canRon":true}
   },
+  "mirroredYakuQuestionIds": [
+    "q-visual-yaku-001",
+    "q-visual-yaku-002",
+    "q-visual-yaku-003",
+    "q-visual-yaku-004",
+    "q-visual-yaku-005",
+    "q-visual-yaku-006",
+    "q-visual-yaku-007",
+    "q-visual-yaku-008"
+  ],
   "exampleRules": {
     "yaku-toitoi": {"mustInclude":["yaku-toitoi"],"mustNotInclude":["yaku-suuankou"]},
     "yaku-sanankou": {"mustInclude":["yaku-sanankou"],"mustNotInclude":["yaku-suuankou"],"wait":"ryanmen"},
