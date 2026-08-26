@@ -1,5 +1,6 @@
 import {appendTileRow,createTile} from '../components/tile.js';
-import {advanceAutomaticResponse,checkCall,checkKan,checkRonClaims,checkTsumo,claimRonClaims,completeExhaustiveDraw,completeTsumo,createHandFlow,declareCall,declareKan,declareRiichi,discardTile,drawForTurn,HAND_PHASES} from '../lib/hand-flow.js';
+import {advanceAutomaticResponse,checkCall,checkKan,checkRonClaims,checkTsumo,claimRonClaims,completeExhaustiveDraw,completeTsumo,declareCall,declareKan,declareRiichi,discardTile,drawForTurn,HAND_PHASES} from '../lib/hand-flow.js';
+import {createHandFlowScenario,HAND_FLOW_SCENARIOS} from './hand-flow-scenarios.js';
 import {roundLabel,SEATS,SEAT_LABEL_MAP} from '../lib/round-state.js';
 import {deadWallRemaining,liveTilesRemaining} from '../lib/tile-wall.js';
 
@@ -55,8 +56,12 @@ function appendMeldSummary(container,ctx,melds){
 export function renderHandFlow(app,ctx){
   const tileCodes=ctx.tiles.map(tile=>tile.code);
   const redFives=ctx.standardRules?.scope?.redFives||{man:1,pin:1,sou:1};
-  let state=createHandFlow({wallOptions:{tileCodes,redFives}});
-  const reset=()=>{state=createHandFlow({wallOptions:{tileCodes,redFives}});render()};
+  const scenarioId=new URLSearchParams((location.hash.split('?')[1]||'')).get('scenario')||'random';
+  const scenario=HAND_FLOW_SCENARIOS[scenarioId]||HAND_FLOW_SCENARIOS.random;
+  const activeScenarioId=HAND_FLOW_SCENARIOS[scenarioId]?scenarioId:'random';
+  const newState=()=>createHandFlowScenario(activeScenarioId,{wallOptions:{tileCodes,redFives}});
+  let state=newState();
+  const reset=()=>{state=newState();render()};
   const automaticSeatsForResponse=()=>{
     const pending=state.pendingDiscard;
     return SEATS.filter(seat=>seat!==state.userSeat&&seat!==pending?.seat);
@@ -84,6 +89,36 @@ export function renderHandFlow(app,ctx){
     const canRespond=state.phase===HAND_PHASES.RESPONSE;
     const canUserRespond=canRespond&&state.pendingDiscard?.seat!==state.userSeat;
     app.innerHTML='<section class="lesson-head"><div class="eyebrow">対局練習 6</div><h1>一局の実牌進行（基礎）</h1><p class="lead">実際の牌山から配牌し、親の第1打、ツモ、捨て牌、ロン応答、流局完了までの状態を確認します。</p></section><section class="callout"><strong>この練習の範囲</strong><br>4人分の配牌と牌山を作り、あなたの手番では捨てる牌を選びます。捨て牌のあとに応答待ちを置き、ロン・チー・ポン・カンの優先順と鳴き後の捨て牌を共通状態へ接続しています。複数人がロンできる場合は、放銃者の次に近い席を選ぶ頭ハネとして記録します。</section><section class="practice-surface"><div class="flow-current-state"><span>'+roundLabel(state.roundState)+'</span><strong>現在の手番：'+seatLabel(state.currentSeat)+(userTurn?'（あなた）':'')+'</strong></div><div class="wall-status-grid"><div class="wall-status-card"><span>通常の牌山</span><strong>'+liveTilesRemaining(state.roundWall)+'枚</strong></div><div class="wall-status-card"><span>王牌</span><strong>'+deadWallRemaining(state.roundWall)+'枚</strong></div><div class="wall-status-card"><span>あなたの手牌</span><strong>'+player.hand.length+'枚</strong></div></div><div class="east-score-grid">'+SEATS.map(seat=>'<div class="east-score-card'+(seat===state.userSeat?' you':'')+'"><span>'+seatLabel(seat)+(seat===state.userSeat?'（あなた）':'')+'</span><strong>手牌 '+state.players[seat].hand.length+'枚</strong><small>河 '+state.players[seat].river.length+'枚</small></div>').join('')+'</div><p class="status" aria-live="polite">'+(canDiscard?'捨てたい牌を1枚タップしてください。':canDraw?'「1枚ツモする」を押してください。':canRespond?'捨て牌への応答を確認します。':userTurn?'この局面は結果待ちです。':'他家は自動応答してツモ・捨て牌を進めます。')+'</p><h2 class="section-title">あなたの手牌</h2><div class="practice-hand" id="hand-flow-hand"></div><h2 class="section-title">ドラ表示牌</h2><div class="practice-tile-block wall-dora" id="hand-flow-dora"></div><h2 class="section-title">あなたの河</h2><div class="river" id="hand-flow-river"></div><div class="action-row" id="hand-flow-actions"></div><div class="feedback" id="hand-flow-feedback" aria-live="polite"></div></section>'+nav();
+    const scenarioPanel=document.createElement('section');
+    scenarioPanel.className='flow-scenario-panel';
+    scenarioPanel.setAttribute('aria-label','一局の確認シナリオ');
+    const scenarioHeading=document.createElement('div');
+    scenarioHeading.className='flow-scenario-heading';
+    const scenarioLabel=document.createElement('span');
+    scenarioLabel.textContent='操作確認シナリオ';
+    const scenarioTitle=document.createElement('strong');
+    scenarioTitle.textContent=scenario.label;
+    scenarioHeading.append(scenarioLabel,scenarioTitle);
+    scenarioPanel.append(scenarioHeading);
+    const scenarioDescription=document.createElement('p');
+    scenarioDescription.textContent=scenario.description;
+    scenarioPanel.append(scenarioDescription);
+    const scenarioHint=document.createElement('p');
+    scenarioHint.className='flow-scenario-hint';
+    scenarioHint.textContent=scenario.hint;
+    scenarioPanel.append(scenarioHint);
+    const scenarioLinks=document.createElement('div');
+    scenarioLinks.className='flow-scenario-links';
+    Object.entries(HAND_FLOW_SCENARIOS).forEach(([id,entry])=>{
+      const link=document.createElement('a');
+      link.className='secondary'+(id===activeScenarioId?' current':'');
+      link.href='#practice?mode=hand-flow&scenario='+id;
+      link.textContent=entry.label;
+      if(id===activeScenarioId)link.setAttribute('aria-current','page');
+      scenarioLinks.append(link);
+    });
+    scenarioPanel.append(scenarioLinks);
+    app.querySelector('.lesson-head').insertAdjacentElement('afterend',scenarioPanel);
     const status=app.querySelector('.status');
     const stateSummary=document.createElement('div');
     stateSummary.className='flow-state-summary';
