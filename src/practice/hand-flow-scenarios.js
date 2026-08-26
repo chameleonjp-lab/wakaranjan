@@ -35,18 +35,21 @@ export const HAND_FLOW_SCENARIOS=Object.freeze({
   random:Object.freeze({
     label:'通常練習',
     description:'ランダムな配牌から、ツモ・捨て牌・応答・流局まで進めます。',
-    hint:'自分の手番では牌をタップし、他家の手番では自動進行ボタンを押します。'
+    hint:'自分の手番では牌をタップし、他家の手番では自動進行ボタンを押します。',
+    deterministicWall:false
   }),
   call:Object.freeze({
     label:'鳴き確認',
     description:'親が5mを捨てると、南家が大明槓する場面から始めます。',
     hint:'親の最後の牌（5m）を捨ててから、「他家の応答を進める」を押してください。',
+    deterministicWall:true,
     initialHands:CALL_HANDS
   }),
   riichi:Object.freeze({
     label:'リーチ確認',
     description:'親の14枚目を捨ててリーチし、応答後に5mをツモする場面です。',
     hint:'親の最後の牌を捨て、「リーチを確認」→「他家の応答を進める」を4回行います。',
+    deterministicWall:true,
     initialHands:RIICHI_HANDS,
     prepare:state=>moveLiveTile(state,'5m',1)
   }),
@@ -54,6 +57,7 @@ export const HAND_FLOW_SCENARIOS=Object.freeze({
     label:'流局確認',
     description:'捨て牌への応答を見送った直後、通常の牌山が尽きた場面です。',
     hint:'「他家のツモ・捨て牌を進める」→「流局として完了」の2操作で確認できます。',
+    deterministicWall:true,
     prepare:prepareDrawScenario
   })
 });
@@ -61,7 +65,8 @@ export const HAND_FLOW_SCENARIOS=Object.freeze({
 export function createHandFlowScenario(id='random',options={}){
   const scenario=HAND_FLOW_SCENARIOS[id]||HAND_FLOW_SCENARIOS.random;
   const {tileCodes,redFives,wallOptions={},...flowOptions}=options;
-  const resolvedWallOptions={...FIXED_WALL_OPTIONS,...wallOptions};
+  const resolvedWallOptions={...wallOptions};
+  if(scenario.deterministicWall&&typeof resolvedWallOptions.random!=='function')resolvedWallOptions.random=FIXED_WALL_OPTIONS.random;
   if(tileCodes)resolvedWallOptions.tileCodes=tileCodes;
   if(redFives)resolvedWallOptions.redFives=redFives;
   let state=createHandFlow({
