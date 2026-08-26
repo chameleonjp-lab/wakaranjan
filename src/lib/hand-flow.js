@@ -1,5 +1,5 @@
 import {applyKan,KAN_TYPES} from './kan.js';
-import {settleHand,tenpaiStatus} from './round-context.js';
+import {resolveHeadBump,settleHand,tenpaiStatus} from './round-context.js';
 import {completeHand as completeRoundHand,createMatchState,declareKan as declareRoundKan,resolveKan as resolveRoundKan,SEATS} from './round-state.js';
 import {createRoundWall,drawLiveTile,revealDoraIndicator,resolveKan as resolveWallKan} from './tile-wall.js';
 
@@ -61,7 +61,9 @@ function cloneResult(result){
     ...result,
     best:result.best?{...result.best,score:result.best.score?{...result.best.score,payments:result.best.score.payments?{...result.best.score.payments}:undefined}:result.best.score}:result.best,
     furiten:result.furiten?{...result.furiten,waits:Array.isArray(result.furiten.waits)?[...result.furiten.waits]:result.furiten.waits}:result.furiten,
-    settlement:result.settlement?{...result.settlement,payers:{...result.settlement.payers}}:result.settlement
+    settlement:result.settlement?{...result.settlement,payers:{...result.settlement.payers}}:result.settlement,
+    ronClaims:Array.isArray(result.ronClaims)?result.ronClaims.map(claim=>({...claim,score:claim.score?{...claim.score}:claim.score})):result.ronClaims,
+    headBump:result.headBump?{...result.headBump,priority:Array.isArray(result.headBump.priority)?[...result.headBump.priority]:result.headBump.priority,blocked:Array.isArray(result.headBump.blocked)?[...result.headBump.blocked]:result.headBump.blocked}:result.headBump
   };
 }
 
@@ -230,6 +232,27 @@ function settlementInput(state,{seat,win,winTile,discarderSeat=null,options={}})
   };
 }
 
+function normalizeRonClaimSeats(pending,seats){
+  const requested=seats===undefined?SEATS.filter(seat=>seat!==pending.seat):seats;
+  if(!Array.isArray(requested))throw new TypeError('seats must be an array');
+  const unique=[];
+  for(const seat of requested){
+    assertSeat(seat);
+    if(seat===pending.seat)throw new Error('the discarder cannot declare ron');
+    if(!unique.includes(seat))unique.push(seat);
+  }
+  return unique;
+}
+
+function claimResultSummary(claim){
+  return {
+    seat:claim.seat,
+    ok:claim.ok,
+    error:claim.ok?null:claim.error,
+    score:claim.result?.best?.score||null
+  };
+}
+
 function scoreDeltas(result,winnerSeat){
   const deltas={};
   const payers=result.settlement?.payers||{};
@@ -242,7 +265,7 @@ function scoreDeltas(result,winnerSeat){
   return deltas;
 }
 
-function completeWinningFlow(state,result,{winnerSeat,win,winTileId,discarderSeat=null}){
+function completeWinningFlow(state,result,{winnerSeat,win,winTileId,discarderSeat=null,resultMeta={},actionMeta={}}){
   const current=cloneFlow(state);
   current.roundState=completeRoundHand(current.roundState,{
     outcome:'win',
@@ -260,9 +283,10 @@ function completeWinningFlow(state,result,{winnerSeat,win,winTileId,discarderSea
     winTileId:winTileId||null,
     discarderSeat,
     score:result.best?.score||null,
-    settlement:result.settlement?{...result.settlement,payers:{...result.settlement.payers}}:null
+    settlement:result.settlement?{...result.settlement,payers:{...result.settlement.payers}}:null,
+    ...resultMeta
   };
-  current.lastAction={type:'win',win,winnerSeat,winTileId:winTileId||null,discarderSeat,score:result.best?.score?.total||null};
+  current.lastAction={type:'win',win,winnerSeat,winTileId:winTileId||null,discarderSeat,score:result.best?.score?.total||null,...actionMeta};
   return current;
 }
 
@@ -389,6 +413,79 @@ export function checkRon(state,{seat=state?.currentSeat,options={}}={}){
   const pending=state.pendingDiscard;
   if(seat===pending.seat)throw new Error('the discarder cannot ron on their own discard');
   return evaluateStateResult(state,{seat,win:'ron',winTile:pending.code,discarderSeat:pending.seat,options});
+}
+
+export function checkRonClaims(state,{seats,options={},optionsBySeat={}}={}){
+  assertFlow(state);
+  if(state.phase!==HAND_PHASES.RESPONSE)throw new Error('ron can only be checked during a discard response');
+  const pending=state.pendingDiscard;
+  const claimantSeats=normalizeRonClaimSeats(pending,seats);
+  const claims=claimantSeats.map(seat=>{
+    const seatOptions=optionsBySeat&&Object.prototype.hasOwnProperty.call(optionsBySeat,seat)?optionsBySeat[seat]:options;
+    const result=evaluateStateResult(state,{seat,win:'ron',winTile:pending.code,discarderSeat:pending.seat,options:seatOptions});
+    return {
+      seat,
+      ok:Boolean(result.ok),
+      error:result.ok?null:result.error,
+      result:result.ok?result:null
+    };
+  });
+  const validSeats=claims.filter(claim=>claim.ok).map(claim=>claim.seat);
+  if(!validSeats.length){
+    return {
+      ok:false,
+      discarderSeat:pending.seat,
+      tileId:pending.tileId,
+      code:pending.code,
+      claims,
+      claimantSeats:[],
+      winnerSeat:null,
+      blockedSeats:[],
+      priority:[],
+      error:'ロンできる人がいません。'
+    };
+  }
+  const resolved=resolveHeadBump({discarderSeat:pending.seat,claimantSeats:validSeats});
+  if(!resolved.ok)throw new Error(resolved.error);
+  return {
+    ok:true,
+    discarderSeat:pending.seat,
+    tileId:pending.tileId,
+    code:pending.code,
+    claims,
+    claimantSeats:validSeats,
+    winnerSeat:resolved.winner,
+    blockedSeats:resolved.blocked,
+    priority:resolved.priority
+  };
+}
+
+export function claimRonClaims(state,{seats,options={},optionsBySeat={}}={}){
+  const checked=checkRonClaims(state,{seats,options,optionsBySeat});
+  if(!checked.ok){
+    const failed=checked.claims.find(claim=>!claim.ok);
+    throw new Error(failed?.error||checked.error);
+  }
+  const winnerClaim=checked.claims.find(claim=>claim.seat===checked.winnerSeat&&claim.ok);
+  if(!winnerClaim?.result)throw new Error('head-bump winner result is missing');
+  const ronClaims=checked.claims.map(claimResultSummary);
+  return completeWinningFlow(state,winnerClaim.result,{
+    winnerSeat:checked.winnerSeat,
+    win:'ron',
+    winTileId:checked.tileId,
+    discarderSeat:checked.discarderSeat,
+    resultMeta:{
+      ronClaims,
+      ronClaimants:checked.claimantSeats,
+      blockedRonClaimants:checked.blockedSeats,
+      headBump:{winner:checked.winnerSeat,priority:[...checked.priority],blocked:[...checked.blockedSeats]}
+    },
+    actionMeta:{
+      ronClaimants:checked.claimantSeats,
+      blockedRonClaimants:checked.blockedSeats,
+      headBumpWinner:checked.winnerSeat
+    }
+  });
 }
 
 export function claimRon(state,{seat=state?.currentSeat,options={}}={}){
