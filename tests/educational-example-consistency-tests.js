@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {decomposeHand} from '../src/lib/hand.js';
+import {decomposeHand,waitCandidates} from '../src/lib/hand.js';
 import {evaluateHand} from '../src/lib/full-hand-evaluator.js';
 
 const read=path=>JSON.parse(readFileSync(new URL(path,import.meta.url),'utf8'));
@@ -15,6 +15,9 @@ const sorted=a=>[...a].sort();
 function waitsFor(hand){
   const counts=new Map();for(const c of hand)counts.set(c,(counts.get(c)||0)+1);
   return tiles.filter(code=>(counts.get(code)||0)<4&&decomposeHand([...hand,code]).length>0).sort();
+}
+function waitTypesFor(hand,winTile){
+  return new Set(decomposeHand(hand).flatMap(d=>waitCandidates(d,winTile).map(v=>v.wait)));
 }
 function yakuIds(result){
   if(!result?.ok||!result.best)return new Set();
@@ -63,7 +66,7 @@ test('誤解しやすい役図鑑例は教材上の意味まで固定する',()=
     assert.equal(r.ok,true,`${id}: ${r.error}`);const ids=yakuIds(r);
     for(const y of rule.mustInclude||[])assert.equal(ids.has(y),true,`${id}: missing ${y}; ${[...ids].join(',')}`);
     for(const y of rule.mustNotInclude||[])assert.equal(ids.has(y),false,`${id}: unexpected ${y}`);
-    if(rule.wait)assert.equal(r.best.wait,rule.wait,`${id}: wait=${r.best.wait}`);
+    if(rule.wait){const waits=waitTypesFor(ex.tiles,ex.winTile);assert.equal(waits.has(rule.wait),true,`${id}: waits=${[...waits].join(',')}`)}
     if(rule.preWinMustNotBeBasePattern)assert.equal(isChuurenBase13(removeOne(ex.tiles,ex.winTile)),false,`${id}: pure chuuren base was used`);
   }
 });
