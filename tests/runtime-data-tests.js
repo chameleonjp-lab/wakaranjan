@@ -109,8 +109,10 @@ assert.match(appSource,/['\"]practice['\"]:\(\)=>renderPracticeHub/,'対局練�
 assert.match(appSource,/href="#practice"/,'ホームから対局練習への導線がありません');
 assert.equal(existsSync(join(root,'src/practice/practice-hub.js')),true,'対局練習モジュールがありません');
 const practiceSource=readFileSync(join(root,'src/practice/practice-hub.js'),'utf8');
-for(const mode of ['draw-discard','calls','riichi','furiten','east-round'])assert.match(practiceSource,new RegExp(mode),`${mode}の練習がありません`);
+for(const mode of ['draw-discard','calls','riichi','furiten','east-round','hand-flow'])assert.match(practiceSource,new RegExp(mode),`${mode}の練習がありません`);
 assert.match(practiceSource,/renderEastRound/,'模擬東風戦の描画関数が接続されていません');
+assert.match(practiceSource,/renderHandFlow/,'一局の実牌進行の描画関数が接続されていません');
+assert.equal(existsSync(join(root,'src/practice/hand-flow.js')),true,'一局の実牌進行モジュールがありません');
 assert.equal(existsSync(join(root,'src/practice/east-round.js')),true,'模擬東風戦モジュールがありません');
 const eastRoundSource=readFileSync(join(root,'src/practice/east-round.js'),'utf8');
 assert.match(eastRoundSource,/calculateScore/,'模擬東風戦が共通点数計算を使っていません');
