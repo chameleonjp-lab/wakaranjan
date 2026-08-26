@@ -55,6 +55,8 @@ export function renderHandFlow(app,ctx){
       button.textContent='1枚ツモする';
       button.onclick=()=>{state=drawForTurn(state);render()};
       actions.append(button);
+    }else if(state.phase===HAND_PHASES.AWAITING_RESULT){
+      feedback.textContent='通常の牌山がなくなりました。流局の判定は次の段階で追加します。';
     }else if(!userTurn){
       const button=document.createElement('button');
       button.type='button';
@@ -63,8 +65,6 @@ export function renderHandFlow(app,ctx){
       button.onclick=advanceOtherSeat;
       actions.append(button);
       feedback.textContent='他家は説明用に、引いた牌をそのまま捨てます。';
-    }else if(state.phase===HAND_PHASES.AWAITING_RESULT){
-      feedback.textContent='通常の牌山がなくなりました。流局の判定は次の段階で追加します。';
     }else if(state.phase===HAND_PHASES.COMPLETED){
       feedback.textContent='この一局は完了しています。';
     }else{
