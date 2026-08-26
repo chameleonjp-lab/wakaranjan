@@ -26,7 +26,7 @@ assert.equal(called.lastAction.type,'kan','the call scenario reaches an automati
 assert.equal(called.lastAction.kanType,'minkan','the call scenario uses a minkan response');
 assert.equal(called.lastAction.automatic,true,'the automatic call is marked for the practice log');
 assert.equal(called.currentSeat,'south','the automatic caller receives the next discard');
-assert.equal(called.drawnTileId,null,'an automatic caller has no drawn tile until the next draw');
+assert.ok(called.drawnTileId,'an automatic minkan caller receives a rinshan tile');
 
 const riichiStart=createHandFlowScenario('riichi',{wallOptions});
 const riichi=declareRiichi(riichiStart,{seat:'east',tileId:riichiStart.drawnTileId});
