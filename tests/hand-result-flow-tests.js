@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {createRoundWall} from '../src/lib/tile-wall.js';
-import {claimRon,completeExhaustiveDraw,completeTsumo,checkRon,checkTsumo,createHandFlow,discardTile,drawForTurn,HAND_PHASES,passDiscard} from '../src/lib/hand-flow.js';
+import {claimRon,completeExhaustiveDraw,completeTsumo,checkRon,checkTsumo,createHandFlow,discardTile,drawForTurn,HAND_PHASES,passDiscard,startNextHand} from '../src/lib/hand-flow.js';
 
 const wallOptions={random:()=>0.5};
 const otherHands={
@@ -32,6 +32,11 @@ assert.deepEqual(tsumo.result.fuItems,tsumoCheck.best.fuItems,'the completed sta
 assert.equal(tsumo.result.settlement.handGain,tsumo.result.score.total,'the settlement keeps the received total');
 assert.equal(tsumo.roundState.lastOutcome,'win','the round state receives the win outcome');
 assert.ok(tsumo.roundState.scores.east>winningEast.scores?.east||tsumo.roundState.scores.east>25000,'the winner receives the integrated payment');
+const tsumoNext=startNextHand(tsumo,{wallOptions});
+assert.equal(tsumoNext.phase,HAND_PHASES.DISCARD,'the next hand can start from a completed win');
+assert.equal(tsumoNext.currentSeat,'east','a dealer win keeps the same dealer for the next hand');
+assert.equal(tsumoNext.roundState.honba,1,'a dealer win carries one honba into the next hand');
+assert.deepEqual(tsumoNext.roundState.scores,tsumo.roundState.scores,'the next hand keeps the completed scores');
 assert.equal(tsumoCheck.best.dora,2,'red fives in the physical hand are counted as red dora');
 assert.equal(tsumoCheck.best.doraDetail[0].count,2,'the red dora count is retained in the result');
 
