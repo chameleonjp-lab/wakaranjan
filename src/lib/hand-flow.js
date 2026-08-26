@@ -195,10 +195,6 @@ function takeCopies(hand,code,count){
   return {hand:next,removed};
 }
 
-function removeCopies(hand,code,count){
-  return takeCopies(hand,code,count).hand;
-}
-
 function takePhysicalCodes(hand,codes){
   const remaining=[...codes];
   const next=[];
@@ -210,10 +206,6 @@ function takePhysicalCodes(hand,codes){
   }
   if(remaining.length)throw new Error('called tiles are missing from the hand');
   return {hand:next,removed};
-}
-
-function removePhysicalCodes(hand,codes){
-  return takePhysicalCodes(hand,codes).hand;
 }
 
 function redDoraCount(tiles=[]){
