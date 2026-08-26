@@ -43,11 +43,14 @@ const winningSouth={
   north:otherHands.north
 };
 const ronStart=createHandFlow({wallOptions,initialHands:winningSouth});
-const pending=discardTile(ronStart,{seat:'east',tileId:ronStart.drawnTileId});
+const redDiscardTile=ronStart.players.east.hand.find(tile=>tile.code==='5m'&&tile.red);
+assert.ok(redDiscardTile,'the ron fixture contains a physical red discard');
+const pending=discardTile(ronStart,{seat:'east',tileId:redDiscardTile.id});
 assert.equal(pending.phase,HAND_PHASES.RESPONSE,'a discard is held for response evaluation');
 const ronCheck=checkRon(pending,{seat:'south',options:{riichi:true}});
 assert.equal(ronCheck.ok,true,ronCheck.error);
 assert.equal(ronCheck.best.score.win,'ron','the integrated evaluator sees a discard win');
+assert.equal(ronCheck.best.dora,2,'red hand tiles and a red winning discard are counted as red dora');
 const ron=claimRon(pending,{seat:'south',options:{riichi:true}});
 assert.equal(ron.phase,HAND_PHASES.COMPLETED,'a valid ron completes the physical hand');
 assert.equal(ron.result.winnerSeat,'south','the ron winner is retained');
