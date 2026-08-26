@@ -179,30 +179,63 @@ function cloneFlow(state){
   };
 }
 
-function removeCopies(hand,code,count){
+function takeCopies(hand,code,count){
   let remaining=count;
   const next=[];
+  const removed=[];
   for(const tile of hand){
     if(tile.code===code&&remaining>0){
       remaining-=1;
+      removed.push(tile);
       continue;
     }
     next.push(tile);
   }
   if(remaining!==0)throw new Error('kan tiles are missing from the hand');
-  return next;
+  return {hand:next,removed};
 }
 
-function removePhysicalCodes(hand,codes){
+function removeCopies(hand,code,count){
+  return takeCopies(hand,code,count).hand;
+}
+
+function takePhysicalCodes(hand,codes){
   const remaining=[...codes];
   const next=[];
+  const removed=[];
   for(const tile of hand){
     const index=remaining.indexOf(tile.code);
-    if(index>=0){remaining.splice(index,1);continue}
+    if(index>=0){remaining.splice(index,1);removed.push(tile);continue}
     next.push(tile);
   }
   if(remaining.length)throw new Error('called tiles are missing from the hand');
-  return next;
+  return {hand:next,removed};
+}
+
+function removePhysicalCodes(hand,codes){
+  return takePhysicalCodes(hand,codes).hand;
+}
+
+function redDoraCount(tiles=[]){
+  return tiles.reduce((count,tile)=>count+(tile?.red===true?1:0),0);
+}
+
+function redDoraFromMeld(meld){
+  if(Number.isInteger(meld?.redDora)&&meld.redDora>=0)return meld.redDora;
+  return redDoraCount(meld?.tiles||[]);
+}
+
+function setMeldRedDora(melds,index,count){
+  if(count<=0||index<0||index>=melds.length)return melds;
+  return melds.map((meld,meldIndex)=>meldIndex===index?{...meld,redDora:count}:meld);
+}
+
+function pendingDiscardTile(state,pending){
+  return state.players[pending.seat]?.river.find(tile=>tile.id===pending.tileId)||null;
+}
+
+function winnerRedDoraCount(player,win,winTile){
+  return redDoraCount(player.hand)+player.melds.reduce((count,meld)=>count+redDoraFromMeld(meld),0)+(win==='ron'&&winTile?.red===true?1:0);
 }
 
 function codeOf(tile){
@@ -234,6 +267,8 @@ function settlementInput(state,{seat,win,winTile,discarderSeat=null,options={}})
   const concealedTiles=player.hand.map(codeOf);
   if(win==='ron')concealedTiles.push(winCode);
   const round=state.roundState;
+  const physicalRedDora=winnerRedDoraCount(player,win,winTile);
+  const riichi=Boolean(player.riichi)||Boolean(options.riichi);
   return {
     ...options,
     concealedTiles,
@@ -245,13 +280,16 @@ function settlementInput(state,{seat,win,winTile,discarderSeat=null,options={}})
     roundWind:roundWindCode(round.roundWind),
     doraIndicators:state.doraIndicators.slice(0,1).map(codeOf),
     kanDoraIndicators:(round.kanDoraIndicators||[]).map(codeOf),
+    uraIndicators:state.roundWall.uraIndicators.slice(0,1).map(codeOf),
+    kanUraIndicators:state.roundWall.uraIndicators.slice(1,1+(round.kanCount||0)).map(codeOf),
+    redDora:physicalRedDora||options.redDora,
     winnerSeat:seat,
     discarderSeat,
     honba:round.honba,
     riichiSticks:round.riichiSticks,
     ownRiver:player.river.map(codeOf),
     dealerSeat:round.dealerSeat,
-    riichi:Boolean(player.riichi)||Boolean(options.riichi),
+    riichi,
     temporaryFuriten:Boolean(player.temporaryFuriten)||Boolean(options.temporaryFuriten),
     riichiMissedRon:Boolean(player.riichiMissedRon)||Boolean(options.riichiMissedRon)
   };
@@ -502,7 +540,7 @@ export function checkRon(state,{seat=state?.currentSeat,options={}}={}){
   assertSeat(seat);
   const pending=state.pendingDiscard;
   if(seat===pending.seat)throw new Error('the discarder cannot ron on their own discard');
-  return evaluateStateResult(state,{seat,win:'ron',winTile:pending.code,discarderSeat:pending.seat,options});
+  return evaluateStateResult(state,{seat,win:'ron',winTile:pendingDiscardTile(state,pending)||pending.code,discarderSeat:pending.seat,options});
 }
 
 export function checkRonClaims(state,{seats,options={},optionsBySeat={}}={}){
@@ -669,8 +707,11 @@ export function declareMinkan(state,{seat=state?.currentSeat}={}){
     rinshanTile:wallResult.rinshan,
     doraIndicator:wallResult.doraIndicator
   });
-  player.hand=removeCopies(player.hand,applied.tileCode,3);
-  player.melds=applied.openMelds.map(cloneMeld);
+  const removed=takeCopies(player.hand,applied.tileCode,3);
+  const melds=applied.openMelds.map(cloneMeld);
+  const calledTile=pendingDiscardTile(current,pending);
+  player.hand=removed.hand;
+  player.melds=setMeldRedDora(melds,melds.length-1,redDoraCount(removed.removed)+(calledTile?.red===true?1:0));
   markClaimedDiscard(current.players,pending);
   player.hand.push(cloneTile(wallResult.rinshan));
   current.currentSeat=seat;
@@ -720,8 +761,11 @@ export function declareCall(state,{type,seat=state?.currentSeat,callTiles}={}){
   const player=current.players[seat];
   const removeCodes=[...applied.callTiles];
   removeCodes.splice(removeCodes.indexOf(applied.tileCode),1);
-  player.hand=removePhysicalCodes(player.hand,removeCodes);
-  player.melds=applied.openMelds.map(cloneMeld);
+  const removed=takePhysicalCodes(player.hand,removeCodes);
+  const melds=applied.openMelds.map(cloneMeld);
+  const calledTile=pendingDiscardTile(current,pending);
+  player.hand=removed.hand;
+  player.melds=setMeldRedDora(melds,melds.length-1,redDoraCount(removed.removed)+(calledTile?.red===true?1:0));
   markClaimedDiscard(current.players,pending);
   current.currentSeat=seat;
   current.phase=HAND_PHASES.DISCARD;
@@ -823,8 +867,11 @@ export function declareKan(state,{type,seat=state?.currentSeat}={}){
     doraIndicator:wallResult.doraIndicator
   });
   const removeCount=type==='kakan'?1:4;
-  player.hand=removeCopies(player.hand,applied.tileCode,removeCount);
-  player.melds=applied.openMelds.map(cloneMeld);
+  const removed=takeCopies(player.hand,applied.tileCode,removeCount);
+  const melds=applied.openMelds.map(cloneMeld);
+  const previousRedDora=type==='kakan'?redDoraFromMeld(player.melds[applied.meldIndex]):0;
+  player.hand=removed.hand;
+  player.melds=setMeldRedDora(melds,type==='kakan'?applied.meldIndex:melds.length-1,previousRedDora+redDoraCount(removed.removed));
   player.hand.push(cloneTile(wallResult.rinshan));
   current.doraIndicators.push(cloneTile(wallResult.doraIndicator));
   current.phase=HAND_PHASES.DISCARD;
