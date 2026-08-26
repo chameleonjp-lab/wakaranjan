@@ -28,7 +28,7 @@ assert.equal(minkan.players.east.river.at(-1).claimed,true,'the called discard i
 assert.equal(discardResponse.roundWall.rinshanIndex,0,'the previous response state remains unchanged');
 
 const tenpaiHands={
-  east:['2m','3m','4m','3p','4p','5p','4s','5s','6s','6s','7s','8s','5m','9z'],
+  east:['2m','3m','4m','3p','4p','5p','4s','5s','6s','6s','7s','8s','5m','1z'],
   south:['3p','4p','5p','6p','9p','1s','2s','3s','4s','5s','6s','7s','8s'],
   ...commonHands
 };
