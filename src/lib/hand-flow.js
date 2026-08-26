@@ -420,7 +420,7 @@ export function completeExhaustiveDraw(state,{dealerTenpai}={}){
 
 export function declareMinkan(state,{seat=state?.currentSeat}={}){
   const current=cloneFlow(state);
-  if(current.phase!==HAND_PHASES.RESPONSE)throw new Error('a minkan can only be declared during a discard response');
+  if(current.phase!==HAND_PHASES.RESPONSE)throw new Error('a minkan requires an opponent discard response window');
   assertSeat(seat);
   const pending=current.pendingDiscard;
   if(seat===pending.seat)throw new Error('the discarder cannot call minkan on their own discard');
