@@ -276,6 +276,27 @@ function normalizeRonClaimSeats(pending,seats){
   }
 }
 
+function markPassedRonFlags(next,state,responseSeats){
+  const temporaryFuritenSeats=[];
+  const riichiMissedRonSeats=[];
+  for(const seat of responseSeats){
+    const ron=checkRon(state,{seat});
+    if(!ron.ok)continue;
+    if(next.players[seat].riichi){
+      next.players[seat].riichiMissedRon=true;
+      riichiMissedRonSeats.push(seat);
+    }else{
+      next.players[seat].temporaryFuriten=true;
+      temporaryFuritenSeats.push(seat);
+    }
+  }
+  return {temporaryFuritenSeats,riichiMissedRonSeats};
+}
+
+function sameTileCodes(left,right){
+  return Array.isArray(left)&&Array.isArray(right)&&left.length===right.length&&left.every((code,index)=>code===right[index]);
+}
+
 function claimResultSummary(claim){
   return {
     seat:claim.seat,
@@ -452,19 +473,7 @@ export function passDiscard(state,{seats}={}){
   if(next.phase!==HAND_PHASES.RESPONSE)throw new Error('the hand is not waiting for a discard response');
   const pending=next.pendingDiscard;
   const responseSeats=normalizeResponseSeats(pending,seats);
-  const temporaryFuritenSeats=[];
-  const riichiMissedRonSeats=[];
-  for(const seat of responseSeats){
-    const ron=checkRon(state,{seat});
-    if(!ron.ok)continue;
-    if(next.players[seat].riichi){
-      next.players[seat].riichiMissedRon=true;
-      riichiMissedRonSeats.push(seat);
-    }else{
-      next.players[seat].temporaryFuriten=true;
-      temporaryFuritenSeats.push(seat);
-    }
-  }
+  const {temporaryFuritenSeats,riichiMissedRonSeats}=markPassedRonFlags(next,state,responseSeats);
   next.pendingDiscard=null;
   next.phase=HAND_PHASES.DRAW;
   next.lastAction={type:'pass-discard',seat:pending.seat,tileId:pending.tileId,code:pending.code,temporaryFuritenSeats,riichiMissedRonSeats};
@@ -595,25 +604,64 @@ export function completeExhaustiveDraw(state,{dealerTenpai}={}){
   return current;
 }
 
+export function checkKan(state,{type,seat=state?.currentSeat}={}){
+  assertFlow(state);
+  assertSeat(seat);
+  if(!KAN_TYPES.includes(type))throw new RangeError('unknown kan type');
+  const player=state.players[seat];
+
+  if(type==='minkan'){
+    if(state.phase!==HAND_PHASES.RESPONSE)throw new Error('a minkan requires an opponent discard response window');
+    const pending=state.pendingDiscard;
+    if(seat===pending.seat)throw new Error('the discarder cannot call minkan on their own discard');
+    if(player.riichi)return {ok:false,code:'riichi-kan-not-allowed',message:'リーチ後は大明槓できません。'};
+    return applyKan({
+      type,
+      concealedTiles:player.hand.map(codeOf),
+      openMelds:player.melds,
+      discardTile:pending.code,
+      from:relativeKanSource(seat,pending.seat),
+      ownTurn:false,
+      kanCount:state.roundState.kanCount
+    });
+  }
+
+  if(state.phase!==HAND_PHASES.DISCARD)throw new Error('a kan can only be declared before the discard');
+  if(seat!==state.currentSeat)throw new Error('the seat is not the current seat');
+  if(!state.drawnTileId)return {ok:false,code:'draw-required',message:'カンは自分のツモのあとに宣言します。'};
+  if(player.riichi&&type!=='ankan')return {ok:false,code:'riichi-kan-not-allowed',message:'リーチ後は暗槓以外のカンを宣言できません。'};
+
+  const applied=applyKan({
+    type,
+    concealedTiles:player.hand.map(codeOf),
+    openMelds:player.melds,
+    ownTurn:true,
+    kanCount:state.roundState.kanCount,
+    drawnTile:player.hand.find(tile=>tile.id===state.drawnTileId)?.code||null
+  });
+  if(!applied.ok)return applied;
+  if(!player.riichi)return applied;
+
+  const postKanStatus=tenpaiStatus({
+    concealedTiles:applied.concealedTiles,
+    melds:applied.openMelds.map(meldCodes)
+  });
+  const riichiWaits=Array.isArray(player.riichiWaits)?[...player.riichiWaits]:[];
+  if(!riichiWaits.length)return {ok:false,code:'riichi-waits-missing',message:'リーチ時の待ち牌がないため、暗槓の可否を判定できません。'};
+  if(!sameTileCodes(riichiWaits,postKanStatus.waits))return {
+    ...{ok:false,code:'riichi-kan-changes-wait',message:'リーチ後の暗槓で待ち牌が変わるため宣言できません。'},
+    riichiWaits,
+    postKanWaits:[...postKanStatus.waits]
+  };
+  return {...applied,riichiWaits,postKanWaits:[...postKanStatus.waits]};
+}
 
 export function declareMinkan(state,{seat=state?.currentSeat}={}){
   const current=cloneFlow(state);
-  if(current.phase!==HAND_PHASES.RESPONSE)throw new Error('a minkan requires an opponent discard response window');
-  assertSeat(seat);
-  const pending=current.pendingDiscard;
-  if(seat===pending.seat)throw new Error('the discarder cannot call minkan on their own discard');
-  const player=current.players[seat];
-  if(player.riichi)throw new Error('リーチ後は大明槓できません。');
-  const applied=applyKan({
-    type:'minkan',
-    concealedTiles:player.hand.map(tile=>tile.code),
-    openMelds:player.melds,
-    discardTile:pending.code,
-    from:relativeKanSource(seat,pending.seat),
-    ownTurn:false,
-    kanCount:current.roundState.kanCount
-  });
+  const applied=checkKan(current,{type:'minkan',seat});
   if(!applied.ok)throw new Error(applied.message);
+  const pending=current.pendingDiscard;
+  const player=current.players[seat];
   const wallResult=resolveWallKan(current.roundWall);
   if(!wallResult.ok)throw new Error(wallResult.message);
   const declared=declareRoundKan(current.roundState,{type:'minkan',seat,meld:applied.meld});
@@ -699,24 +747,73 @@ export function declarePon(state,options={}){
   return declareCall(state,{...options,type:'pon'});
 }
 
+/**
+ * Resolve every response to a discard for computer-controlled seats.
+ *
+ * Ron has priority over an open kan or pon, which has priority over chi. If
+ * there is no call, all response seats are passed atomically. `passedSeats`
+ * is used when the human player has already passed in the same response
+ * window; those seats are not considered for another action, but their
+ * furiten state is still recorded.
+ */
+export function advanceAutomaticResponse(state,{seats,passedSeats=[]}={}){
+  assertFlow(state);
+  if(state.phase!==HAND_PHASES.RESPONSE)throw new Error('the hand is not waiting for a discard response');
+  const pending=state.pendingDiscard;
+  const allResponseSeats=normalizeResponseSeats(pending);
+  const alreadyPassed=normalizeResponseSeats(pending,passedSeats);
+  const automaticSeats=(seats===undefined?allResponseSeats.filter(seat=>!alreadyPassed.includes(seat)):normalizeResponseSeats(pending,seats));
+  if(automaticSeats.some(seat=>alreadyPassed.includes(seat)))throw new Error('a seat cannot be both automatic and passed');
+  const covered=new Set([...automaticSeats,...alreadyPassed]);
+  const uncovered=allResponseSeats.filter(seat=>!covered.has(seat));
+  if(uncovered.length)throw new Error('automatic response must cover every remaining response seat');
+
+  const ronSeats=automaticSeats.filter(seat=>checkRon(state,{seat}).ok);
+  if(ronSeats.length){
+    const resolved=claimRonClaims(state,{seats:ronSeats});
+    return {...resolved,lastAction:{...resolved.lastAction,automatic:true,automaticSeats:[...automaticSeats]}};
+  }
+
+  const priority=automaticSeats.length
+    ?resolveHeadBump({discarderSeat:pending.seat,claimantSeats:automaticSeats}).priority.filter(seat=>automaticSeats.includes(seat))
+    :[];
+  let selected=null;
+  for(const seat of priority){
+    const minkan=checkKan(state,{type:'minkan',seat});
+    if(minkan.ok){selected={type:'minkan',seat};break}
+    const pon=checkCall(state,{type:'pon',seat});
+    if(pon.ok){selected={type:'pon',seat};break}
+  }
+  if(!selected){
+    for(const seat of priority){
+      const chi=checkCall(state,{type:'chi',seat});
+      const callTiles=chi.ok?chi.callTiles:chi.callOptions?.[0];
+      if(callTiles){selected={type:'chi',seat,callTiles:[...callTiles]};break}
+    }
+  }
+
+  let working=state;
+  if(alreadyPassed.length){
+    working=cloneFlow(state);
+    markPassedRonFlags(working,state,alreadyPassed);
+  }
+  if(selected){
+    const resolved=selected.type==='minkan'
+      ?declareMinkan(working,{seat:selected.seat})
+      :declareCall(working,{type:selected.type,seat:selected.seat,callTiles:selected.callTiles});
+    return {...resolved,lastAction:{...resolved.lastAction,automatic:true,automaticSeats:[...automaticSeats]}};
+  }
+
+  const resolved=passDiscard(state,{seats:allResponseSeats});
+  return {...resolved,lastAction:{...resolved.lastAction,automatic:true,automaticSeats:[...automaticSeats]}};
+}
+
 export function declareKan(state,{type,seat=state?.currentSeat}={}){
   if(type==='minkan')return declareMinkan(state,{seat});
   const current=cloneFlow(state);
-  if(current.phase!==HAND_PHASES.DISCARD)throw new Error('a kan can only be declared before the discard');
-  assertSeat(seat);
-  if(seat!==current.currentSeat)throw new Error('the seat is not the current seat');
-  if(!KAN_TYPES.includes(type))throw new RangeError('unknown kan type');
-  const player=current.players[seat];
-  if(player.riichi&&type!=='ankan')throw new Error('リーチ後はこのカンを宣言できません。');
-  const applied=applyKan({
-    type,
-    concealedTiles:player.hand.map(tile=>tile.code),
-    openMelds:player.melds,
-    ownTurn:true,
-    kanCount:current.roundState.kanCount,
-    drawnTile:current.drawnTileId?player.hand.find(tile=>tile.id===current.drawnTileId)?.code||null:null
-  });
+  const applied=checkKan(current,{type,seat});
   if(!applied.ok)throw new Error(applied.message);
+  const player=current.players[seat];
   const wall=current.roundWall;
   const wallResult=resolveWallKan(wall);
   if(!wallResult.ok)throw new Error(wallResult.message);

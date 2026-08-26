@@ -97,13 +97,14 @@ export function validateCall(input={}){
     if(countOf(concealedTiles,discardTile)<2)return failure('two-in-hand-required','ポンには捨て牌と同じ牌2枚が手元に必要です。');
     if(callTiles!==undefined&&(!Array.isArray(callTiles)||callTiles.length!==3||callTiles.some(code=>code!==discardTile)))return failure('invalid-call-tiles','ポンの牌指定が不正です。');
     const normalized=[discardTile,discardTile,discardTile];
-    return {ok:true,code:'ok',message:'ポンできます。',tileCode:discardTile,callTiles:normalized,meld:makeMeld(type,normalized,from),from};
+    return {ok:true,code:'ok',message:'ポンできます。',tileCode:discardTile,callTiles:normalized,callOptions:[normalized],meld:makeMeld(type,normalized,from),from};
   }
 
   if(from!=='kamicha')return failure('chi-source-required','チーは上家の捨て牌からだけできます。');
+  const options=chiOptions(discardTile,concealedTiles);
   const normalized=normalizeChiTiles(discardTile,concealedTiles,callTiles);
-  if(!normalized)return failure('invalid-chi-shape','チーに使う順子を指定してください。');
-  return {ok:true,code:'ok',message:'チーできます。',tileCode:discardTile,callTiles:normalized,meld:makeMeld(type,normalized,from),from};
+  if(!normalized)return {...failure('invalid-chi-shape','チーに使う順子を指定してください。'),callOptions:options.map(option=>[...option])};
+  return {ok:true,code:'ok',message:'チーできます。',tileCode:discardTile,callTiles:normalized,callOptions:options.map(option=>[...option]),meld:makeMeld(type,normalized,from),from};
 }
 
 function removeCopies(codes,removeCodes){
