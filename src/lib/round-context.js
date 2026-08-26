@@ -7,8 +7,8 @@ const PAO_YAKUMAN=new Set(['yaku-daisangen','yaku-daisuushii','yaku-suukantsu'])
 
 function tileCodes(){
   const out=[];
-  for(const suit of ['m','p','s'])for(let n=1;n<=9;n++)out.push(`${n}${suit}`);
-  for(let n=1;n<=7;n++)out.push(`${n}z`);
+  for(const suit of ['m','p','s'])for(let n=1;n<=9;n++)out.push(n+suit);
+  for(let n=1;n<=7;n++)out.push(n+'z');
   return out;
 }
 function shapeCompletes(concealed,meldCount){
@@ -35,19 +35,19 @@ export function furitenStatus(input={}){
 }
 
 function addPayment(map,seat,amount){if(!seat||!amount)return;map[seat]=(map[seat]||0)+amount}
-function normalPayments(score,{winnerSeat,discarderSeat,honba=0}){
+function normalPayments(score,{winnerSeat,discarderSeat,honba=0,dealerSeat='east'}){
   const payers={};
   if(score.win==='ron')addPayment(payers,discarderSeat,score.total+honba*300);
   else for(const seat of SEATS){
     if(seat===winnerSeat)continue;
-    const amount=score.dealer?score.payments.each:(seat==='east'?score.payments.dealer:score.payments.child);
+    const amount=score.dealer?score.payments.each:(seat===dealerSeat?score.payments.dealer:score.payments.child);
     addPayment(payers,seat,amount+honba*100);
   }
   return payers;
 }
 function yakumanRonValue(dealer){return dealer?48000:32000}
 
-function applySinglePao(result,{winnerSeat,discarderSeat,honba=0,pao}){
+function applySinglePao(result,{winnerSeat,discarderSeat,honba=0,dealerSeat='east',pao}){
   const best=result.best;if(!best.yakumanValue||!pao)return null;
   if(!PAO_YAKUMAN.has(pao.yakumanId))return {error:'責任払いを指定できるのは大三元・大四喜・四槓子です。'};
   if(!best.yakuman.some(y=>y.id===pao.yakumanId))return {error:'指定した責任払いの役満が成立していません。'};
@@ -56,7 +56,7 @@ function applySinglePao(result,{winnerSeat,discarderSeat,honba=0,pao}){
   if(best.score.win==='tsumo'){
     addPayment(payers,pao.responsibleSeat,oneYakuman+honba*300);
     if(remaining>0){
-      const rest=normalPayments(calculateScore({han:0,fu:20,dealer:Boolean(best.score.dealer),win:'tsumo',yakuman:remaining}),{winnerSeat,honba:0});
+      const rest=normalPayments(calculateScore({han:0,fu:20,dealer:Boolean(best.score.dealer),win:'tsumo',yakuman:remaining}),{winnerSeat,honba:0,dealerSeat});
       for(const [seat,amount] of Object.entries(rest))addPayment(payers,seat,amount);
     }
   }else{
@@ -68,23 +68,27 @@ function applySinglePao(result,{winnerSeat,discarderSeat,honba=0,pao}){
 }
 
 export function settleHand(input={}){
-  const result=evaluateHand(input);if(!result.ok)return result;
   const winnerSeat=input.winnerSeat||({1:'east',2:'south',3:'west',4:'north'}[Number((input.seatWind||'1z')[0])]);
   if(!SEATS.includes(winnerSeat))return {ok:false,error:'あがり者の位置が不正です。'};
-  if(Boolean(input.dealer)!==(winnerSeat==='east'))return {ok:false,error:'親指定とあがり者の位置が一致していません。'};
+  const dealerSeat=input.dealerSeat||'east';
+  if(!SEATS.includes(dealerSeat))return {ok:false,error:'親の位置が不正です。'};
+  const isDealer=winnerSeat===dealerSeat;
+  const result=evaluateHand({...input,dealer:isDealer});
+  if(!result.ok)return result;
+  if(Boolean(input.dealer)!==isDealer)return {ok:false,error:'親指定とあがり者の位置が一致していません。'};
   const discarderSeat=input.discarderSeat;
   if(result.best.score.win==='ron'&&(!SEATS.includes(discarderSeat)||discarderSeat===winnerSeat))return {ok:false,error:'ロン時は、あがり者以外の放銃者を指定してください。'};
   const honba=Math.max(0,Math.trunc(Number(input.honba)||0));const riichiSticks=Math.max(0,Math.trunc(Number(input.riichiSticks)||0));
   const furiten=furitenStatus(input);
   if(result.best.score.win==='ron'&&furiten.active){
-    const reason=furiten.ownDiscard?`自分の河に待ち牌 ${furiten.ownDiscard} があります。`:furiten.riichiMiss?'リーチ後にロンを見逃しているためフリテンです。':'同巡内フリテンです。';
-    return {ok:false,error:`ロンできません。${reason}`,furiten};
+    const reason=furiten.ownDiscard?'自分の河に待ち牌 '+furiten.ownDiscard+' があります。':furiten.riichiMiss?'リーチ後にロンを見逃しているためフリテンです。':'同巡内フリテンです。';
+    return {ok:false,error:'ロンできません。'+reason,furiten};
   }
-  let paymentInfo=applySinglePao(result,{winnerSeat,discarderSeat,honba,pao:input.pao});
+  let paymentInfo=applySinglePao(result,{winnerSeat,discarderSeat,honba,dealerSeat,pao:input.pao});
   if(paymentInfo?.error)return {ok:false,error:paymentInfo.error};
-  if(!paymentInfo)paymentInfo={payers:normalPayments(result.best.score,{winnerSeat,discarderSeat,honba}),paoApplied:false};
+  if(!paymentInfo)paymentInfo={payers:normalPayments(result.best.score,{winnerSeat,discarderSeat,honba,dealerSeat}),paoApplied:false};
   const paymentsTotal=Object.values(paymentInfo.payers).reduce((a,b)=>a+b,0);const riichiBonus=riichiSticks*1000;
-  return {...result,furiten,settlement:{winnerSeat,honba,riichiSticks,riichiBonus,payers:paymentInfo.payers,paoApplied:paymentInfo.paoApplied,handGain:paymentsTotal+riichiBonus}};
+  return {...result,furiten,settlement:{winnerSeat,dealerSeat,honba,riichiSticks,riichiBonus,payers:paymentInfo.payers,paoApplied:paymentInfo.paoApplied,handGain:paymentsTotal+riichiBonus}};
 }
 
 export function resolveHeadBump({discarderSeat,claimantSeats=[]}={}){

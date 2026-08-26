@@ -1,10 +1,12 @@
 import {applyKan,KAN_TYPES} from './kan.js';
+import {settleHand} from './round-context.js';
 import {completeHand as completeRoundHand,createMatchState,declareKan as declareRoundKan,resolveKan as resolveRoundKan,SEATS} from './round-state.js';
 import {createRoundWall,drawLiveTile,revealDoraIndicator,resolveKan as resolveWallKan} from './tile-wall.js';
 
 export const HAND_PHASES=Object.freeze({
   DRAW:'draw',
   DISCARD:'discard',
+  RESPONSE:'response',
   AWAITING_RESULT:'awaiting-result',
   COMPLETED:'completed'
 });
@@ -51,6 +53,16 @@ function cloneRoundState(state){
   if(state.pendingKan)next.pendingKan={...state.pendingKan,meld:state.pendingKan.meld?cloneMeld(state.pendingKan.meld):null};
   if(state.lastKan)next.lastKan={...state.lastKan,rinshanTile:cloneTile(state.lastKan.rinshanTile),doraIndicator:cloneTile(state.lastKan.doraIndicator),meld:state.lastKan.meld?cloneMeld(state.lastKan.meld):null};
   return next;
+}
+
+function cloneResult(result){
+  if(!result)return null;
+  return {
+    ...result,
+    best:result.best?{...result.best,score:result.best.score?{...result.best.score,payments:result.best.score.payments?{...result.best.score.payments}:undefined}:result.best.score}:result.best,
+    furiten:result.furiten?{...result.furiten,waits:Array.isArray(result.furiten.waits)?[...result.furiten.waits]:result.furiten.waits}:result.furiten,
+    settlement:result.settlement?{...result.settlement,payers:{...result.settlement.payers}}:result.settlement
+  };
 }
 
 function emptyPlayers(){
@@ -119,6 +131,10 @@ function assertFlow(state){
   cloneWall(state.roundWall);
   clonePlayers(state.players);
   if(!Array.isArray(state.doraIndicators))throw new TypeError('dora indicators are invalid');
+  if(state.phase===HAND_PHASES.RESPONSE){
+    const pending=state.pendingDiscard;
+    if(!pending||!SEATS.includes(pending.seat)||typeof pending.tileId!=='string'||typeof pending.code!=='string')throw new TypeError('pending discard is invalid');
+  }
 }
 
 function cloneFlow(state){
@@ -129,7 +145,9 @@ function cloneFlow(state){
     roundWall:cloneWall(state.roundWall),
     players:clonePlayers(state.players),
     doraIndicators:state.doraIndicators.map(cloneTile),
-    lastAction:state.lastAction?{...state.lastAction}:null
+    pendingDiscard:state.pendingDiscard?{...state.pendingDiscard}:null,
+    lastAction:state.lastAction?{...state.lastAction}:null,
+    result:cloneResult(state.result)
   };
 }
 
@@ -145,6 +163,96 @@ function removeCopies(hand,code,count){
   }
   if(remaining!==0)throw new Error('kan tiles are missing from the hand');
   return next;
+}
+
+function codeOf(tile){
+  return typeof tile==='string'?tile:tile?.code;
+}
+
+function meldCodes(meld){
+  return {
+    ...meld,
+    tiles:Array.isArray(meld?.tiles)?meld.tiles.map(codeOf):meld?.tiles
+  };
+}
+
+function roundWindCode(roundWind){
+  return roundWind==='south'?'2z':'1z';
+}
+
+function seatWindCode(roundState,seat){
+  const dealerIndex=SEATS.indexOf(roundState.dealerSeat);
+  const seatIndex=SEATS.indexOf(seat);
+  return ((seatIndex-dealerIndex+SEATS.length)%SEATS.length+1)+'z';
+}
+
+function settlementInput(state,{seat,win,winTile,discarderSeat=null,options={}}){
+  assertSeat(seat);
+  const player=state.players[seat];
+  const winCode=codeOf(winTile);
+  if(!winCode)throw new TypeError('winTile is required');
+  const concealedTiles=player.hand.map(codeOf);
+  if(win==='ron')concealedTiles.push(winCode);
+  const round=state.roundState;
+  return {
+    ...options,
+    concealedTiles,
+    melds:player.melds.map(meldCodes),
+    winTile:winCode,
+    win,
+    dealer:seat===round.dealerSeat,
+    seatWind:seatWindCode(round,seat),
+    roundWind:roundWindCode(round.roundWind),
+    doraIndicators:state.doraIndicators.slice(0,1).map(codeOf),
+    kanDoraIndicators:(round.kanDoraIndicators||[]).map(codeOf),
+    winnerSeat:seat,
+    discarderSeat,
+    honba:round.honba,
+    riichiSticks:round.riichiSticks,
+    ownRiver:player.river.map(codeOf),
+    dealerSeat:round.dealerSeat
+  };
+}
+
+function scoreDeltas(result,winnerSeat){
+  const deltas={};
+  const payers=result.settlement?.payers||{};
+  let paid=0;
+  for(const [seat,amount] of Object.entries(payers)){
+    deltas[seat]=(deltas[seat]||0)-amount;
+    paid+=amount;
+  }
+  deltas[winnerSeat]=(deltas[winnerSeat]||0)+paid;
+  return deltas;
+}
+
+function completeWinningFlow(state,result,{winnerSeat,win,winTileId,discarderSeat=null}){
+  const current=cloneFlow(state);
+  current.roundState=completeRoundHand(current.roundState,{
+    outcome:'win',
+    winnerSeat,
+    scoreDeltas:scoreDeltas(result,winnerSeat),
+    winnerCollectsRiichi:true
+  });
+  current.phase=HAND_PHASES.COMPLETED;
+  current.pendingDiscard=null;
+  current.drawnTileId=null;
+  current.result={
+    type:'win',
+    win,
+    winnerSeat,
+    winTileId:winTileId||null,
+    discarderSeat,
+    score:result.best?.score||null,
+    settlement:result.settlement?{...result.settlement,payers:{...result.settlement.payers}}:null
+  };
+  current.lastAction={type:'win',win,winnerSeat,winTileId:winTileId||null,discarderSeat,score:result.best?.score?.total||null};
+  return current;
+}
+
+function evaluateStateResult(state,params){
+  const result=settleHand(settlementInput(state,params));
+  return result;
 }
 
 export function createHandFlow({roundState=createMatchState(),roundWall=null,wallOptions={},initialHands=null,userSeat='east'}={}){
@@ -164,6 +272,8 @@ export function createHandFlow({roundState=createMatchState(),roundWall=null,wal
     turnNumber:0,
     drawnTileId:dealt.dealerDrawn.id,
     doraIndicators:[cloneTile(doraIndicator)],
+    pendingDiscard:null,
+    result:null,
     lastAction:{type:'deal',seat:roundState.dealerSeat,tileId:dealt.dealerDrawn.id}
   };
 }
@@ -198,11 +308,66 @@ export function discardTile(state,{seat=state?.currentSeat,tileId}={}){
   const [discarded]=player.hand.splice(index,1);
   player.river.push(cloneTile(discarded));
   next.currentSeat=nextSeat(seat);
-  next.phase=HAND_PHASES.DRAW;
+  next.phase=HAND_PHASES.RESPONSE;
+  next.pendingDiscard={seat,tileId:discarded.id,code:discarded.code};
   next.turnNumber+=1;
   next.drawnTileId=null;
   next.lastAction={type:'discard',seat,tileId:discarded.id,code:discarded.code};
   return next;
+}
+
+export function passDiscard(state){
+  const next=cloneFlow(state);
+  if(next.phase!==HAND_PHASES.RESPONSE)throw new Error('the hand is not waiting for a discard response');
+  const pending=next.pendingDiscard;
+  next.pendingDiscard=null;
+  next.phase=HAND_PHASES.DRAW;
+  next.lastAction={type:'pass-discard',seat:pending.seat,tileId:pending.tileId,code:pending.code};
+  return next;
+}
+
+export function checkTsumo(state,{seat=state?.currentSeat,options={}}={}){
+  assertFlow(state);
+  if(state.phase!==HAND_PHASES.DISCARD)throw new Error('tsumo can only be checked before the discard');
+  assertSeat(seat);
+  if(seat!==state.currentSeat)throw new Error('the seat is not the current seat');
+  const tile=state.players[seat].hand.find(candidate=>candidate.id===state.drawnTileId);
+  if(!tile)throw new Error('the drawn tile is missing from the current hand');
+  return evaluateStateResult(state,{seat,win:'tsumo',winTile:tile,options});
+}
+
+export function completeTsumo(state,{seat=state?.currentSeat,options={}}={}){
+  const result=checkTsumo(state,{seat,options});
+  if(!result.ok)throw new Error(result.error);
+  return completeWinningFlow(state,result,{winnerSeat:seat,win:'tsumo',winTileId:state.drawnTileId});
+}
+
+export function checkRon(state,{seat=state?.currentSeat,options={}}={}){
+  assertFlow(state);
+  if(state.phase!==HAND_PHASES.RESPONSE)throw new Error('ron can only be checked during a discard response');
+  assertSeat(seat);
+  const pending=state.pendingDiscard;
+  if(seat===pending.seat)throw new Error('the discarder cannot ron on their own discard');
+  return evaluateStateResult(state,{seat,win:'ron',winTile:pending.code,discarderSeat:pending.seat,options});
+}
+
+export function claimRon(state,{seat=state?.currentSeat,options={}}={}){
+  const result=checkRon(state,{seat,options});
+  if(!result.ok)throw new Error(result.error);
+  const pending=state.pendingDiscard;
+  return completeWinningFlow(state,result,{winnerSeat:seat,win:'ron',winTileId:pending.tileId,discarderSeat:pending.seat});
+}
+
+export function completeExhaustiveDraw(state,{dealerTenpai=false}={}){
+  const current=cloneFlow(state);
+  if(current.phase!==HAND_PHASES.AWAITING_RESULT)throw new Error('the hand is not waiting for a draw result');
+  current.roundState=completeRoundHand(current.roundState,{outcome:'draw',dealerTenpai});
+  current.phase=HAND_PHASES.COMPLETED;
+  current.pendingDiscard=null;
+  current.drawnTileId=null;
+  current.result={type:'draw',dealerTenpai};
+  current.lastAction={type:'draw-complete',dealerTenpai};
+  return current;
 }
 
 export function declareKan(state,{type,seat=state?.currentSeat}={}){
@@ -246,7 +411,9 @@ export function completeHand(state,outcome){
   if(current.phase===HAND_PHASES.COMPLETED)throw new Error('the hand is already completed');
   current.roundState=completeRoundHand(current.roundState,outcome);
   current.phase=HAND_PHASES.COMPLETED;
+  current.pendingDiscard=null;
   current.drawnTileId=null;
+  current.result={type:outcome?.outcome||null};
   current.lastAction={type:'complete',outcome:outcome?.outcome||null};
   return current;
 }
