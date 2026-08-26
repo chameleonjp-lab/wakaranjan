@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {completeHand,createHandFlow,declareKan,discardTile,drawForTurn,HAND_PHASES,startNextHand} from '../src/lib/hand-flow.js';
+import {completeHand,createHandFlow,declareKan,discardTile,drawForTurn,HAND_PHASES,passDiscard,startNextHand} from '../src/lib/hand-flow.js';
 
 const wallOptions={random:()=>0.5};
 const initial=createHandFlow({wallOptions});
@@ -15,21 +15,27 @@ assert.equal(initial.doraIndicators.length,1,'the exposed dora is kept in hand s
 assert.equal(initial.drawnTileId,initial.players.east.hand.at(-1).id,'the dealer draw is tracked for the first discard');
 
 const dealerDiscard=discardTile(initial,{seat:'east',tileId:initial.drawnTileId});
-assert.equal(dealerDiscard.phase,HAND_PHASES.DRAW,'discarding moves to the next draw phase');
-assert.equal(dealerDiscard.currentSeat,'south','the turn moves clockwise');
+assert.equal(dealerDiscard.phase,HAND_PHASES.RESPONSE,'discarding opens a response window');
+assert.equal(dealerDiscard.currentSeat,'south','the next seat is prepared to draw after responses');
+assert.equal(dealerDiscard.pendingDiscard.code,dealerDiscard.lastAction.code,'the discarded tile is available to response checks');
 assert.equal(dealerDiscard.players.east.hand.length,13,'the dealer returns to thirteen tiles after discarding');
 assert.equal(dealerDiscard.players.east.river.length,1,'the discard enters the dealer river');
 assert.equal(initial.players.east.hand.length,14,'the previous state remains unchanged');
 
-const southDraw=drawForTurn(dealerDiscard);
+const dealerPassed=passDiscard(dealerDiscard);
+assert.equal(dealerPassed.phase,HAND_PHASES.DRAW,'passing the response opens the next draw');
+const southDraw=drawForTurn(dealerPassed);
 assert.equal(southDraw.phase,HAND_PHASES.DISCARD,'a live draw opens the discard phase');
 assert.equal(southDraw.currentSeat,'south','the same player discards after drawing');
 assert.equal(southDraw.players.south.hand.length,14,'the drawing player receives one tile');
 assert.equal(southDraw.drawnTileId,southDraw.lastAction.tileId,'the drawn tile is tracked');
 
 const southDiscard=discardTile(southDraw,{seat:'south',tileId:southDraw.drawnTileId});
+assert.equal(southDiscard.phase,HAND_PHASES.RESPONSE,'each discard opens another response window');
 assert.equal(southDiscard.currentSeat,'west','the next player follows the discard');
 assert.equal(southDiscard.turnNumber,2,'a completed turn increments the turn number');
+const afterSouthPass=passDiscard(southDiscard);
+assert.equal(afterSouthPass.currentSeat,'west','passing preserves the next seat');
 
 assert.throws(()=>drawForTurn(initial),/not waiting for a draw/,'a draw cannot happen during the discard phase');
 assert.throws(()=>discardTile(southDraw,{seat:'east',tileId:southDraw.players.east.hand[0].id}),/not the current seat/,'a non-current player cannot discard');
@@ -62,4 +68,4 @@ assert.equal(nextHand.currentSeat,'south','the next hand uses the rotated dealer
 assert.equal(nextHand.players.south.hand.length,14,'the next dealer receives fourteen tiles');
 assert.equal(nextHand.players.east.hand.length,13,'the next non-dealer receives thirteen tiles');
 
-console.log('✓ integrated hand, wall, turn and kan flow contracts validated.');
+console.log('✓ integrated hand, wall, response, turn and kan flow contracts validated.');
