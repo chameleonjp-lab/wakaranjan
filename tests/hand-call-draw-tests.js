@@ -21,6 +21,7 @@ assert.equal(minkan.pendingDiscard,null,'the claimed discard is removed from res
 assert.equal(minkan.roundState.kanCount,1,'minkan increments the round kan count');
 assert.equal(minkan.roundState.lastKan.type,'minkan','the minkan type is retained');
 assert.equal(minkan.players.south.melds[0].type,'minkan','the open kan becomes a meld');
+assert.equal(minkan.players.south.melds[0].redDora,1,'a red discarded tile remains a red dora in the called kan');
 assert.equal(minkan.players.south.hand.length,11,'three concealed copies leave and one rinshan tile enters');
 assert.equal(minkan.roundWall.rinshanIndex,1,'minkan consumes one rinshan tile');
 assert.equal(minkan.roundWall.doraIndex,2,'minkan reveals one additional dora');
