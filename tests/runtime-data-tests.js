@@ -102,6 +102,7 @@ for(const [yakuId,example] of Object.entries(examples)){
 }
 
 assert.match(appSource,/loadJson\(['\"]\.\/src\/data\/rules\.json['\"]\)/,'標準ルールJSONをapp.jsが読み込んでいません');
+assert.match(appSource,/coreQuality,rulesData\]=await Promise\.all/,'標準ルールJSONの読み込み結果をrulesDataへ結び付けていません');
 assert.match(appSource,/import \{renderStudyRecord\} from '\.\/tools\/study-record\.js'/,'学習記録ページをapp.jsが読み込んでいません');
 assert.match(appSource,/import \{renderPracticeHub\} from '\.\/practice\/practice-hub\.js'/,'対局練習ページをapp.jsが読み込んでいません');
 assert.match(appSource,/['\"]practice['\"]:\(\)=>renderPracticeHub/,'対局練習ページのルートがありません');
