@@ -1,5 +1,5 @@
 import {appendTileRow,createTile} from '../components/tile.js';
-import {checkRonClaims,checkTsumo,claimRonClaims,completeExhaustiveDraw,completeTsumo,createHandFlow,discardTile,drawForTurn,HAND_PHASES,passDiscard} from '../lib/hand-flow.js';
+import {checkCall,checkRonClaims,checkTsumo,claimRonClaims,completeExhaustiveDraw,completeTsumo,createHandFlow,declareCall,declareRiichi,discardTile,drawForTurn,HAND_PHASES,passDiscard} from '../lib/hand-flow.js';
 import {roundLabel,SEATS,SEAT_LABEL_MAP} from '../lib/round-state.js';
 import {deadWallRemaining,liveTilesRemaining} from '../lib/tile-wall.js';
 
@@ -70,6 +70,17 @@ export function renderHandFlow(app,ctx){
         render();
       };
       actions.append(button);
+      if(!player.riichi&&player.melds.every(meld=>!meld.open)){
+        const riichiButton=document.createElement('button');
+        riichiButton.type='button';
+        riichiButton.className='secondary';
+        riichiButton.textContent='リーチを確認';
+        riichiButton.onclick=()=>{
+          try{state=declareRiichi(state,{seat:state.userSeat,tileId:state.drawnTileId});render()}
+          catch(error){feedback.className='feedback bad';feedback.textContent=error.message}
+        };
+        actions.append(riichiButton);
+      }
     }else if(state.phase===HAND_PHASES.RESPONSE){
       if(canUserRespond){
         const ronButton=document.createElement('button');
@@ -83,6 +94,28 @@ export function renderHandFlow(app,ctx){
           render();
         };
         actions.append(ronButton);
+        if(!player.riichi){
+          let ponCheck;
+          let chiCheck;
+          try{ponCheck=checkCall(state,{type:'pon',seat:state.userSeat})}catch(error){ponCheck={ok:false,error:error.message}}
+          try{chiCheck=checkCall(state,{type:'chi',seat:state.userSeat})}catch(error){chiCheck={ok:false,error:error.message}}
+          if(ponCheck.ok){
+            const ponButton=document.createElement('button');
+            ponButton.type='button';
+            ponButton.className='secondary';
+            ponButton.textContent='ポンを確認';
+            ponButton.onclick=()=>{state=declareCall(state,{type:'pon',seat:state.userSeat});render()};
+            actions.append(ponButton);
+          }
+          if(chiCheck.ok){
+            const chiButton=document.createElement('button');
+            chiButton.type='button';
+            chiButton.className='secondary';
+            chiButton.textContent='チーを確認';
+            chiButton.onclick=()=>{state=declareCall(state,{type:'chi',seat:state.userSeat,callTiles:chiCheck.callTiles});render()};
+            actions.append(chiButton);
+          }
+        }
         const passButton=document.createElement('button');
         passButton.type='button';
         passButton.className='secondary';
