@@ -3,6 +3,6 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node tests/run-tests.js && node tests/round-context-tests.js && node tests/catalog-tests.js && node tests/problem-catalog-tests.js && node tests/visual-problem-tests.js && node tests/advanced-special-tests.js && node tests/curriculum-gap-tests.js && node tests/lesson-quality-tests.js && node tests/core-lesson-quality-tests.js && node tests/runtime-data-tests.js && node tests/tile-wall-tests.js && node tests/kan-tests.js && node tests/round-kan-state-tests.js && node tests/hand-flow-tests.js && node tests/hand-result-flow-tests.js && node tests/round-state-tests.js && node tests/module-contract-tests.js && node tests/hand-call-draw-tests.js && node tests/hand-multiple-ron-tests.js"
+    "test": "node tests/run-tests.js && node tests/round-context-tests.js && node tests/catalog-tests.js && node tests/problem-catalog-tests.js && node tests/visual-problem-tests.js && node tests/advanced-special-tests.js && node tests/curriculum-gap-tests.js && node tests/lesson-quality-tests.js && node tests/core-lesson-quality-tests.js && node tests/runtime-data-tests.js && node tests/tile-wall-tests.js && node tests/kan-tests.js && node tests/round-kan-state-tests.js && node tests/hand-flow-tests.js && node tests/hand-result-flow-tests.js && node tests/round-state-tests.js && node tests/module-contract-tests.js && node tests/hand-call-draw-tests.js && node tests/hand-multiple-ron-tests.js && node tests/hand-calls-riichi-tests.js"
   }
 }
