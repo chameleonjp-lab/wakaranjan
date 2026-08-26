@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "waitQuestions": {
+    "q-visual-wait-001": ["5m", "8m"],
+    "q-visual-wait-002": ["5m"],
+    "q-visual-wait-003": ["3m"],
+    "q-visual-wait-004": ["5z", "7z"],
+    "q-visual-wait-005": ["5z"],
+    "q-visual-wait-006": ["5m", "8m"],
+    "q-visual-wait-007": ["5m", "8m"],
+    "q-visual-wait-008": ["6s", "9s"]
+  },
+  "ronQuestions": {
+    "q-visual-ron-001": {"winTile":"5m","riichi":true,"hasYaku":true,"furiten":false,"canRon":true},
+    "q-visual-ron-002": {"winTile":"5m","riichi":false,"hasYaku":false,"furiten":false,"canRon":false},
+    "q-visual-ron-003": {"winTile":"5m","riichi":true,"hasYaku":true,"furiten":true,"canRon":false},
+    "q-visual-ron-005": {"winTile":"5m","riichi":false,"hasYaku":true,"furiten":false,"canRon":true}
+  },
+  "exampleRules": {
+    "yaku-toitoi": {"mustInclude":["yaku-toitoi"],"mustNotInclude":["yaku-suuankou"]},
+    "yaku-sanankou": {"mustInclude":["yaku-sanankou"],"mustNotInclude":["yaku-suuankou"],"wait":"ryanmen"},
+    "yaku-honroutou": {"mustInclude":["yaku-honroutou"],"mustNotInclude":["yaku-suuankou"]},
+    "yaku-suuankou": {"mustInclude":["yaku-suuankou"],"wait":"tanki"},
+    "yaku-chuuren": {"mustInclude":["yaku-chuuren"],"preWinMustNotBeBasePattern":true}
+  }
+}
