@@ -1,5 +1,5 @@
 import {appendTileRow,createTile} from '../components/tile.js';
-import {advanceAutomaticResponse,checkCall,checkKan,checkRonClaims,checkTsumo,claimRonClaims,completeExhaustiveDraw,completeTsumo,declareCall,declareKan,declareRiichi,discardTile,drawForTurn,HAND_PHASES} from '../lib/hand-flow.js';
+import {advanceAutomaticResponse,checkCall,checkKan,checkRonClaims,checkTsumo,claimRonClaims,completeExhaustiveDraw,completeTsumo,declareCall,declareKan,declareRiichi,discardTile,drawForTurn,HAND_PHASES,startNextHand} from '../lib/hand-flow.js';
 import {createHandFlowScenario,HAND_FLOW_SCENARIOS} from './hand-flow-scenarios.js';
 import {roundLabel,SEATS,SEAT_LABEL_MAP} from '../lib/round-state.js';
 import {deadWallRemaining,liveTilesRemaining} from '../lib/tile-wall.js';
@@ -147,8 +147,8 @@ export function renderHandFlow(app,ctx){
   const tileCodes=ctx.tiles.map(tile=>tile.code);
   const redFives=ctx.standardRules?.scope?.redFives||{man:1,pin:1,sou:1};
   const scenarioId=new URLSearchParams((location.hash.split('?')[1]||'')).get('scenario')||'random';
-  const scenario=HAND_FLOW_SCENARIOS[scenarioId]||HAND_FLOW_SCENARIOS.random;
-  const activeScenarioId=HAND_FLOW_SCENARIOS[scenarioId]?scenarioId:'random';
+  let activeScenarioId=HAND_FLOW_SCENARIOS[scenarioId]?scenarioId:'random';
+  let scenario=HAND_FLOW_SCENARIOS[activeScenarioId];
   const newState=()=>createHandFlowScenario(activeScenarioId,{wallOptions:{tileCodes,redFives}});
   let state=newState();
   const reset=()=>{state=newState();render()};
@@ -380,6 +380,18 @@ export function renderHandFlow(app,ctx){
       actions.append(button);
     }else if(state.phase===HAND_PHASES.COMPLETED){
       feedback.className='feedback good';
+      if(state.roundState.phase==='playing'){
+        const nextButton=document.createElement('button');
+        nextButton.type='button';
+        nextButton.className='primary';
+        nextButton.textContent='次の局へ進む';
+        nextButton.onclick=()=>runAction(()=>{
+          state=startNextHand(state,{wallOptions:{tileCodes,redFives}});
+          activeScenarioId='random';
+          scenario=HAND_FLOW_SCENARIOS.random;
+        });
+        actions.append(nextButton);
+      }
       if(state.result?.type==='win'&&state.result.blockedRonClaimants?.length){
         feedback.textContent=seatLabel(state.result.winnerSeat)+'が頭ハネでロンし、この一局は完了しています。';
       }else{
