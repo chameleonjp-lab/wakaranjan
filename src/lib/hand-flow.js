@@ -77,7 +77,8 @@ function drawTo(wall,players,seat){
   return copy;
 }
 
-function dealInitial(wall){
+function dealInitial(wall,dealerSeat){
+  assertSeat(dealerSeat);
   const players=emptyPlayers();
   for(let packet=0;packet<3;packet+=1){
     for(const seat of SEATS){
@@ -85,13 +86,15 @@ function dealInitial(wall){
     }
   }
   for(const seat of SEATS)drawTo(wall,players,seat);
-  const dealerDrawn=drawTo(wall,players,'east');
+  const dealerDrawn=drawTo(wall,players,dealerSeat);
   return {players,dealerDrawn};
 }
 
-function takeFixtureHands(wall,initialHands){
+function takeFixtureHands(wall,initialHands,dealerSeat){
+  assertSeat(dealerSeat);
   const players=emptyPlayers();
-  const expected={east:14,south:13,west:13,north:13};
+  const expected={east:13,south:13,west:13,north:13};
+  expected[dealerSeat]=14;
   for(const seat of SEATS){
     const codes=initialHands?.[seat];
     if(!Array.isArray(codes)||codes.length!==expected[seat])throw new TypeError('initialHands.'+seat+' must contain '+expected[seat]+' tile codes');
@@ -101,7 +104,7 @@ function takeFixtureHands(wall,initialHands){
       players[seat].hand.push(cloneTile(wall.live.splice(index,1)[0]));
     }
   }
-  return {players,dealerDrawn:players.east.hand[players.east.hand.length-1]};
+  return {players,dealerDrawn:players[dealerSeat].hand[players[dealerSeat].hand.length-1]};
 }
 
 function nextSeat(seat){
@@ -148,7 +151,7 @@ export function createHandFlow({roundState=createMatchState(),roundWall=null,wal
   if(roundState.phase!=='playing')throw new Error('the round is not playable');
   assertSeat(userSeat);
   const wall=roundWall?cloneWall(roundWall):createRoundWall(wallOptions);
-  const dealt=initialHands?takeFixtureHands(wall,initialHands):dealInitial(wall);
+  const dealt=initialHands?takeFixtureHands(wall,initialHands,roundState.dealerSeat):dealInitial(wall,roundState.dealerSeat);
   const doraIndicator=revealDoraIndicator(wall);
   if(!doraIndicator)throw new Error('the initial dora indicator is unavailable');
   return {
