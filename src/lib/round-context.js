@@ -28,6 +28,25 @@ export function winningShapeTiles(input={}){
   return waits;
 }
 
+export function tenpaiWaits(input={}){
+  const concealed=[...(input.concealedTiles||input.tiles||[])];
+  const melds=input.melds||[];
+  const physicalBase=[...concealed,...melds.flatMap(m=>m.tiles||[])];
+  const waits=[];
+  for(const code of tileCodes()){
+    try{
+      countTiles([...physicalBase,code]);
+      if(shapeCompletes([...concealed,code],melds.length))waits.push(code);
+    }catch{}
+  }
+  return waits;
+}
+
+export function tenpaiStatus(input={}){
+  const waits=tenpaiWaits(input);
+  return {tenpai:waits.length>0,waits};
+}
+
 export function furitenStatus(input={}){
   const waits=winningShapeTiles(input);const river=new Set(input.ownRiver||[]);const ownDiscard=waits.find(t=>river.has(t))||null;
   const temporary=Boolean(input.temporaryFuriten);const riichiMiss=Boolean(input.riichiMissedRon);

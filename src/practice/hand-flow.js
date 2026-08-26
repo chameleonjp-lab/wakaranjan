@@ -103,7 +103,7 @@ export function renderHandFlow(app,ctx){
       button.type='button';
       button.className='primary';
       button.textContent='流局として完了';
-      button.onclick=()=>{state=completeExhaustiveDraw(state,{dealerTenpai:false});render()};
+      button.onclick=()=>{state=completeExhaustiveDraw(state);render()};
       actions.append(button);
     }else if(state.phase===HAND_PHASES.COMPLETED){
       feedback.className='feedback good';

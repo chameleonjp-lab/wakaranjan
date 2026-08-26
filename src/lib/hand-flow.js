@@ -1,5 +1,5 @@
 import {applyKan,KAN_TYPES} from './kan.js';
-import {settleHand} from './round-context.js';
+import {settleHand,tenpaiStatus} from './round-context.js';
 import {completeHand as completeRoundHand,createMatchState,declareKan as declareRoundKan,resolveKan as resolveRoundKan,SEATS} from './round-state.js';
 import {createRoundWall,drawLiveTile,revealDoraIndicator,resolveKan as resolveWallKan} from './tile-wall.js';
 
@@ -123,6 +123,22 @@ function nextSeat(seat){
   assertSeat(seat);
   return SEATS[(SEATS.indexOf(seat)+1)%SEATS.length];
 }
+
+function relativeKanSource(declarerSeat,discarderSeat){
+  const distance=(SEATS.indexOf(discarderSeat)-SEATS.indexOf(declarerSeat)+SEATS.length)%SEATS.length;
+  if(distance===1)return 'shimocha';
+  if(distance===2)return 'toimen';
+  if(distance===3)return 'kamicha';
+  throw new Error('the kan declarer cannot use their own discard');
+}
+
+function markClaimedDiscard(players,pending){
+  const river=players[pending.seat].river;
+  const index=river.findIndex(tile=>tile.id===pending.tileId);
+  if(index<0)throw new Error('the pending discard is missing from the river');
+  river[index]={...river[index],claimed:true};
+}
+
 
 function assertFlow(state){
   if(!state||!Object.values(HAND_PHASES).includes(state.phase))throw new TypeError('hand flow state is invalid');
@@ -255,6 +271,30 @@ function evaluateStateResult(state,params){
   return result;
 }
 
+function tenpaiStatusForFlow(state){
+  return Object.fromEntries(SEATS.map(seat=>{
+    const player=state.players[seat];
+    return [seat,tenpaiStatus({
+      concealedTiles:player.hand.map(codeOf),
+      melds:player.melds.map(meldCodes)
+    })];
+  }));
+}
+
+export function checkExhaustiveDraw(state){
+  assertFlow(state);
+  if(state.phase!==HAND_PHASES.AWAITING_RESULT)throw new Error('the hand is not waiting for a draw result');
+  const tenpaiBySeat=tenpaiStatusForFlow(state);
+  const tenpaiSeats=SEATS.filter(seat=>tenpaiBySeat[seat].tenpai);
+  return {
+    ok:true,
+    tenpaiBySeat,
+    tenpaiSeats,
+    dealerTenpai:tenpaiBySeat[state.roundState.dealerSeat].tenpai
+  };
+}
+
+
 export function createHandFlow({roundState=createMatchState(),roundWall=null,wallOptions={},initialHands=null,userSeat='east'}={}){
   if(roundState.phase!=='playing')throw new Error('the round is not playable');
   assertSeat(userSeat);
@@ -358,25 +398,79 @@ export function claimRon(state,{seat=state?.currentSeat,options={}}={}){
   return completeWinningFlow(state,result,{winnerSeat:seat,win:'ron',winTileId:pending.tileId,discarderSeat:pending.seat});
 }
 
-export function completeExhaustiveDraw(state,{dealerTenpai=false}={}){
+export function completeExhaustiveDraw(state,{dealerTenpai}={}){
   const current=cloneFlow(state);
   if(current.phase!==HAND_PHASES.AWAITING_RESULT)throw new Error('the hand is not waiting for a draw result');
-  current.roundState=completeRoundHand(current.roundState,{outcome:'draw',dealerTenpai});
+  const checked=checkExhaustiveDraw(current);
+  const resolvedDealerTenpai=typeof dealerTenpai==='boolean'?dealerTenpai:checked.dealerTenpai;
+  current.roundState=completeRoundHand(current.roundState,{outcome:'draw',dealerTenpai:resolvedDealerTenpai});
   current.phase=HAND_PHASES.COMPLETED;
   current.pendingDiscard=null;
   current.drawnTileId=null;
-  current.result={type:'draw',dealerTenpai};
-  current.lastAction={type:'draw-complete',dealerTenpai};
+  current.result={
+    type:'draw',
+    dealerTenpai:resolvedDealerTenpai,
+    tenpaiBySeat:checked.tenpaiBySeat,
+    tenpaiSeats:checked.tenpaiSeats
+  };
+  current.lastAction={type:'draw-complete',dealerTenpai:resolvedDealerTenpai,tenpaiSeats:checked.tenpaiSeats};
+  return current;
+}
+
+
+export function declareMinkan(state,{seat=state?.currentSeat}={}){
+  const current=cloneFlow(state);
+  if(current.phase!==HAND_PHASES.RESPONSE)throw new Error('a minkan requires an opponent discard response window');
+  assertSeat(seat);
+  const pending=current.pendingDiscard;
+  if(seat===pending.seat)throw new Error('the discarder cannot call minkan on their own discard');
+  const player=current.players[seat];
+  const applied=applyKan({
+    type:'minkan',
+    concealedTiles:player.hand.map(tile=>tile.code),
+    openMelds:player.melds,
+    discardTile:pending.code,
+    from:relativeKanSource(seat,pending.seat),
+    ownTurn:false,
+    kanCount:current.roundState.kanCount
+  });
+  if(!applied.ok)throw new Error(applied.message);
+  const wallResult=resolveWallKan(current.roundWall);
+  if(!wallResult.ok)throw new Error(wallResult.message);
+  const declared=declareRoundKan(current.roundState,{type:'minkan',seat,meld:applied.meld});
+  current.roundState=resolveRoundKan(declared,{
+    rinshanTile:wallResult.rinshan,
+    doraIndicator:wallResult.doraIndicator
+  });
+  player.hand=removeCopies(player.hand,applied.tileCode,3);
+  player.melds=applied.openMelds.map(cloneMeld);
+  markClaimedDiscard(current.players,pending);
+  player.hand.push(cloneTile(wallResult.rinshan));
+  current.currentSeat=seat;
+  current.phase=HAND_PHASES.DISCARD;
+  current.pendingDiscard=null;
+  current.doraIndicators.push(cloneTile(wallResult.doraIndicator));
+  current.drawnTileId=wallResult.rinshan.id;
+  current.lastAction={
+    type:'kan',
+    kanType:'minkan',
+    seat,
+    from:relativeKanSource(seat,pending.seat),
+    tileCode:applied.tileCode,
+    discardTileId:pending.tileId,
+    rinshanTileId:wallResult.rinshan.id,
+    doraIndicatorId:wallResult.doraIndicator.id
+  };
   return current;
 }
 
 export function declareKan(state,{type,seat=state?.currentSeat}={}){
+  if(type==='minkan')return declareMinkan(state,{seat});
   const current=cloneFlow(state);
   if(current.phase!==HAND_PHASES.DISCARD)throw new Error('a kan can only be declared before the discard');
   assertSeat(seat);
   if(seat!==current.currentSeat)throw new Error('the seat is not the current seat');
   if(!KAN_TYPES.includes(type))throw new RangeError('unknown kan type');
-  if(type==='minkan')throw new Error('minkan requires an opponent discard response window');
   const player=current.players[seat];
   const applied=applyKan({
     type,
