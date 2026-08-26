@@ -32,7 +32,7 @@ assert.equal(southDiscard.currentSeat,'west','the next player follows the discar
 assert.equal(southDiscard.turnNumber,2,'a completed turn increments the turn number');
 
 assert.throws(()=>drawForTurn(initial),/not waiting for a draw/,'a draw cannot happen during the discard phase');
-assert.throws(()=>discardTile(dealerDiscard,{seat:'east',tileId:dealerDiscard.players.east.hand[0].id}),/not the current seat/,'a non-current player cannot discard');
+assert.throws(()=>discardTile(southDraw,{seat:'east',tileId:southDraw.players.east.hand[0].id}),/not the current seat/,'a non-current player cannot discard');
 
 const fixtureHands={
   east:['5z','5z','5z','5z','1m','2m','3m','4m','5m','6m','7m','8m','9m','1p'],
