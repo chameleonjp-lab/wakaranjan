@@ -51,6 +51,7 @@ const ronCheck=checkRon(pending,{seat:'south',options:{riichi:true}});
 assert.equal(ronCheck.ok,true,ronCheck.error);
 assert.equal(ronCheck.best.score.win,'ron','the integrated evaluator sees a discard win');
 assert.equal(ronCheck.best.dora,2,'red hand tiles and a red winning discard are counted as red dora');
+assert.equal(ronCheck.best.doraDetail[0].name,'赤ドラ','the red ron dora source is retained in the result');
 const ron=claimRon(pending,{seat:'south',options:{riichi:true}});
 assert.equal(ron.phase,HAND_PHASES.COMPLETED,'a valid ron completes the physical hand');
 assert.equal(ron.result.winnerSeat,'south','the ron winner is retained');
