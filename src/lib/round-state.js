@@ -1,3 +1,5 @@
+import {KAN_TYPES,MAX_KANS_PER_HAND} from './kan.js';
+
 const DEFAULT_SCORES={east:25000,south:25000,west:25000,north:25000};
 const SEAT_ORDER=['east','south','west','north'];
 const SEAT_LABELS={east:'東家',south:'南家',west:'西家',north:'北家'};
@@ -11,6 +13,18 @@ function assertSeat(seat){
 
 function assertInteger(value,name,{minimum=0,maximum=Number.MAX_SAFE_INTEGER}={}){
   if(!Number.isSafeInteger(value)||value<minimum||value>maximum)throw new RangeError(name+' must be an integer in range');
+}
+
+function normalizeTileList(tiles,name){
+  if(!Array.isArray(tiles))throw new TypeError(name+' must be an array');
+  return tiles.map((tile,index)=>{
+    if(!tile||typeof tile!=='object'||typeof tile.code!=='string')throw new TypeError(name+'.'+index+' must contain a tile code');
+    return {...tile};
+  });
+}
+
+function resetHandContext(state){
+  return {...state,kanCount:0,kanDoraIndicators:[],pendingKan:null,lastKan:null};
 }
 
 function normalizeScores(scores={}){
@@ -37,6 +51,9 @@ function assertPlaying(state){
   assertSeat(state.dealerSeat);
   assertInteger(state.honba,'honba');
   assertInteger(state.riichiSticks,'riichiSticks');
+  assertInteger(state.kanCount,'kanCount',{maximum:MAX_KANS_PER_HAND});
+  if(!Array.isArray(state.kanDoraIndicators)||state.kanDoraIndicators.length>state.kanCount)throw new Error('kan dora state is invalid');
+  if(state.pendingKan!==null&&(!state.pendingKan||!KAN_TYPES.includes(state.pendingKan.type)))throw new Error('pending kan state is invalid');
 }
 
 function nextSeat(seat){
@@ -45,14 +62,15 @@ function nextSeat(seat){
 }
 
 function advanceHand(state,honba){
-  const dealerSeat=nextSeat(state.dealerSeat);
+  const next=resetHandContext(state);
+  const dealerSeat=nextSeat(next.dealerSeat);
   if(state.handNumber<4){
-    return {...state,roundWind:state.roundWind,handNumber:state.handNumber+1,dealerSeat,honba,continued:false};
+    return {...next,roundWind:next.roundWind,handNumber:next.handNumber+1,dealerSeat,honba,continued:false};
   }
-  if(state.matchType==='hanchan'&&state.roundWind==='east'){
-    return {...state,roundWind:'south',handNumber:1,dealerSeat,honba,continued:false};
+  if(next.matchType==='hanchan'&&next.roundWind==='east'){
+    return {...next,roundWind:'south',handNumber:1,dealerSeat,honba,continued:false};
   }
-  return {...state,phase:'finished',honba,continued:false};
+  return {...next,phase:'finished',honba,continued:false};
 }
 
 /**
@@ -64,13 +82,16 @@ function advanceHand(state,honba){
  * - A non-dealer win moves to the next hand and resets honba.
  * - Riichi sticks stay on the table until a win collects them.
  */
-export function createMatchState({matchType='east-only',scores=DEFAULT_SCORES,roundWind='east',handNumber=1,dealerSeat='east',honba=0,riichiSticks=0}={}){
+export function createMatchState({matchType='east-only',scores=DEFAULT_SCORES,roundWind='east',handNumber=1,dealerSeat='east',honba=0,riichiSticks=0,kanCount=0,kanDoraIndicators=[]}={}){
   if(!MATCH_TYPES.includes(matchType))throw new RangeError('unknown matchType');
   if(!WIND_ORDER.includes(roundWind))throw new RangeError('unknown roundWind');
   assertInteger(handNumber,'handNumber',{minimum:1,maximum:4});
   assertSeat(dealerSeat);
   assertInteger(honba,'honba');
   assertInteger(riichiSticks,'riichiSticks');
+  assertInteger(kanCount,'kanCount',{maximum:MAX_KANS_PER_HAND});
+  const normalizedKanDoraIndicators=normalizeTileList(kanDoraIndicators,'kanDoraIndicators');
+  if(normalizedKanDoraIndicators.length>kanCount)throw new RangeError('kanDoraIndicators cannot exceed kanCount');
   return {
     matchType,
     phase:'playing',
@@ -79,6 +100,10 @@ export function createMatchState({matchType='east-only',scores=DEFAULT_SCORES,ro
     dealerSeat,
     honba,
     riichiSticks,
+    kanCount,
+    kanDoraIndicators:normalizedKanDoraIndicators,
+    pendingKan:null,
+    lastKan:null,
     scores:normalizeScores(scores),
     completedRound:null,
     lastOutcome:null,
@@ -101,8 +126,29 @@ export function declareRiichi(state,seat){
   return {...state,scores,riichiSticks:state.riichiSticks+1};
 }
 
+export function declareKan(state,{type,seat,meld=null}={}){
+  assertPlaying(state);
+  assertSeat(seat);
+  if(!KAN_TYPES.includes(type))throw new RangeError('unknown kan type');
+  if(state.pendingKan)throw new Error('resolve the pending kan first');
+  if(state.kanCount>=MAX_KANS_PER_HAND)throw new RangeError('a hand cannot contain more than four kans');
+  if(meld!==null&&(!meld||typeof meld!=='object'||meld.type!==type))throw new TypeError('meld does not match the kan type');
+  const nextMeld=meld===null?null:{...meld,tiles:Array.isArray(meld.tiles)?[...meld.tiles]:meld.tiles};
+  return {...state,kanCount:state.kanCount+1,pendingKan:{type,seat,meld:nextMeld},lastKan:null};
+}
+
+export function resolveKan(state,{rinshanTile,doraIndicator}={}){
+  assertPlaying(state);
+  if(!state.pendingKan)throw new Error('there is no pending kan');
+  const rinshan=normalizeTileList([rinshanTile],'rinshanTile')[0];
+  const dora=normalizeTileList([doraIndicator],'doraIndicator')[0];
+  const lastKan={...state.pendingKan,rinshanTile:rinshan,doraIndicator:dora};
+  return {...state,pendingKan:null,kanDoraIndicators:[...state.kanDoraIndicators,dora],lastKan};
+}
+
 export function completeHand(state,{outcome,winnerSeat=null,dealerTenpai=false,scoreDeltas={},winnerCollectsRiichi=true}={}){
   assertPlaying(state);
+  if(state.pendingKan)throw new Error('resolve the pending kan before completing the hand');
   if(outcome!=='win'&&outcome!=='draw')throw new RangeError('outcome must be win or draw');
   if(outcome==='win'){
     assertSeat(winnerSeat);
@@ -116,7 +162,9 @@ export function completeHand(state,{outcome,winnerSeat=null,dealerTenpai=false,s
     roundWind:state.roundWind,
     handNumber:state.handNumber,
     dealerSeat:state.dealerSeat,
-    honba:state.honba
+    honba:state.honba,
+    kanCount:state.kanCount,
+    kanDoraIndicators:state.kanDoraIndicators.map(tile=>({...tile}))
   };
   const scores=applyScoreDeltas(state.scores,scoreDeltas);
   let riichiSticks=state.riichiSticks;
@@ -124,7 +172,7 @@ export function completeHand(state,{outcome,winnerSeat=null,dealerTenpai=false,s
     scores[winnerSeat]+=riichiSticks*1000;
     riichiSticks=0;
   }
-  const completed={
+  const completed=resetHandContext({
     ...state,
     scores,
     riichiSticks,
@@ -133,7 +181,7 @@ export function completeHand(state,{outcome,winnerSeat=null,dealerTenpai=false,s
     lastDealerTenpai:outcome==='draw'?dealerTenpai:null,
     completedRound,
     continued:false
-  };
+  });
 
   if(outcome==='win'&&winnerSeat===state.dealerSeat){
     return {...completed,honba:state.honba+1,continued:true};
