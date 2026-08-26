@@ -53,6 +53,96 @@ function appendMeldSummary(container,ctx,melds){
   });
 }
 
+function formatPoints(value){
+  const amount=Number(value);
+  return Number.isFinite(amount)?`${amount.toLocaleString('ja-JP')}点`:'—';
+}
+
+function appendResultSection(container,title,rows){
+  if(!rows.length)return;
+  const section=document.createElement('section');
+  section.className='flow-result-section';
+  const heading=document.createElement('h3');
+  heading.textContent=title;
+  section.append(heading);
+  const list=document.createElement('ul');
+  list.className='flow-result-list';
+  rows.forEach(row=>{
+    const item=document.createElement('li');
+    const label=document.createElement('span');
+    label.textContent=row.label;
+    const value=document.createElement('strong');
+    value.textContent=row.value;
+    item.append(label,value);
+    list.append(item);
+  });
+  section.append(list);
+  container.append(section);
+}
+
+function renderCompletedResult(container,state){
+  const result=state.result;
+  const panel=document.createElement('section');
+  panel.className='flow-result-panel';
+  panel.setAttribute('aria-label','この局の結果');
+  const heading=document.createElement('h2');
+  heading.textContent='この局の結果';
+  panel.append(heading);
+
+  if(result?.type==='win'){
+    const outcome=document.createElement('p');
+    outcome.className='flow-result-outcome';
+    outcome.textContent=`${seatLabel(result.winnerSeat)}が${result.win==='tsumo'?'ツモ':'ロン'}しました。`;
+    panel.append(outcome);
+
+    const score=result.score||{};
+    const scoreBox=document.createElement('div');
+    scoreBox.className='flow-result-score';
+    const scoreLabel=document.createElement('span');
+    scoreLabel.textContent='あがり点';
+    const scoreValue=document.createElement('strong');
+    scoreValue.textContent=formatPoints(score.total);
+    const scoreDetail=document.createElement('small');
+    scoreDetail.textContent=result.yakumanValue?`${score.limit||'役満'}（${result.yakumanValue}個）`:`${result.han}翻 ${result.fu}符${score.limit?`・${score.limit}`:''}`;
+    scoreBox.append(scoreLabel,scoreValue,scoreDetail);
+    panel.append(scoreBox);
+
+    const yakuRows=result.yakuman?.length
+      ?result.yakuman.map(yaku=>({label:yaku.name,value:`${yaku.yakuman}役満`}))
+      :(result.yaku||[]).map(yaku=>({label:yaku.name,value:`${yaku.han}翻`}));
+    appendResultSection(panel,'役',yakuRows);
+
+    const doraRows=[{label:'ドラ合計',value:`${result.dora||0}枚`}].concat((result.doraDetail||[]).map(detail=>({label:detail.name,value:`${detail.count}枚`})));
+    appendResultSection(panel,'ドラ',doraRows);
+
+    const fuRows=(result.fuItems||[]).map(item=>({label:item[0],value:`${item[1]}符`}));
+    appendResultSection(panel,'符の内訳',fuRows);
+
+    const settlement=result.settlement||{};
+    const paymentRows=Object.entries(settlement.payers||{}).map(([seat,amount])=>({label:`${seatLabel(seat)}から`,value:formatPoints(amount)}));
+    if(settlement.riichiBonus)paymentRows.push({label:'リーチ棒の回収',value:`+${formatPoints(settlement.riichiBonus)}`});
+    if(settlement.handGain!==undefined)paymentRows.push({label:'受け取った合計',value:formatPoints(settlement.handGain)});
+    appendResultSection(panel,'支払い',paymentRows);
+
+    if(result.blockedRonClaimants?.length){
+      const note=document.createElement('p');
+      note.className='flow-result-note';
+      note.textContent=`${result.blockedRonClaimants.map(seatLabel).join('・')}のロンは、頭ハネで採用されませんでした。`;
+      panel.append(note);
+    }
+  }else if(result?.type==='draw'){
+    const outcome=document.createElement('p');
+    outcome.className='flow-result-outcome';
+    outcome.textContent='流局しました。';
+    panel.append(outcome);
+    appendResultSection(panel,'流局時の状態',[
+      {label:'テンパイ者',value:result.tenpaiSeats?.length?result.tenpaiSeats.map(seatLabel).join('・'):'なし'},
+      {label:'親',value:result.dealerTenpai?'テンパイ（本場継続）':'ノーテン（次局へ）'}
+    ]);
+  }
+  container.append(panel);
+}
+
 export function renderHandFlow(app,ctx){
   const tileCodes=ctx.tiles.map(tile=>tile.code);
   const redFives=ctx.standardRules?.scope?.redFives||{man:1,pin:1,sou:1};
@@ -150,6 +240,7 @@ export function renderHandFlow(app,ctx){
     playerStateHeading.textContent='各家の状態';
     stateSummary.insertAdjacentElement('afterend',playerStateHeading);
     playerStateHeading.insertAdjacentElement('afterend',playerStateBox);
+    if(state.phase===HAND_PHASES.COMPLETED)renderCompletedResult(playerStateBox,state);
     const handBox=app.querySelector('#hand-flow-hand');
     const doraBox=app.querySelector('#hand-flow-dora');
     const riverBox=app.querySelector('#hand-flow-river');
