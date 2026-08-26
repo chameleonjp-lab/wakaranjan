@@ -1,6 +1,7 @@
+import {applyCall,CALL_TYPES} from './call.js';
 import {applyKan,KAN_TYPES} from './kan.js';
 import {resolveHeadBump,settleHand,tenpaiStatus} from './round-context.js';
-import {completeHand as completeRoundHand,createMatchState,declareKan as declareRoundKan,resolveKan as resolveRoundKan,SEATS} from './round-state.js';
+import {completeHand as completeRoundHand,createMatchState,declareKan as declareRoundKan,declareRiichi as declareRoundRiichi,resolveKan as resolveRoundKan,SEATS} from './round-state.js';
 import {createRoundWall,drawLiveTile,revealDoraIndicator,resolveKan as resolveWallKan} from './tile-wall.js';
 
 export const HAND_PHASES=Object.freeze({
@@ -68,7 +69,7 @@ function cloneResult(result){
 }
 
 function emptyPlayers(){
-  return Object.fromEntries(SEATS.map(seat=>[seat,{hand:[],melds:[],river:[]}]));
+  return Object.fromEntries(SEATS.map(seat=>[seat,{hand:[],melds:[],river:[],riichi:false,riichiTileId:null,riichiWaits:[],temporaryFuriten:false,riichiMissedRon:false}]));
 }
 
 function clonePlayers(players){
@@ -78,7 +79,12 @@ function clonePlayers(players){
     return [seat,{
       hand:player.hand.map(cloneTile),
       melds:player.melds.map(cloneMeld),
-      river:player.river.map(cloneTile)
+      river:player.river.map(cloneTile),
+      riichi:Boolean(player.riichi),
+      riichiTileId:typeof player.riichiTileId==='string'?player.riichiTileId:null,
+      riichiWaits:Array.isArray(player.riichiWaits)?[...player.riichiWaits]:[],
+      temporaryFuriten:Boolean(player.temporaryFuriten),
+      riichiMissedRon:Boolean(player.riichiMissedRon)
     }];
   }));
 }
@@ -134,6 +140,10 @@ function relativeKanSource(declarerSeat,discarderSeat){
   throw new Error('the kan declarer cannot use their own discard');
 }
 
+function relativeCallSource(declarerSeat,discarderSeat){
+  return relativeKanSource(declarerSeat,discarderSeat);
+}
+
 function markClaimedDiscard(players,pending){
   const river=players[pending.seat].river;
   const index=river.findIndex(tile=>tile.id===pending.tileId);
@@ -183,6 +193,18 @@ function removeCopies(hand,code,count){
   return next;
 }
 
+function removePhysicalCodes(hand,codes){
+  const remaining=[...codes];
+  const next=[];
+  for(const tile of hand){
+    const index=remaining.indexOf(tile.code);
+    if(index>=0){remaining.splice(index,1);continue}
+    next.push(tile);
+  }
+  if(remaining.length)throw new Error('called tiles are missing from the hand');
+  return next;
+}
+
 function codeOf(tile){
   return typeof tile==='string'?tile:tile?.code;
 }
@@ -228,20 +250,30 @@ function settlementInput(state,{seat,win,winTile,discarderSeat=null,options={}})
     honba:round.honba,
     riichiSticks:round.riichiSticks,
     ownRiver:player.river.map(codeOf),
-    dealerSeat:round.dealerSeat
+    dealerSeat:round.dealerSeat,
+    riichi:Boolean(player.riichi)||Boolean(options.riichi),
+    temporaryFuriten:Boolean(player.temporaryFuriten)||Boolean(options.temporaryFuriten),
+    riichiMissedRon:Boolean(player.riichiMissedRon)||Boolean(options.riichiMissedRon)
   };
 }
 
-function normalizeRonClaimSeats(pending,seats){
+function normalizeResponseSeats(pending,seats){
   const requested=seats===undefined?SEATS.filter(seat=>seat!==pending.seat):seats;
   if(!Array.isArray(requested))throw new TypeError('seats must be an array');
   const unique=[];
   for(const seat of requested){
     assertSeat(seat);
-    if(seat===pending.seat)throw new Error('the discarder cannot declare ron');
+    if(seat===pending.seat)throw new Error('the discarder cannot respond to their own discard');
     if(!unique.includes(seat))unique.push(seat);
   }
   return unique;
+}
+
+function normalizeRonClaimSeats(pending,seats){
+  try{return normalizeResponseSeats(pending,seats)}catch(error){
+    if(error instanceof Error&&error.message==='the discarder cannot respond to their own discard')throw new Error('the discarder cannot declare ron');
+    throw error;
+  }
 }
 
 function claimResultSummary(claim){
@@ -353,7 +385,9 @@ export function drawForTurn(state){
     return next;
   }
   const copy=cloneTile(tile);
-  next.players[next.currentSeat].hand.push(copy);
+  const player=next.players[next.currentSeat];
+  player.hand.push(copy);
+  player.temporaryFuriten=false;
   next.phase=HAND_PHASES.DISCARD;
   next.drawnTileId=copy.id;
   next.lastAction={type:'draw',seat:next.currentSeat,tileId:copy.id};
@@ -367,6 +401,7 @@ export function discardTile(state,{seat=state?.currentSeat,tileId}={}){
   if(seat!==next.currentSeat)throw new Error('the seat is not the current seat');
   if(typeof tileId!=='string')throw new TypeError('tileId is required');
   const player=next.players[seat];
+  if(player.riichi&&tileId!==next.drawnTileId)throw new Error('リーチ後はツモ切りのみ可能です。');
   const index=player.hand.findIndex(tile=>tile.id===tileId);
   if(index<0)throw new Error('tile is not in the current hand');
   const [discarded]=player.hand.splice(index,1);
@@ -380,13 +415,59 @@ export function discardTile(state,{seat=state?.currentSeat,tileId}={}){
   return next;
 }
 
-export function passDiscard(state){
+export function declareRiichi(state,{seat=state?.currentSeat,tileId=state?.drawnTileId}={}){
+  const current=cloneFlow(state);
+  if(current.phase!==HAND_PHASES.DISCARD)throw new Error('リーチは捨て牌の前に宣言します。');
+  assertSeat(seat);
+  if(seat!==current.currentSeat)throw new Error('the seat is not the current seat');
+  const player=current.players[seat];
+  if(player.riichi)throw new Error('すでにリーチしています。');
+  if(player.melds.some(meld=>meld.open))throw new Error('鳴いた後はリーチできません。');
+  if(typeof tileId!=='string')throw new TypeError('tileId is required');
+  const index=player.hand.findIndex(tile=>tile.id===tileId);
+  if(index<0)throw new Error('tile is not in the current hand');
+  const remainingHand=player.hand.filter((_tile,candidateIndex)=>candidateIndex!==index);
+  const status=tenpaiStatus({
+    concealedTiles:remainingHand.map(codeOf),
+    melds:player.melds.map(meldCodes)
+  });
+  if(!status.tenpai)throw new Error('リーチには、捨てた後のテンパイが必要です。');
+  current.roundState=declareRoundRiichi(current.roundState,seat);
+  const [discarded]=player.hand.splice(index,1);
+  player.river.push(cloneTile(discarded));
+  player.riichi=true;
+  player.riichiTileId=discarded.id;
+  player.riichiWaits=[...status.waits];
+  current.currentSeat=nextSeat(seat);
+  current.phase=HAND_PHASES.RESPONSE;
+  current.pendingDiscard={seat,tileId:discarded.id,code:discarded.code};
+  current.turnNumber+=1;
+  current.drawnTileId=null;
+  current.lastAction={type:'riichi-discard',seat,tileId:discarded.id,code:discarded.code,waits:[...status.waits]};
+  return current;
+}
+
+export function passDiscard(state,{seats}={}){
   const next=cloneFlow(state);
   if(next.phase!==HAND_PHASES.RESPONSE)throw new Error('the hand is not waiting for a discard response');
   const pending=next.pendingDiscard;
+  const responseSeats=normalizeResponseSeats(pending,seats);
+  const temporaryFuritenSeats=[];
+  const riichiMissedRonSeats=[];
+  for(const seat of responseSeats){
+    const ron=checkRon(state,{seat});
+    if(!ron.ok)continue;
+    if(next.players[seat].riichi){
+      next.players[seat].riichiMissedRon=true;
+      riichiMissedRonSeats.push(seat);
+    }else{
+      next.players[seat].temporaryFuriten=true;
+      temporaryFuritenSeats.push(seat);
+    }
+  }
   next.pendingDiscard=null;
   next.phase=HAND_PHASES.DRAW;
-  next.lastAction={type:'pass-discard',seat:pending.seat,tileId:pending.tileId,code:pending.code};
+  next.lastAction={type:'pass-discard',seat:pending.seat,tileId:pending.tileId,code:pending.code,temporaryFuritenSeats,riichiMissedRonSeats};
   return next;
 }
 
@@ -522,6 +603,7 @@ export function declareMinkan(state,{seat=state?.currentSeat}={}){
   const pending=current.pendingDiscard;
   if(seat===pending.seat)throw new Error('the discarder cannot call minkan on their own discard');
   const player=current.players[seat];
+  if(player.riichi)throw new Error('リーチ後は大明槓できません。');
   const applied=applyKan({
     type:'minkan',
     concealedTiles:player.hand.map(tile=>tile.code),
@@ -561,6 +643,62 @@ export function declareMinkan(state,{seat=state?.currentSeat}={}){
   return current;
 }
 
+export function checkCall(state,{type,seat=state?.currentSeat,callTiles}={}){
+  assertFlow(state);
+  if(state.phase!==HAND_PHASES.RESPONSE)throw new Error('chi or pon can only be checked during a discard response');
+  assertSeat(seat);
+  if(!CALL_TYPES.includes(type))throw new RangeError('unknown call type');
+  const pending=state.pendingDiscard;
+  if(seat===pending.seat)throw new Error('the discarder cannot call on their own discard');
+  const player=state.players[seat];
+  if(player.riichi)throw new Error('リーチ後はチー・ポンできません。');
+  const applied=applyCall({
+    type,
+    concealedTiles:player.hand.map(codeOf),
+    openMelds:player.melds,
+    discardTile:pending.code,
+    from:relativeCallSource(seat,pending.seat),
+    ownTurn:false,
+    callTiles
+  });
+  return applied;
+}
+
+export function declareCall(state,{type,seat=state?.currentSeat,callTiles}={}){
+  const current=cloneFlow(state);
+  const applied=checkCall(current,{type,seat,callTiles});
+  if(!applied.ok)throw new Error(applied.message);
+  const pending=current.pendingDiscard;
+  const player=current.players[seat];
+  const removeCodes=[...applied.callTiles];
+  removeCodes.splice(removeCodes.indexOf(applied.tileCode),1);
+  player.hand=removePhysicalCodes(player.hand,removeCodes);
+  player.melds=applied.openMelds.map(cloneMeld);
+  markClaimedDiscard(current.players,pending);
+  current.currentSeat=seat;
+  current.phase=HAND_PHASES.DISCARD;
+  current.pendingDiscard=null;
+  current.drawnTileId=null;
+  current.lastAction={
+    type:'call',
+    callType:type,
+    seat,
+    from:applied.from,
+    tileCode:applied.tileCode,
+    callTiles:[...applied.callTiles],
+    discardTileId:pending.tileId
+  };
+  return current;
+}
+
+export function declareChi(state,options={}){
+  return declareCall(state,{...options,type:'chi'});
+}
+
+export function declarePon(state,options={}){
+  return declareCall(state,{...options,type:'pon'});
+}
+
 export function declareKan(state,{type,seat=state?.currentSeat}={}){
   if(type==='minkan')return declareMinkan(state,{seat});
   const current=cloneFlow(state);
@@ -569,6 +707,7 @@ export function declareKan(state,{type,seat=state?.currentSeat}={}){
   if(seat!==current.currentSeat)throw new Error('the seat is not the current seat');
   if(!KAN_TYPES.includes(type))throw new RangeError('unknown kan type');
   const player=current.players[seat];
+  if(player.riichi&&type!=='ankan')throw new Error('リーチ後はこのカンを宣言できません。');
   const applied=applyKan({
     type,
     concealedTiles:player.hand.map(tile=>tile.code),
