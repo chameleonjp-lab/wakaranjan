@@ -62,6 +62,17 @@ export function renderHandFlow(app,ctx){
   const newState=()=>createHandFlowScenario(activeScenarioId,{wallOptions:{tileCodes,redFives}});
   let state=newState();
   const reset=()=>{state=newState();render()};
+  const runAction=action=>{
+    try{
+      action();
+      render();
+    }catch(error){
+      render();
+      const feedback=app.querySelector('#hand-flow-feedback');
+      feedback.className='feedback bad';
+      feedback.textContent=error instanceof Error?error.message:String(error);
+    }
+  };
   const automaticSeatsForResponse=()=>{
     const pending=state.pendingDiscard;
     return SEATS.filter(seat=>seat!==state.userSeat&&seat!==pending?.seat);
@@ -72,15 +83,14 @@ export function renderHandFlow(app,ctx){
     if(!tile)throw new Error('自動捨て牌に使える牌がありません。');
     state=discardTile(state,{seat:state.currentSeat,tileId:tile.id});
   };
-  const advanceOtherSeat=()=>{
+  const advanceOtherSeat=()=>runAction(()=>{
     if(state.phase===HAND_PHASES.RESPONSE){
       const pending=state.pendingDiscard;
       state=advanceAutomaticResponse(state,{seats:automaticSeatsForResponse(),passedSeats:pending?.seat===state.userSeat?[]:[state.userSeat]});
     }
     if(state.phase===HAND_PHASES.DRAW)state=drawForTurn(state);
     if(state.phase===HAND_PHASES.DISCARD&&state.currentSeat!==state.userSeat)discardAutomatically();
-    render();
-  };
+  });
   const render=()=>{
     const player=state.players[state.userSeat];
     const userTurn=state.currentSeat===state.userSeat;
@@ -160,8 +170,7 @@ export function renderHandFlow(app,ctx){
       drawnIndex:canDiscard?player.hand.findIndex(tile=>tile.id===state.drawnTileId):-1,
       onSelect:(_tile,_options,_element,index)=>{
         if(!canDiscard)return;
-        state=discardTile(state,{seat:state.userSeat,tileId:player.hand[index].id});
-        render();
+        runAction(()=>{state=discardTile(state,{seat:state.userSeat,tileId:player.hand[index].id})});
       }
     });
     if(canDraw){
@@ -169,20 +178,21 @@ export function renderHandFlow(app,ctx){
       button.type='button';
       button.className='primary';
       button.textContent='1枚ツモする';
-      button.onclick=()=>{state=drawForTurn(state);render()};
+      button.onclick=()=>runAction(()=>{state=drawForTurn(state)});
       actions.append(button);
     }else if(canDiscard){
-      const button=document.createElement('button');
-      button.type='button';
-      button.className='secondary';
-      button.textContent='ツモあがりを確認';
-      button.onclick=()=>{
-        const result=checkTsumo(state);
-        if(!result.ok){feedback.className='feedback bad';feedback.textContent=result.error;return}
-        state=completeTsumo(state);
-        render();
-      };
-      actions.append(button);
+      if(state.drawnTileId){
+        const button=document.createElement('button');
+        button.type='button';
+        button.className='secondary';
+        button.textContent='ツモあがりを確認';
+        button.onclick=()=>runAction(()=>{
+          const result=checkTsumo(state);
+          if(!result.ok)throw new Error(result.error);
+          state=completeTsumo(state);
+        });
+        actions.append(button);
+      }
       let ankanCheck;
       try{ankanCheck=checkKan(state,{type:'ankan',seat:state.userSeat})}catch(error){ankanCheck={ok:false,error:error.message}}
       if(ankanCheck.ok){
@@ -190,7 +200,7 @@ export function renderHandFlow(app,ctx){
         kanButton.type='button';
         kanButton.className='secondary';
         kanButton.textContent='暗槓を確認';
-        kanButton.onclick=()=>{try{state=declareKan(state,{type:'ankan',seat:state.userSeat});render()}catch(error){feedback.className='feedback bad';feedback.textContent=error.message}};
+        kanButton.onclick=()=>runAction(()=>{state=declareKan(state,{type:'ankan',seat:state.userSeat})});
         actions.append(kanButton);
       }
       if(!player.riichi&&player.melds.every(meld=>!meld.open)){
@@ -198,10 +208,7 @@ export function renderHandFlow(app,ctx){
         riichiButton.type='button';
         riichiButton.className='secondary';
         riichiButton.textContent='リーチを確認';
-        riichiButton.onclick=()=>{
-          try{state=declareRiichi(state,{seat:state.userSeat,tileId:state.drawnTileId});render()}
-          catch(error){feedback.className='feedback bad';feedback.textContent=error.message}
-        };
+        riichiButton.onclick=()=>runAction(()=>{state=declareRiichi(state,{seat:state.userSeat,tileId:state.drawnTileId})});
         actions.append(riichiButton);
       }
     }else if(state.phase===HAND_PHASES.RESPONSE){
@@ -210,12 +217,11 @@ export function renderHandFlow(app,ctx){
         ronButton.type='button';
         ronButton.className='primary';
         ronButton.textContent='ロンを確認';
-        ronButton.onclick=()=>{
+        ronButton.onclick=()=>runAction(()=>{
           const result=checkRonClaims(state,{seats:[state.userSeat]});
-          if(!result.ok){feedback.className='feedback bad';feedback.textContent=result.error;return}
+          if(!result.ok)throw new Error(result.error);
           state=claimRonClaims(state,{seats:[state.userSeat]});
-          render();
-        };
+        });
         actions.append(ronButton);
         if(!player.riichi){
           let minkanCheck;
@@ -225,7 +231,7 @@ export function renderHandFlow(app,ctx){
             minkanButton.type='button';
             minkanButton.className='secondary';
             minkanButton.textContent='大明槓を確認';
-            minkanButton.onclick=()=>{try{state=declareKan(state,{type:'minkan',seat:state.userSeat});render()}catch(error){feedback.className='feedback bad';feedback.textContent=error.message}};
+            minkanButton.onclick=()=>runAction(()=>{state=declareKan(state,{type:'minkan',seat:state.userSeat})});
             actions.append(minkanButton);
           }
           let ponCheck;
@@ -237,7 +243,7 @@ export function renderHandFlow(app,ctx){
             ponButton.type='button';
             ponButton.className='secondary';
             ponButton.textContent='ポンを確認';
-            ponButton.onclick=()=>{state=declareCall(state,{type:'pon',seat:state.userSeat});render()};
+            ponButton.onclick=()=>runAction(()=>{state=declareCall(state,{type:'pon',seat:state.userSeat})});
             actions.append(ponButton);
           }
           const chiOptions=chiCheck.ok?[chiCheck.callTiles]:(chiCheck.callOptions||[]);
@@ -246,7 +252,7 @@ export function renderHandFlow(app,ctx){
             chiButton.type='button';
             chiButton.className='secondary';
             chiButton.textContent=chiOptions.length===1?'チーを確認':'チー '+callTiles.join('・');
-            chiButton.onclick=()=>{state=declareCall(state,{type:'chi',seat:state.userSeat,callTiles});render()};
+            chiButton.onclick=()=>runAction(()=>{state=declareCall(state,{type:'chi',seat:state.userSeat,callTiles})});
             actions.append(chiButton);
           });
         }
@@ -254,7 +260,7 @@ export function renderHandFlow(app,ctx){
         passButton.type='button';
         passButton.className='secondary';
         passButton.textContent='見送ってツモ番へ';
-        passButton.onclick=()=>{const pending=state.pendingDiscard;state=advanceAutomaticResponse(state,{seats:automaticSeatsForResponse(),passedSeats:[state.userSeat]});if(pending?.seat===state.userSeat&&state.phase===HAND_PHASES.DRAW)state=drawForTurn(state);render()};
+        passButton.onclick=()=>runAction(()=>{const pending=state.pendingDiscard;state=advanceAutomaticResponse(state,{seats:automaticSeatsForResponse(),passedSeats:[state.userSeat]});if(pending?.seat===state.userSeat&&state.phase===HAND_PHASES.DRAW)state=drawForTurn(state)});
         actions.append(passButton);
       }else if(state.pendingDiscard?.seat===state.userSeat){
         const button=document.createElement('button');
@@ -279,7 +285,7 @@ export function renderHandFlow(app,ctx){
       button.type='button';
       button.className='primary';
       button.textContent='流局として完了';
-      button.onclick=()=>{state=completeExhaustiveDraw(state);render()};
+      button.onclick=()=>runAction(()=>{state=completeExhaustiveDraw(state)});
       actions.append(button);
     }else if(state.phase===HAND_PHASES.COMPLETED){
       feedback.className='feedback good';
