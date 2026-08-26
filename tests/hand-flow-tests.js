@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {completeHand,createHandFlow,declareKan,discardTile,drawForTurn,HAND_PHASES,startNextHand} from '../src/lib/hand-flow.js';
 
-const wallOptions={random:()=>0};
+const wallOptions={random:()=>0.5};
 const initial=createHandFlow({wallOptions});
 assert.equal(initial.phase,HAND_PHASES.DISCARD,'the dealer starts in the discard phase');
 assert.equal(initial.currentSeat,'east','the dealer starts the hand');
@@ -35,10 +35,10 @@ assert.throws(()=>drawForTurn(initial),/not waiting for a draw/,'a draw cannot h
 assert.throws(()=>discardTile(southDraw,{seat:'east',tileId:southDraw.players.east.hand[0].id}),/not the current seat/,'a non-current player cannot discard');
 
 const fixtureHands={
-  east:['5z','5z','5z','5z','1m','2m','3m','4m','5m','6m','7m','8m','9m','1p'],
-  south:['2p','3p','4p','5p','6p','7p','8p','9p','1s','2s','3s','4s','5s'],
-  west:['6s','7s','8s','9s','1z','2z','3z','4z','6z','7z','2m','3m','4m'],
-  north:['1p','2p','3p','4p','5p','6p','7p','8p','9p','1s','2s','3s','4s']
+  east:['1m','1m','1m','1m','2m','3m','4m','5m','6m','7m','8m','9m','1p','2p'],
+  south:['3p','4p','5p','6p','9p','1s','2s','3s','4s','5s','6s','7s','8s'],
+  west:['7s','8s','9s','1z','2z','3z','4z','5z','6z','7z','2m','3m','4m'],
+  north:['1p','2p','4p','5p','7p','9p','1s','2s','3s','4s','5s','6s','7s']
 };
 const kanStart=createHandFlow({wallOptions,initialHands:fixtureHands});
 const kanState=declareKan(kanStart,{type:'ankan',seat:'east'});
