@@ -61,6 +61,10 @@ function cloneResult(result){
   return {
     ...result,
     best:result.best?{...result.best,score:result.best.score?{...result.best.score,payments:result.best.score.payments?{...result.best.score.payments}:undefined}:result.best.score}:result.best,
+    yaku:Array.isArray(result.yaku)?result.yaku.map(item=>({...item})):result.yaku,
+    yakuman:Array.isArray(result.yakuman)?result.yakuman.map(item=>({...item})):result.yakuman,
+    doraDetail:Array.isArray(result.doraDetail)?result.doraDetail.map(item=>item.codes===undefined?{...item}:{...item,codes:Array.isArray(item.codes)?[...item.codes]:item.codes}):result.doraDetail,
+    fuItems:Array.isArray(result.fuItems)?result.fuItems.map(item=>Array.isArray(item)?[...item]:item):result.fuItems,
     furiten:result.furiten?{...result.furiten,waits:Array.isArray(result.furiten.waits)?[...result.furiten.waits]:result.furiten.waits}:result.furiten,
     settlement:result.settlement?{...result.settlement,payers:{...result.settlement.payers}}:result.settlement,
     ronClaims:Array.isArray(result.ronClaims)?result.ronClaims.map(claim=>({...claim,score:claim.score?{...claim.score}:claim.score})):result.ronClaims,
@@ -350,6 +354,7 @@ function scoreDeltas(result,winnerSeat){
 
 function completeWinningFlow(state,result,{winnerSeat,win,winTileId,discarderSeat=null,resultMeta={},actionMeta={}}){
   const current=cloneFlow(state);
+  const best=result.best||{};
   current.roundState=completeRoundHand(current.roundState,{
     outcome:'win',
     winnerSeat,
@@ -365,7 +370,16 @@ function completeWinningFlow(state,result,{winnerSeat,win,winTileId,discarderSea
     winnerSeat,
     winTileId:winTileId||null,
     discarderSeat,
-    score:result.best?.score||null,
+    score:best.score?{...best.score,payments:best.score.payments?{...best.score.payments}:undefined}:null,
+    yaku:Array.isArray(best.yaku)?best.yaku.map(item=>({...item})):[],
+    yakuHan:Number.isInteger(best.yakuHan)?best.yakuHan:0,
+    dora:Number.isInteger(best.dora)?best.dora:0,
+    doraDetail:Array.isArray(best.doraDetail)?best.doraDetail.map(item=>item.codes===undefined?{...item}:{...item,codes:Array.isArray(item.codes)?[...item.codes]:item.codes}):[],
+    han:Number.isInteger(best.han)?best.han:(Number.isInteger(best.score?.han)?best.score.han:0),
+    fu:Number.isInteger(best.fu)?best.fu:(Number.isInteger(best.score?.fu)?best.score.fu:0),
+    fuItems:Array.isArray(best.fuItems)?best.fuItems.map(item=>Array.isArray(item)?[...item]:item):[],
+    yakuman:Array.isArray(best.yakuman)?best.yakuman.map(item=>({...item})):[],
+    yakumanValue:Number.isInteger(best.yakumanValue)?best.yakumanValue:0,
     settlement:result.settlement?{...result.settlement,payers:{...result.settlement.payers}}:null,
     ...resultMeta
   };
