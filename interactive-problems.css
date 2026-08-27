@@ -1,0 +1,13 @@
+.tile-answer-options{display:block}
+.tile-answer-panel{display:grid;gap:12px}
+.tile-answer-instruction{margin:0;color:#435047}
+.tile-answer-status{margin:0;min-height:1.6em;font-weight:700;color:#173d2b}
+.tile-answer-palette{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end}
+.tile-answer-tile{min-width:58px;min-height:80px}
+.tile-answer-submit{width:100%;margin-top:2px}
+.tile-answer-tile[data-correct=true]{border-color:#2d6b4b;background:#e6f3e9}
+.tile-answer-tile[data-wrong=true]{border-color:#a74d38;background:#fff0e7}
+@media(max-width:540px){
+  .tile-answer-palette{gap:10px}
+  .tile-answer-tile{min-width:54px;min-height:76px}
+}

@@ -1,4 +1,4 @@
-# ワカランジャン 問題分類 v0.1
+# ワカランジャン 問題分類 v0.2
 
 ## 1. 目的
 
@@ -52,6 +52,8 @@
 - `step_choice`: 手順を選ぶ
 - `table_action`: 卓上を直接操作する
 - `comparison`: 候補を比較する
+
+牌を複数選ぶ問題は、`answerType: "tile_select"` と `interaction: "tile-pick"` を使い、`tileChoices` に選択肢、`answerTileCodes` に正解の牌を配列で持たせる。既存の `choices` と `answerIndex` も残し、文章表示・既存履歴との互換性を保つ。
 
 一択問題は、生成・登録時に正解が本当に1つだけであることを検査する。
 

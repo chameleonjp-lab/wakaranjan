@@ -16,4 +16,23 @@ test('牌姿と河は定義済み牌のみで同一牌4枚以下',()=>{for(const
 test('役・教材参照が存在する',()=>{for(const q of visual){if(q.yakuRef)assert.equal(yakuIds.has(q.yakuRef),true,`${q.id}: ${q.yakuRef}`);if(q.lessonRef)assert.equal(lessonIds.has(q.lessonRef),true,`${q.id}: ${q.lessonRef}`)}});
 test('役名の牌姿問題は共通役判定でも対象役が成立する',()=>{for(const q of visual.filter(q=>q.category==='yaku-name'&&q.yakuRef)){const r=evaluateHand({concealedTiles:q.handTiles,winTile:q.winTile,win:'ron',seatWind:'2z',roundWind:'1z'});assert.equal(r.ok,true,`${q.id}: ${r.error}`);const ids=new Set([...(r.best.yaku||[]).map(x=>x.id),...(r.best.yakuman||[]).map(x=>x.id)]);assert.equal(ids.has(q.yakuRef),true,`${q.id}: ${[...ids].join(',')}`)}});
 test('待ち・ロン可否の牌姿問題を16問以上含む',()=>{assert.ok(visual.filter(q=>q.category==='ron-wait').length>=16)});
+test('待ち牌の直接選択問題を6問以上含む',()=>{
+  const picks=visual.filter(q=>q.interaction==='tile-pick');
+  assert.ok(picks.length>=6);
+  for(const q of picks){
+    assert.equal(q.answerType,'tile_select',q.id);
+    assert.ok(Array.isArray(q.tileChoices)&&q.tileChoices.length>=2,q.id);
+    assert.equal(new Set(q.tileChoices).size,q.tileChoices.length,q.id);
+    assert.ok(Array.isArray(q.answerTileCodes)&&q.answerTileCodes.length>=1,q.id);
+    assert.ok(q.answerTileCodes.every(code=>q.tileChoices.includes(code)),q.id);
+    assert.equal(q.choiceTileCodes.length,q.choices.length,q.id);
+    const choice=[...q.choiceTileCodes[q.answerIndex]].sort();
+    const answer=[...q.answerTileCodes].sort();
+    assert.deepEqual(choice,answer,q.id);
+    for(const group of q.choiceTileCodes){
+      assert.ok(group.every(code=>q.tileChoices.includes(code)),q.id);
+      assert.equal(new Set(group).size,group.length,q.id);
+    }
+  }
+});
 console.log(`\n${passed} visual problem tests passed.`);
