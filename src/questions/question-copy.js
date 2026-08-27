@@ -49,9 +49,28 @@ const OVERRIDES=new Map([
   }]
 ]);
 
+function generatedFeedback(question){
+  if(!question?.choices?.length)return null;
+  const answer=question.answerIndex;
+  const correct=question.choices[answer];
+  if(question.category==='ron-wait')return question.choices.map((choice,i)=>i===answer
+    ?`その判断で正解です。${question.explanation}`
+    :`「${choice}」ではありません。待ちの形、フリテン、役の有無、鳴ける相手など、設問で指定された条件を1つずつ確認します。正しくは「${correct}」です。`);
+  if(question.category==='yaku-name')return question.choices.map((choice,i)=>i===answer
+    ?`その役で正解です。${question.explanation}`
+    :`「${choice}」と混同しやすいですが、設問の成立条件には合いません。条件を言葉で確認すると、正しい役は「${correct}」です。`);
+  if(question.category==='score')return question.choices.map((choice,i)=>i===answer
+    ?`その点数で正解です。${question.explanation}`
+    :`「${choice}」ではありません。翻・符、親か子か、ロンかツモかを分けて計算し直します。正しい答えは「${correct}」です。`);
+  return null;
+}
+
 export function clarifyQuestion(question){
   const patch=OVERRIDES.get(question?.id);
-  return patch?{...question,...patch}:question;
+  const merged=patch?{...question,...patch}:question;
+  if(merged?.choiceFeedback)return merged;
+  const choiceFeedback=generatedFeedback(merged);
+  return choiceFeedback?{...merged,choiceFeedback}:merged;
 }
 
 export function clarifyQuestions(items){return items.map(clarifyQuestion)}
