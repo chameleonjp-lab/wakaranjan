@@ -1,0 +1,22 @@
+/* Final mobile/accessibility layer. Loaded last so it can safely strengthen shared UI. */
+:where(button,a,input,select,textarea){font:inherit}
+:where(button,a.primary,a.secondary,.feature-card,.lesson-card,.glossary-card,.quiz-options button,.practice-options button){min-height:44px}
+:where(button,a,input,select,textarea):focus-visible{outline:3px solid #245f43;outline-offset:3px}
+:where(button,.primary,.secondary,.feature-card,.lesson-card,.glossary-card,.tile){touch-action:manipulation;-webkit-tap-highlight-color:rgba(36,95,67,.18)}
+button:disabled{cursor:not-allowed;opacity:.58}
+.tile[aria-pressed=true]{box-shadow:0 0 0 3px #245f43}
+.tile-row,.visual-question-tiles,.hand-row,.river-row{overscroll-behavior-inline:contain;-webkit-overflow-scrolling:touch;scrollbar-gutter:stable}
+.search-row input,.search-row select,input[type=search],select{min-height:44px;font-size:16px}
+.skip-link:focus{position:fixed;top:max(8px,env(safe-area-inset-top));left:8px;z-index:9999;padding:10px 14px;background:#fff;border:2px solid #245f43;border-radius:8px}
+@media(max-width:540px){
+  :where(.quiz-options button,.practice-options button,.action-row button,.action-row a,.lesson-nav a){width:100%;min-height:48px}
+  .action-row,.lesson-nav{gap:10px}
+  .tile-row,.visual-question-tiles{scroll-padding-inline:12px}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+}
+@media(forced-colors:active){
+  :where(button,a,input,select,.tile){forced-color-adjust:auto}
+  .tile[aria-pressed=true]{outline:3px solid Highlight}
+}
