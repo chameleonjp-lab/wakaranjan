@@ -1,4 +1,5 @@
 import {createTile} from '../components/tile.js';
+import {clarifyQuestion} from './question-copy.js';
 
 const WRONG_KEY='wakaranjan-wrong-question-ids-v1';
 const STATS_KEY='wakaranjan-question-stats-v1';
@@ -43,7 +44,7 @@ export function renderProblemSession(app,ctx,{category=null,wrongOnly=false,adap
   const session=adaptive?adaptiveSample(pool,size,stats):shuffled(pool).slice(0,size);let index=0,correct=0,answered=false;
   const cat=data.categories.find(c=>c.id===category);const title=wrongOnly?'間違えた問題の復習':adaptive?'苦手優先練習':cat?.name||'問題';
   const render=()=>{
-    const q=session[index];
+    const q=clarifyQuestion(session[index]);
     if(!q){const percent=Math.round(correct/session.length*100);app.innerHTML=`<section class="hero"><div class="eyebrow">${title}</div><h1>${correct} / ${session.length} 問正解</h1><p>正答率 ${percent}% 。この結果は苦手優先出題に反映されます。</p><div class="action-row"><button id="same-again" class="primary" type="button">もう一度挑戦</button><a class="secondary" href="#problems">問題一覧へ</a></div></section>`;app.querySelector('#same-again').onclick=()=>renderProblemSession(app,ctx,{category,wrongOnly,adaptive});return}
     const answer=correctIndex(q);
     app.innerHTML=`<section class="lesson-head"><div class="eyebrow">${title}</div><h1>問題 ${index+1} / ${session.length}</h1><p class="lead">${q.prompt}</p></section><section class="panel"><div class="review-progress"><span style="width:${index/session.length*100}%"></span></div><div id="problem-visual"></div><div class="quiz-options" id="problem-options"></div><div class="feedback" id="problem-feedback" aria-live="polite"></div><div class="action-row" id="problem-actions"></div></section>`;
