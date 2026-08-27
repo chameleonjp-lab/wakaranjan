@@ -36,7 +36,7 @@ test('主要公開ルートはapp.jsに実装されている',()=>{
 });
 
 test('公開時に必要なトップレベル資産が存在する',()=>{
-  for(const path of ['index.html','styles.css','mobile-accessibility.css','interactive-problems.css','src/app.js','src/data/tiles.json','src/data/yaku.json','src/data/rules.json'])assert.ok(readText(path).length>20,path);
+  for(const path of ['index.html','styles.css','accessibility.css','interactive-problems.css','src/app.js','src/data/tiles.json','src/data/yaku.json','src/data/rules.json'])assert.ok(readText(path).length>20,path);
 });
 
 test('エラー画面は再読み込み手段を利用者へ伝える',()=>{
