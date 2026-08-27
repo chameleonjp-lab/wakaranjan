@@ -14,6 +14,7 @@ const advanced=readJson('src/data/advanced-special.json').lessons;
 const extra=readJson('src/data/curriculum-extra.json').lessons;
 const lessonIds=new Set([...lessonData,...scoringLessons,...advanced,...extra].map(x=>x.id));
 const fixedRoutes=new Set(['home','intro-review','beginner-review','intermediate-review','problems','automatic-calculator','dictionary','yaku-guide','rules','study-record','practice','full-round']);
+const documentFragments=new Set(['app']);
 
 function staticHashTargets(){
   const srcDir=new URL('src/',root).pathname;
@@ -23,8 +24,8 @@ function staticHashTargets(){
   return found;
 }
 
-test('静的な内部リンクは実装済みルートまたは教材へ到達する',()=>{
-  const bad=[...staticHashTargets()].filter(id=>!fixedRoutes.has(id)&&!lessonIds.has(id));
+test('静的な内部リンクは実装済みルート・教材・ページ内アンカーへ到達する',()=>{
+  const bad=[...staticHashTargets()].filter(id=>!fixedRoutes.has(id)&&!lessonIds.has(id)&&!documentFragments.has(id));
   assert.deepEqual(bad,[],`unresolved routes: ${bad.join(', ')}`);
 });
 
