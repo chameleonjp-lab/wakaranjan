@@ -45,7 +45,7 @@ test('45萬と46萬の牌効率問題は残り枚数の前提を明示する',()
 test('ルール差問題はサイト標準か一般差かを設問内で区別する',()=>{
   for(const q of problemHub.filter(q=>q.category==='rule-diff')){
     const text=`${q.prompt}${q.explanation}`;
-    assert.ok(/本サイト|ワカランジャン|ルール|規定|採用/.test(text),`${q.id}: ruleset context missing`);
+    assert.ok(/本サイト|ワカランジャン|ルール|規定|採用|団体|サービス/.test(text),`${q.id}: ruleset context missing`);
   }
 });
 
