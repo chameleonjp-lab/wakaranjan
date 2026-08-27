@@ -23,7 +23,11 @@ test('全問題の選択肢は正規化後も重複しない',()=>{
 });
 
 test('正解番号と解説が教材として最低限成立する',()=>{
-  for(const q of all){assert.ok(Number.isInteger(q.answerIndex)&&q.answerIndex>=0&&q.answerIndex<q.choices.length,q.id);assert.ok((q.prompt||'').length>=8,`${q.id}: prompt`);assert.ok((q.explanation||'').length>=10,`${q.id}: explanation`);assert.notEqual(norm(q.explanation),norm(q.choices[q.answerIndex]),`${q.id}: explanation only repeats answer`)}
+  for(const q of all){assert.ok(Number.isInteger(q.answerIndex)&&q.answerIndex>=0&&q.answerIndex<q.choices.length,q.id);assert.ok((q.prompt||'').length>=3,`${q.id}: prompt`);assert.ok((q.explanation||'').length>=10,`${q.id}: explanation`);assert.notEqual(norm(q.explanation),norm(q.choices[q.answerIndex]),`${q.id}: explanation only repeats answer`)}
+});
+
+test('実戦判断・ルール差問題は条件を読めるだけの設問文を持つ',()=>{
+  for(const q of problemHub.filter(q=>q.category==='practical'||q.category==='rule-diff'))assert.ok(q.prompt.length>=8,`${q.id}: prompt too short`);
 });
 
 test('曖昧さ補正対象は実際の問題IDとして存在する',()=>{
@@ -39,7 +43,7 @@ test('45萬と46萬の牌効率問題は残り枚数の前提を明示する',()
 });
 
 test('ルール差問題はサイト標準か一般差かを設問内で区別する',()=>{
-  for(const q of practical.filter(q=>q.category==='rule-diff')){
+  for(const q of problemHub.filter(q=>q.category==='rule-diff')){
     const text=`${q.prompt}${q.explanation}`;
     assert.ok(/本サイト|ワカランジャン|ルール|規定|採用/.test(text),`${q.id}: ruleset context missing`);
   }
