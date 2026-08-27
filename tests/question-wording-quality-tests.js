@@ -37,6 +37,12 @@ test('実戦判断問題に一目で捨てられる冗談選択肢を置かな�
   }
 });
 
+test('個別フィードバックを持つ問題は全選択肢に説明がある',()=>{
+  const withFeedback=problemHub.filter(q=>q.choiceFeedback);
+  assert.ok(withFeedback.length>=9,'choice feedback coverage');
+  for(const q of withFeedback){assert.equal(q.choiceFeedback.length,q.choices.length,`${q.id}: feedback count`);for(const [i,text] of q.choiceFeedback.entries()){assert.ok(text.length>=12,`${q.id}[${i}]: feedback too short`);assert.notEqual(norm(text),norm(q.choices[i]),`${q.id}[${i}]: feedback only repeats choice`)}}
+});
+
 test('曖昧さ補正対象は実際の問題IDとして存在する',()=>{
   const ids=new Set([...catalog,...visual,...practical].map(q=>q.id));for(const id of clarifiedQuestionIds)assert.equal(ids.has(id),true,id);
 });
