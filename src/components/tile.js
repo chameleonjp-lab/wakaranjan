@@ -13,7 +13,7 @@ export function tileLabel(tile,{red=false}={}){
 
 export function createTile(tile,{red=false,interactive=false,selected=false,drawn=false,onSelect}={}){
   const el=document.createElement(interactive?'button':'div');
-  if(interactive) el.type='button';
+  if(interactive){el.type='button';el.setAttribute('aria-pressed',selected?'true':'false')}
   el.className=['tile',red?'red':'',selected?'selected':'',drawn?'drawn':''].filter(Boolean).join(' ');
   el.setAttribute('aria-label',tileLabel(tile,{red}));
   if(!interactive) el.setAttribute('role','img');
