@@ -59,7 +59,103 @@ export function renderProblemSession(app,ctx,{category=null,wrongOnly=false,adap
     const answer=correctIndex(q);
     app.innerHTML=`<section class="lesson-head"><div class="eyebrow">${title}</div><h1>問題 ${index+1} / ${session.length}</h1><p class="lead">${q.prompt}</p></section><section class="panel"><div class="review-progress"><span style="width:${index/session.length*100}%"></span></div><div id="problem-visual"></div><div class="quiz-options" id="problem-options"></div><div class="feedback" id="problem-feedback" aria-live="polite"></div><div class="action-row" id="problem-actions"></div></section>`;
     renderVisualQuestion(app,q,ctx);
+
     const options=app.querySelector('#problem-options'),feedback=app.querySelector('#problem-feedback'),actions=app.querySelector('#problem-actions');
-    q.choices.forEach((choice,i)=>{const b=document.createElement('button');b.type='button';b.textContent=choice;b.onclick=()=>{if(answered)return;answered=true;const ok=i===answer;if(ok){correct++;wrong.delete(q.id)}else wrong.add(q.id);saveWrong(wrong);recordStat(stats,q,ok);recordMisconception(misconceptions,q,i,ok);const misconception=ok?null:misconceptionOf(q,i);feedback.className=`feedback ${ok?'good':'bad'}`;feedback.innerHTML=`<strong>${ok?'正解':'不正解'}</strong>${misconception?`<br><small>今回の勘違い：${MISCONCEPTION_LABELS[misconception]||misconception}</small>`:''}<br>${answerFeedback(q,i,ok)}`;[...options.children].forEach((el,n)=>{el.disabled=true;if(n===answer)el.dataset.correct='true';if(n===i&&!ok)el.dataset.wrong='true'});if(q.lessonRef&&ctx.lessonById.has(q.lessonRef)){const a=document.createElement('a');a.className='secondary';a.href=`#${q.lessonRef}`;a.textContent='関連する解説を見る';actions.append(a)}else if(q.yakuRef&&ctx.yakuById.has(q.yakuRef)){const a=document.createElement('a');a.className='secondary';a.href=`#yaku-guide?yaku=${encodeURIComponent(q.yakuRef)}`;a.textContent=`${questionLabel(q,ctx)}を役図鑑で見る`;actions.append(a)}const next=document.createElement('button');next.type='button';next.className='primary';next.textContent=index===session.length-1?'結果を見る':'次の問題';next.onclick=()=>{index++;answered=false;render()};actions.append(next)};options.append(b)});
+    const tileButtons=[];
+    const sameCodes=(left,right)=>{
+      const a=[...(left||[])].sort(),b=[...(right||[])].sort();
+      return a.length===b.length&&a.every((code,index)=>code===b[index]);
+    };
+    const tileNames=codes=>(codes||[]).map(code=>ctx.tileByCode.get(code)?.nameJa||code).join('、');
+    const finishAnswer=(selectedIndex,ok,selectedCodes=[])=>{
+      if(answered)return;
+      answered=true;
+      if(ok){correct++;wrong.delete(q.id)}else wrong.add(q.id);
+      saveWrong(wrong);
+      recordStat(stats,q,ok);
+      recordMisconception(misconceptions,q,selectedIndex,ok);
+      const misconception=ok||selectedIndex<0?null:misconceptionOf(q,selectedIndex);
+      let detail;
+      if(q.interaction==='tile-pick'&&selectedIndex<0){
+        detail=q.explanation+'<br><small>正解の牌：'+tileNames(q.answerTileCodes)+'</small>';
+      }else{
+        detail=answerFeedback(q,selectedIndex,ok);
+      }
+      feedback.className='feedback '+(ok?'good':'bad');
+      feedback.innerHTML='<strong>'+(ok?'正解':'不正解')+'</strong>'
+        +(misconception?'<br><small>今回の勘違い：'+(MISCONCEPTION_LABELS[misconception]||misconception)+'</small>':'')
+        +'<br>'+detail;
+      if(q.interaction==='tile-pick'){
+        const picked=new Set(selectedCodes),expectedCodes=new Set(q.answerTileCodes||[]);
+        tileButtons.forEach(el=>{
+          const code=el.dataset.tileCode;
+          el.disabled=true;
+          el.classList.remove('selected');
+          el.setAttribute('aria-pressed',picked.has(code)?'true':'false');
+          if(expectedCodes.has(code))el.dataset.correct='true';
+          if(picked.has(code)&&!expectedCodes.has(code))el.dataset.wrong='true';
+        });
+      }else{
+        [...options.children].forEach((el,n)=>{
+          el.disabled=true;
+          if(n===answer)el.dataset.correct='true';
+          if(n===selectedIndex&&!ok)el.dataset.wrong='true';
+        });
+      }
+      if(q.lessonRef&&ctx.lessonById.has(q.lessonRef)){
+        const a=document.createElement('a');a.className='secondary';a.href='#'+q.lessonRef;a.textContent='関連する解説を見る';actions.append(a);
+      }else if(q.yakuRef&&ctx.yakuById.has(q.yakuRef)){
+        const a=document.createElement('a');a.className='secondary';a.href='#yaku-guide?yaku='+encodeURIComponent(q.yakuRef);a.textContent=questionLabel(q,ctx)+'を役図鑑で見る';actions.append(a);
+      }
+      const next=document.createElement('button');
+      next.type='button';next.className='primary';
+      next.textContent=index===session.length-1?'結果を見る':'次の問題';
+      next.onclick=()=>{index++;answered=false;render()};
+      actions.append(next);
+    };
+    if(q.interaction==='tile-pick'){
+      options.classList.add('tile-answer-options');
+      const panel=document.createElement('div');panel.className='tile-answer-panel';
+      const instruction=document.createElement('p');instruction.className='tile-answer-instruction';instruction.textContent='正しい待ち牌をすべてタップしてから、回答してください。';
+      const status=document.createElement('p');status.className='tile-answer-status';status.textContent='選択中：なし';
+      const palette=document.createElement('div');palette.className='tile-answer-palette';
+      const selected=new Set();
+      q.tileChoices.forEach(code=>{
+        const tile=ctx.tileByCode.get(code);
+        if(!tile)return;
+        const button=createTile(tile,{interactive:true,onSelect:(_tile,_red,element)=>{
+          if(answered)return;
+          if(selected.has(code)){
+            selected.delete(code);
+            element.classList.remove('selected');
+          }else{
+            selected.add(code);
+            element.classList.add('selected');
+          }
+          element.setAttribute('aria-pressed',selected.has(code)?'true':'false');
+          status.textContent='選択中：'+(tileNames([...selected])||'なし');
+        }});
+        button.classList.add('tile-answer-tile');
+        button.dataset.tileCode=code;
+        button.setAttribute('aria-pressed','false');
+        tileButtons.push(button);
+        palette.append(button);
+      });
+      const submit=document.createElement('button');
+      submit.type='button';submit.className='primary tile-answer-submit';submit.textContent='この牌で回答する';
+      submit.onclick=()=>{
+        const selectedCodes=[...selected];
+        const selectedIndex=(q.choiceTileCodes||[]).findIndex(codes=>sameCodes(codes,selectedCodes));
+        finishAnswer(selectedIndex,sameCodes(selectedCodes,q.answerTileCodes),selectedCodes);
+      };
+      panel.append(instruction,palette,status,submit);
+      options.append(panel);
+    }else{
+      q.choices.forEach((choice,i)=>{
+        const b=document.createElement('button');b.type='button';b.textContent=choice;
+        b.onclick=()=>finishAnswer(i,i===answer);
+        options.append(b);
+      });
+    }
   };render();
 }

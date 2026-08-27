@@ -87,6 +87,13 @@ for(const question of questions){
   assert.ok(Array.isArray(question.choices)&&question.choices.length>=2,`${question.id} の選択肢が不足しています`);
   assert.ok(Number.isInteger(question.answerIndex)&&question.answerIndex>=0&&question.answerIndex<question.choices.length,`${question.id} の正解番号が不正です`);
   assert.ok(question.explanation?.trim(),`${question.id} の解説がありません`);
+  if(question.interaction==='tile-pick'){
+    assert.equal(question.answerType,'tile_select',`${question.id} の牌選択形式が不正です`);
+    assert.ok(Array.isArray(question.tileChoices)&&question.tileChoices.length>=2,`${question.id} の牌選択肢が不足しています`);
+    assert.ok(Array.isArray(question.answerTileCodes)&&question.answerTileCodes.length>=1,`${question.id} の正解牌がありません`);
+    assert.ok(question.answerTileCodes.every(code=>question.tileChoices.includes(code)),`${question.id} の正解牌が選択肢にありません`);
+    assert.equal(question.choiceTileCodes.length,question.choices.length,`${question.id} の文章選択肢との対応がありません`);
+  }
   if(question.lessonRef)assert.equal(lessonIds.has(question.lessonRef),true,`${question.id} の解説参照がありません: ${question.lessonRef}`);
   if(question.handTiles)for(const code of question.handTiles)assert.equal(tileCodes.has(code),true,`${question.id} の手牌コードがありません: ${code}`);
   if(question.riverTiles)for(const code of question.riverTiles)assert.equal(tileCodes.has(code),true,`${question.id} の河コードがありません: ${code}`);
