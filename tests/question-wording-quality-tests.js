@@ -30,6 +30,13 @@ test('実戦判断・ルール差問題は条件と理由を説明できる文�
   for(const q of problemHub.filter(q=>q.category==='practical'||q.category==='rule-diff')){assert.ok(q.prompt.length>=8,`${q.id}: prompt too short`);assert.ok(q.explanation.length>=10,`${q.id}: explanation too short`)}
 });
 
+test('実戦判断問題に一目で捨てられる冗談選択肢を置かない',()=>{
+  const giveaway=/メーカー|年齢|服装|製造年|点棒の色|牌の傷|相手の名前|山の高さ|麻雀にルールがない|役が存在しない|ドラを全部切る/;
+  for(const q of problemHub.filter(q=>q.category==='practical')){
+    for(const [index,choice] of q.choices.entries())if(index!==q.answerIndex)assert.doesNotMatch(choice,giveaway,`${q.id}: ${choice}`);
+  }
+});
+
 test('曖昧さ補正対象は実際の問題IDとして存在する',()=>{
   const ids=new Set([...catalog,...visual,...practical].map(q=>q.id));for(const id of clarifiedQuestionIds)assert.equal(ids.has(id),true,id);
 });
