@@ -3,11 +3,13 @@ import {createTile} from '../components/tile.js';
 function getTile(ctx,code){return ctx.tileByCode.get(code)||ctx.tileById.get(`tile-${code}`);}
 
 function handRow(ctx,codes,winCode){
+  const scroll=document.createElement('div');scroll.className='tile-scroll';
   const row=document.createElement('div');row.className='hand-row';
   codes.forEach(c=>row.append(createTile(getTile(ctx,c))));
   const gap=document.createElement('span');gap.className='win-gap';gap.textContent='＋';row.append(gap);
   row.append(createTile(getTile(ctx,winCode),{drawn:true}));
-  return row;
+  scroll.append(row);
+  return scroll;
 }
 
 export function renderIntro05(app,ctx){
