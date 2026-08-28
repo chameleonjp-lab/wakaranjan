@@ -2,16 +2,22 @@ import {createTile} from '../components/tile.js';
 import {clarifyQuestion} from './question-copy.js';
 import {misconceptionOf,misconceptionKeysFor,MISCONCEPTION_LABELS} from './misconceptions.js';
 
-const WRONG_KEY='wakaranjan-wrong-question-ids-v1';
-const STATS_KEY='wakaranjan-question-stats-v1';
-const MISCONCEPTION_KEY='wakaranjan-misconceptions-v1';
+const WRONG_KEY='wakaranjan-wrong-question-ids-v2';
+const STATS_KEY='wakaranjan-question-stats-v2';
+const MISCONCEPTION_KEY='wakaranjan-misconceptions-v2';
+const RECORD_VERSION=2;
 function shuffled(items){const copy=[...items];for(let i=copy.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[copy[i],copy[j]]=[copy[j],copy[i]]}return copy}
-function loadWrong(){try{return new Set(JSON.parse(localStorage.getItem(WRONG_KEY)||'[]'))}catch{return new Set()}}
-function saveWrong(set){try{localStorage.setItem(WRONG_KEY,JSON.stringify([...set]))}catch{}}
-function loadStats(){try{return JSON.parse(localStorage.getItem(STATS_KEY)||'{}')}catch{return {}}}
+function validQuestionIds(data){return new Set((data?.questions||[]).map(q=>q.id).filter(id=>typeof id==='string'))}
+function normalizeWrong(value,ids){if(!value||typeof value!=='object'||Array.isArray(value)||value.version!==RECORD_VERSION||!Array.isArray(value.ids))return new Set();return new Set(value.ids.filter(id=>typeof id==='string'&&ids.has(id)))}
+function loadWrong(data){try{return normalizeWrong(JSON.parse(localStorage.getItem(WRONG_KEY)||'null'),validQuestionIds(data))}catch{return new Set()}}
+function saveWrong(set){try{localStorage.setItem(WRONG_KEY,JSON.stringify({version:RECORD_VERSION,ids:[...set]}))}catch{}}
+function emptyStats(){return {version:RECORD_VERSION,questions:{}}}
+function normalizeStats(value,ids){if(!value||typeof value!=='object'||Array.isArray(value)||value.version!==RECORD_VERSION||!value.questions||typeof value.questions!=='object'||Array.isArray(value.questions))return emptyStats();const questions={};for(const [id,item] of Object.entries(value.questions)){if(!ids.has(id)||!item||typeof item!=='object'||Array.isArray(item)||!Number.isInteger(item.correct)||item.correct<0||!Number.isInteger(item.wrong)||item.wrong<0)return emptyStats();questions[id]={correct:item.correct,wrong:item.wrong}}return {version:RECORD_VERSION,questions}}
+function loadStats(data){try{return normalizeStats(JSON.parse(localStorage.getItem(STATS_KEY)||'null'),validQuestionIds(data))}catch{return emptyStats()}}
 function saveStats(stats){try{localStorage.setItem(STATS_KEY,JSON.stringify(stats))}catch{}}
-function loadMisconceptions(){try{return JSON.parse(localStorage.getItem(MISCONCEPTION_KEY)||'{}')}catch{return {}}}
-function saveMisconceptions(items){try{localStorage.setItem(MISCONCEPTION_KEY,JSON.stringify(items))}catch{}}
+function normalizeMisconceptions(value){if(!value||typeof value!=='object'||Array.isArray(value)||value.version!==RECORD_VERSION||!value.items||typeof value.items!=='object'||Array.isArray(value.items))return {};const items={};for(const [key,count] of Object.entries(value.items)){if(!Number.isInteger(count)||count<0)return {};items[key]=count}return items}
+function loadMisconceptions(){try{return normalizeMisconceptions(JSON.parse(localStorage.getItem(MISCONCEPTION_KEY)||'null'))}catch{return {}}}
+function saveMisconceptions(items){try{localStorage.setItem(MISCONCEPTION_KEY,JSON.stringify({version:RECORD_VERSION,items}))}catch{}}
 function recordMisconception(items,q,choiceIndex,ok){if(ok)return;const key=misconceptionOf(q,choiceIndex);if(!key)return;items[key]=(items[key]||0)+1;saveMisconceptions(items)}
 function misconceptionScore(q,items){return Math.max(0,...misconceptionKeysFor(q).map(key=>Number(items[key]||0)))}
 function topMisconceptions(items){return Object.entries(items).filter(([,n])=>n>0).sort((a,b)=>b[1]-a[1]).slice(0,3)}
@@ -20,19 +26,21 @@ export function clearProblemStats(){try{localStorage.removeItem(STATS_KEY)}catch
 export function clearProblemMisconceptions(){try{localStorage.removeItem(MISCONCEPTION_KEY)}catch{}}
 export function clearProblemStudyRecord(){clearProblemWrong();clearProblemStats();clearProblemMisconceptions()}
 function skillOf(q){return q.skill||q.yakuRef||q.lessonRef||q.category}
-function recordStat(stats,q,ok){const key=skillOf(q);const s=stats[key]||{correct:0,wrong:0};s[ok?'correct':'wrong']++;stats[key]=s;saveStats(stats)}
-function weaknessScore(q,stats,misconceptions){const s=stats[skillOf(q)]||{correct:0,wrong:0};const attempts=s.correct+s.wrong;const rate=attempts?s.wrong/attempts:.5;return rate*5+Math.min(s.wrong,4)+(attempts<3?(3-attempts)*.7:0)+misconceptionScore(q,misconceptions)*1.2+Math.random()*.8}
+function recordStat(stats,q,ok){const s=stats.questions[q.id]||{correct:0,wrong:0};s[ok?'correct':'wrong']++;stats.questions[q.id]=s;saveStats(stats)}
+function weaknessScore(q,stats,misconceptions){const s=stats.questions[q.id]||{correct:0,wrong:0};const attempts=s.correct+s.wrong;const rate=attempts?s.wrong/attempts:.5;return rate*5+Math.min(s.wrong,4)+(attempts<3?(3-attempts)*.7:0)+misconceptionScore(q,misconceptions)*1.2+Math.random()*.8}
 function adaptiveSample(pool,size,stats,misconceptions){return [...pool].sort((a,b)=>weaknessScore(b,stats,misconceptions)-weaknessScore(a,stats,misconceptions)).slice(0,size)}
 function questionLabel(q,ctx){if(q.yakuRef){const y=ctx.yakuById.get(q.yakuRef);if(y)return y.displayNameJa||y.nameJa}return q.category}
 function correctIndex(q){if(q.category==='score'&&Number.isFinite(q.expectedTotal)){const matches=q.choices.map((c,i)=>c.includes(String(q.expectedTotal))?i:-1).filter(i=>i>=0);if(matches.length===1)return matches[0]}return q.answerIndex}
 function answerFeedback(q,selected,ok){const specific=q.choiceFeedback?.[selected];if(!specific)return q.explanation;return ok?specific:`${specific}<br><small>正解の理由：${q.explanation}</small>`}
 function renderTileRow(codes,ctx,label){if(!codes?.length)return null;const wrap=document.createElement('div');wrap.className='visual-question-block';if(label){const h=document.createElement('strong');h.textContent=label;wrap.append(h)}const row=document.createElement('div');row.className='tile-row visual-question-tiles';for(const code of codes){const tile=ctx.tileByCode.get(code);if(tile)row.append(createTile(tile,{interactive:false}))}wrap.append(row);return wrap}
 function renderVisualQuestion(app,q,ctx){const host=app.querySelector('#problem-visual');if(!host||q.presentation!=='tiles')return;const hand=renderTileRow(q.handTiles,ctx,'手牌');if(hand)host.append(hand);const river=renderTileRow(q.riverTiles,ctx,'自分の河');if(river)host.append(river);if(q.winTile){const tile=ctx.tileByCode.get(q.winTile);if(tile){const win=document.createElement('div');win.className='visual-win-tile';const label=document.createElement('strong');label.textContent='あがり牌';win.append(label,createTile(tile,{interactive:false}));host.append(win)}}}
-function statSummary(data,stats){return data.categories.map(c=>{const qs=data.questions.filter(q=>q.category===c.id);let correct=0,wrong=0;for(const q of qs){const s=stats[skillOf(q)];if(s){correct+=s.correct||0;wrong+=s.wrong||0}}const total=correct+wrong;return {name:c.name,total,rate:total?Math.round(correct/total*100):null}})}
-export function getProblemStudyRecord(data){const stats=loadStats();const wrongIds=loadWrong();let correct=0,wrong=0;for(const item of Object.values(stats)){correct+=Number(item.correct||0);wrong+=Number(item.wrong||0)}const attempts=correct+wrong;return {correct,wrong,attempts,rate:attempts?Math.round(correct/attempts*100):null,wrongCount:wrongIds.size,categorySummary:statSummary(data,stats),misconceptions:topMisconceptions(loadMisconceptions())}}
+function statSummary(data,stats){return data.categories.map(c=>{const qs=data.questions.filter(q=>q.category===c.id);let correct=0,wrong=0;for(const q of qs){const s=stats.questions[q.id];if(s){correct+=s.correct;wrong+=s.wrong}}const total=correct+wrong;return {name:c.name,total,rate:total?Math.round(correct/total*100):null}})}
+export function normalizeProblemStats(value,questionIds){return normalizeStats(value,new Set(questionIds))}
+export function summarizeProblemStats(data,stats){return statSummary(data,normalizeStats(stats,validQuestionIds(data)))}
+export function getProblemStudyRecord(data){const stats=loadStats(data);const wrongIds=loadWrong(data);let correct=0,wrong=0;for(const item of Object.values(stats.questions)){correct+=item.correct;wrong+=item.wrong}const attempts=correct+wrong;return {correct,wrong,attempts,rate:attempts?Math.round(correct/attempts*100):null,wrongCount:wrongIds.size,categorySummary:statSummary(data,stats),misconceptions:topMisconceptions(loadMisconceptions())}}
 
 export function renderProblemHub(app,ctx){
-  const data=ctx.problemCatalog;const wrong=loadWrong();const stats=loadStats();const misconceptions=loadMisconceptions();const summary=statSummary(data,stats);const top=topMisconceptions(misconceptions);
+  const data=ctx.problemCatalog;const wrong=loadWrong(data);const stats=loadStats(data);const misconceptions=loadMisconceptions();const summary=statSummary(data,stats);const top=topMisconceptions(misconceptions);
   app.innerHTML=`<section class="hero"><div class="eyebrow">問題</div><h1>覚えた内容を、問題で確かめる。</h1><p>文章問題に加え、実際の牌姿を見て答える問題も出題します。学習結果はこの端末だけに保存されます。</p></section>
   <section class="feature-grid">${data.categories.map(c=>{const count=data.questions.filter(q=>q.category===c.id).length;return `<button class="feature-card problem-category" type="button" data-category="${c.id}"><strong>${c.name}</strong><span>${c.description}</span><small>${count}問からランダム出題</small></button>`}).join('')}</section>
   <section class="panel"><h2>苦手を優先して練習</h2><p>正答率だけでなく、繰り返している勘違いも見て出題順を決めます。</p><div class="action-row"><button id="adaptive-review" class="primary" type="button">苦手・勘違い優先10問</button></div><div class="skill-summary">${summary.map(s=>`<div><strong>${s.name}</strong><span>${s.total?`${s.rate}%（${s.total}回答）`:'まだ記録なし'}</span></div>`).join('')}</div>${top.length?`<h3>繰り返している勘違い</h3><div class="skill-summary">${top.map(([key,count])=>`<div><strong>${MISCONCEPTION_LABELS[key]||key}</strong><span>${count}回</span></div>`).join('')}</div>`:''}</section>
@@ -47,7 +55,7 @@ export function renderProblemHub(app,ctx){
 }
 
 export function renderProblemSession(app,ctx,{category=null,wrongOnly=false,adaptive=false}={}){
-  const data=ctx.problemCatalog;const wrong=loadWrong();const stats=loadStats();const misconceptions=loadMisconceptions();
+  const data=ctx.problemCatalog;const wrong=loadWrong(data);const stats=loadStats(data);const misconceptions=loadMisconceptions();
   let pool=data.questions.filter(q=>wrongOnly?wrong.has(q.id):adaptive?true:q.category===category);
   if(!pool.length){renderProblemHub(app,ctx);return}
   const size=wrongOnly?Math.min(20,pool.length):Math.min(data.sessionSize||10,pool.length);
