@@ -131,6 +131,7 @@ async function run(){
     await visit(browser,base,'#automatic-calculator',{width:402,height:874},async page=>{
       await page.locator('#example').click();
       await page.locator('#dealer').check();
+      await page.locator('#win-kind').selectOption('tsumo');
       await page.locator('#riichi').check();
       await page.locator('#double-riichi').check();
       await page.locator('[data-special="tenhou"]').check();
