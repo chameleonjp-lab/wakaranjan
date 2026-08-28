@@ -221,6 +221,12 @@ function redDoraFromMeld(meld){
   return redDoraCount(meld?.tiles||[]);
 }
 
+function redDoraCodesFromMeld(meld){
+  let remaining=redDoraFromMeld(meld);const codes=[];
+  for(const tile of meld?.tiles||[]){const code=codeOf(tile);if(remaining>0&&['5m','5p','5s'].includes(code)){codes.push(code);remaining-=1}}
+  return codes;
+}
+
 function setMeldRedDora(melds,index,count){
   if(count<=0||index<0||index>=melds.length)return melds;
   return melds.map((meld,meldIndex)=>meldIndex===index?{...meld,redDora:count}:meld);
@@ -232,6 +238,12 @@ function pendingDiscardTile(state,pending){
 
 function winnerRedDoraCount(player,win,winTile){
   return redDoraCount(player.hand)+player.melds.reduce((count,meld)=>count+redDoraFromMeld(meld),0)+(win==='ron'&&winTile?.red===true?1:0);
+}
+
+function winnerRedDoraCodes(player,win,winTile){
+  const codes=[...player.hand.filter(tile=>tile?.red===true).map(codeOf),...player.melds.flatMap(redDoraCodesFromMeld)];
+  if(win==='ron'&&winTile?.red===true)codes.push(codeOf(winTile));
+  return codes;
 }
 
 function codeOf(tile){
@@ -264,6 +276,7 @@ function settlementInput(state,{seat,win,winTile,discarderSeat=null,options={}})
   if(win==='ron')concealedTiles.push(winCode);
   const round=state.roundState;
   const physicalRedDora=winnerRedDoraCount(player,win,winTile);
+  const physicalRedDoraCodes=winnerRedDoraCodes(player,win,winTile);
   const riichi=Boolean(player.riichi)||Boolean(options.riichi);
   return {
     ...options,
@@ -278,6 +291,8 @@ function settlementInput(state,{seat,win,winTile,discarderSeat=null,options={}})
     kanDoraIndicators:(round.kanDoraIndicators||[]).map(codeOf),
     uraIndicators:state.roundWall.uraIndicators.slice(0,1).map(codeOf),
     kanUraIndicators:state.roundWall.uraIndicators.slice(1,1+(round.kanCount||0)).map(codeOf),
+    kanCount:round.kanCount,
+    redDoraCodes:physicalRedDoraCodes,
     redDora:physicalRedDora||options.redDora,
     winnerSeat:seat,
     discarderSeat,
