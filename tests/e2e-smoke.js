@@ -22,7 +22,7 @@ const practiceRoutes=[
   '#dictionary?term=term-riichi',
   '#yaku-guide?yaku=yaku-riichi'
 ];
-const widthRoutes=['#home','#lesson-intro-04','#lesson-intro-05','#automatic-calculator','#practice?mode=draw-discard','#practice?mode=east-round'];
+const widthRoutes=['#home','#lesson-intro-04','#lesson-intro-05','#automatic-calculator','#practice?mode=draw-discard','#practice?mode=east-round','#settings','#teacher-record','#print-materials'];
 const widths=[320,375,390,402,430];
 
 const mimeTypes={
@@ -123,6 +123,41 @@ async function run(){
       await page.locator('#east-options .practice-choice').first().click();
       await page.locator('#east-actions button').click();
       assert.match(await page.locator('.east-round-head').innerText(),/東風戦 2/);
+    });
+    await visit(browser,base,'#settings',{width:402,height:874},async page=>{
+      await page.locator('#settings-display').selectOption('large');
+      await page.locator('#settings-sound').uncheck();
+      await page.locator('#settings-motion').selectOption('on');
+      assert.equal(await page.locator('html').getAttribute('data-display-scale'),'large');
+      assert.equal(await page.locator('html').getAttribute('data-sound'),'off');
+      assert.equal(await page.locator('html').getAttribute('data-reduced-motion'),'on');
+      await page.goto(`${base}/index.html`,{waitUntil:'networkidle'});
+      await page.locator('#settings-display').waitFor({state:'attached',timeout:10000});
+      assert.match(page.url(),/#settings$/);
+      await page.locator('#settings-display').selectOption('system');
+      await page.locator('#settings-sound').check();
+      await page.locator('#settings-motion').selectOption('system');
+    });
+    await visit(browser,base,'#teacher-record',{width:402,height:874},async page=>{
+      assert.match(await page.locator('h1').innerText(),/学習状況の確認/);
+      assert.match(await page.locator('#app').innerText(),/この端末のブラウザ/);
+    });
+    await visit(browser,base,'#print-materials',{width:402,height:874},async page=>{
+      assert.match(await page.locator('h1').innerText(),/麻雀 学習用まとめ/);
+      await page.locator('#print-materials').click();
+    });
+    await visit(browser,base,'#problems',{width:402,height:874},async page=>{
+      await page.locator('[data-category]').first().click();
+      await page.locator('#problem-options > button').first().click();
+      await page.locator('#problem-actions button').first().waitFor({state:'attached',timeout:10000});
+      assert.match(await page.locator('#problem-feedback').innerText(),/正解|不正解/);
+    });
+    await visit(browser,base,'#study-record',{width:402,height:874},async page=>{
+      assert.match(await page.locator('#app').innerText(),/1回答/);
+      await page.evaluate(()=>localStorage.setItem('wakaranjan-question-stats-v2','null'));
+      await page.reload({waitUntil:'networkidle'});
+      await page.locator('h1').waitFor({state:'attached',timeout:10000});
+      assert.match(await page.locator('#app').innerText(),/学習記録/);
     });
     await visit(browser,base,'#lesson-intro-05',{width:402,height:874},async page=>{
       await page.locator('[data-answer="no"]').click();
