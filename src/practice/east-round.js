@@ -72,7 +72,7 @@ function settlement(scores,choice){
   return result;
 }
 function renderHand(app,ctx,round){
-  const hand=app.querySelector('#east-hand');if(hand)appendTileRow(hand,round.hand);
+  const hand=app.querySelector('#east-hand');if(hand)appendTileRow(hand,round.hand.map(code=>ctx.tileByCode.get(code)));
   const river=app.querySelector('#east-river');if(river)round.river.forEach(code=>river.append(tile(ctx,code)));
 }
 function nav(){return '<div class="lesson-nav"><a class="secondary" href="#practice">対局練習へ戻る</a><a class="primary" href="#home">ホームへ</a></div>'}
