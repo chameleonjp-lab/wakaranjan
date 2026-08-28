@@ -157,13 +157,14 @@ async function run(){
       }
       await page.locator('#problem-actions button').first().waitFor({state:'attached',timeout:10000});
       assert.match(await page.locator('#problem-feedback').innerText(),/正解|不正解/);
-    });
-    await visit(browser,base,'#study-record',{width:402,height:874},async page=>{
+      await page.goto(`${base}/index.html#study-record`,{waitUntil:'networkidle'});
+      await page.locator('h1').waitFor({state:'attached',timeout:10000});
       assert.match(await page.locator('#app').innerText(),/1回答/);
       await page.evaluate(()=>localStorage.setItem('wakaranjan-question-stats-v2','null'));
       await page.reload({waitUntil:'networkidle'});
       await page.locator('h1').waitFor({state:'attached',timeout:10000});
       assert.match(await page.locator('#app').innerText(),/学習記録/);
+      assert.match(await page.locator('#app').innerText(),/0回答/);
     });
     await visit(browser,base,'#lesson-intro-05',{width:402,height:874},async page=>{
       await page.locator('[data-answer="no"]').click();
