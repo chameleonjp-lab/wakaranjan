@@ -7,6 +7,9 @@ const GREEN=new Set(['2s','3s','4s','6s','8s','6z']);
 const TERMINALS=new Set(['1m','9m','1p','9p','1s','9s']);
 const RED_FIVES=new Set(['5m','5p','5s']);
 const validMeldTypes=new Set(['chi','pon','minkan','ankan','kakan']);
+const INDICATOR_KEYS=['doraIndicators','uraIndicators','kanDoraIndicators','kanUraIndicators'];
+const MAX_INDICATORS={doraIndicators:1,uraIndicators:1,kanDoraIndicators:4,kanUraIndicators:4};
+const VALUE_PAIR_FU=2;
 
 function indicatorNext(code){
   const m=/^([1-9])([mps])$/.exec(code);
@@ -31,6 +34,19 @@ function normalizeMeld(raw,index){
   const expected=raw.type==='pon'?3:4;
   if(tiles.length!==expected||!tiles.every(t=>t===tiles[0]))throw new Error(`副露${index+1}の${raw.type}が同一牌で構成されていません。`);
   return {type:'triplet',source:'declared',callType:raw.type,tiles,open:raw.type!=='ankan',kan:raw.type!=='pon'};
+}
+
+function validateIndicators(input){
+  for(const key of INDICATOR_KEYS){
+    const value=input[key];
+    if(value===undefined)continue;
+    if(!Array.isArray(value))return `${key} は配列で指定してください。`;
+    if(value.length>MAX_INDICATORS[key])return `${key} は${MAX_INDICATORS[key]}枚までです。`;
+    for(const code of value){
+      if(typeof code!=='string'||!/^([1-9][mps]|[1-7]z)$/.test(code))return `${key} に不正な牌コードがあります。`;
+    }
+  }
+  return null;
 }
 
 const allPhysicalTiles=(concealed,melds)=>[...concealed,...melds.flatMap(m=>m.tiles)];
@@ -151,7 +167,10 @@ function fuFor(v,ctx){
   let fu=20;const items=[['副底',20]];
   if(ctx.closed&&ctx.win==='ron'){fu+=10;items.push(['門前ロン',10])}
   else if(ctx.win==='tsumo'){fu+=2;items.push(['ツモ',2])}
-  if(isValuePair(v.pair,ctx.seatWind,ctx.roundWind)){fu+=2;items.push(['翻牌の雀頭',2])}
+  if(isValuePair(v.pair,ctx.seatWind,ctx.roundWind)){
+    const renpuu=v.pair===ctx.seatWind&&v.pair===ctx.roundWind;
+    fu+=VALUE_PAIR_FU;items.push([renpuu?'連風牌の雀頭':'翻牌の雀頭',VALUE_PAIR_FU]);
+  }
   v.allMelds.forEach((m,i)=>{
     if(!tripLike(m))return;
     const yao=isTerminalOrHonor(m.tiles[0]);let open=m.open;
@@ -167,12 +186,17 @@ function fuFor(v,ctx){
 
 function redDoraInfo(allTiles,ctx){
   if(Array.isArray(ctx.redDoraCodes)){
-    const codes=[...new Set(ctx.redDoraCodes)];
-    for(const code of codes){if(!RED_FIVES.has(code))throw new Error(`赤ドラ指定が不正です: ${code}`);if(!allTiles.includes(code))throw new Error(`${code} を赤牌として指定しましたが、手牌・副露にありません。`)}
+    const codes=[...ctx.redDoraCodes];const seen=new Set();
+    for(const code of codes){
+      if(typeof code!=='string'||!RED_FIVES.has(code))throw new Error(`赤ドラ指定が不正です: ${code}`);
+      if(seen.has(code))throw new Error(`赤牌は牌の種類ごとに1枚までです: ${code}`);
+      seen.add(code);
+      if(!allTiles.includes(code))throw new Error(`${code} を赤牌として指定しましたが、手牌・副露にありません。`);
+    }
     return {count:codes.length,detail:codes.length?[{name:'赤ドラ',count:codes.length,codes}]:[]};
   }
-  const red=Math.max(0,Number(ctx.redDora)||0);const fiveCount=allTiles.filter(t=>RED_FIVES.has(t)).length;
-  if(red>3||red>fiveCount)throw new Error('赤ドラ枚数が手牌・副露の5牌と一致しません。');
+  const red=ctx.redDora===undefined?0:Number(ctx.redDora);const fiveTypes=new Set(allTiles.filter(t=>RED_FIVES.has(t)));
+  if(!Number.isInteger(red)||red<0||red>3||red>fiveTypes.size)throw new Error('赤ドラは、手牌・副露にある赤牌の種類ごとに1枚まで指定してください。');
   return {count:red,detail:red?[{name:'赤ドラ',count:red}]:[]};
 }
 
@@ -205,10 +229,17 @@ export function evaluateHand(input={}){
   const concealed=[...(input.concealedTiles||input.tiles||[])];
   let declared;try{declared=(input.melds||[]).map(normalizeMeld)}catch(e){return {ok:false,error:e.message}}
   if(declared.length>4)return {ok:false,error:'副露・カンは4組までです。'};
+  const indicatorError=validateIndicators(input);if(indicatorError)return {ok:false,error:indicatorError};
+  const declaredKanCount=declared.filter(m=>m.kan).length;
+  const kanCount=input.kanCount===undefined?declaredKanCount:input.kanCount;
+  if(!Number.isInteger(kanCount)||kanCount<declaredKanCount||kanCount>4)return {ok:false,error:'成立したカンの回数が不正です。'};
+  if(!input.chankan&&Array.isArray(input.kanDoraIndicators)&&input.kanDoraIndicators.length!==kanCount)return {ok:false,error:`成立したカン${kanCount}回に対して、槓ドラ表示牌も${kanCount}枚指定してください。`};
+  if(Array.isArray(input.kanUraIndicators)&&input.kanUraIndicators.length>kanCount)return {ok:false,error:'槓裏ドラ表示牌は成立したカンの回数を超えられません。'};
   const expected=14-declared.length*3;
   if(concealed.length!==expected)return {ok:false,error:`手牌は、副露${declared.length}組なら${expected}枚（あがり牌を含む）指定してください。`};
   if(!input.winTile||!concealed.includes(input.winTile))return {ok:false,error:'あがり牌を手牌に含めて指定してください。'};
   const physical=allPhysicalTiles(concealed,declared);try{countTiles(physical)}catch(e){return {ok:false,error:e.message}}
+  try{redDoraInfo(physical,input)}catch(e){return {ok:false,error:e.message}}
   const closed=isClosed(declared);const win=input.win||'ron';
   if(!['ron','tsumo'].includes(win))return {ok:false,error:'あがり方はロンまたはツモを指定してください。'};
   if((input.riichi||input.doubleRiichi||input.ippatsu)&&!closed)return {ok:false,error:'副露した手ではリーチ・ダブルリーチ・一発を指定できません。'};
@@ -220,9 +251,11 @@ export function evaluateHand(input={}){
   if([input.haitei,input.houtei,input.rinshan,input.chankan].filter(Boolean).length>1)return {ok:false,error:'海底・河底・嶺上・搶槓は同時に複数指定できません。'};
   if(input.tenhou&&(win!=='tsumo'||!input.dealer||declared.length))return {ok:false,error:'天和は親の配牌時のツモあがりとして指定してください。'};
   if(input.chiihou&&(win!=='tsumo'||input.dealer||declared.length))return {ok:false,error:'地和は子の第一ツモのあがりとして指定してください。'};
+  if(input.riichi&&input.doubleRiichi)return {ok:false,error:'リーチとダブルリーチは同時に指定できません。'};
   if(input.tenhou&&input.chiihou)return {ok:false,error:'天和と地和は同時に指定できません。'};
+  if((input.tenhou||input.chiihou)&&(input.riichi||input.doubleRiichi||input.ippatsu))return {ok:false,error:'天和・地和とリーチ系の条件は同時に指定できません。'};
 
-  const ctx={...input,win,seatWind:input.dealer?'1z':(input.seatWind||'2z'),roundWind:input.roundWind||'1z',closed,allTiles:physical};
+  const ctx={...input,win,kanCount,seatWind:input.dealer?'1z':(input.seatWind||'2z'),roundWind:input.roundWind||'1z',closed,allTiles:physical};
   let variants;try{variants=buildVariants(concealed,declared,input.winTile)}catch(e){return {ok:false,error:e.message}}
   if(!variants.length)return {ok:false,error:'現在の牌と副露では、あがり形に分解できません。'};
   const candidates=[];
