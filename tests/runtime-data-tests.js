@@ -4,6 +4,7 @@ import {join,resolve,dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
 
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
+const readText=path=>readFileSync(join(root,path),'utf8');
 const readJson=path=>JSON.parse(readFileSync(join(root,path),'utf8'));
 const appSource=readFileSync(join(root,'src/app.js'),'utf8');
 
@@ -27,10 +28,12 @@ const tileIds=uniqueIds(tiles,'牌');
 const tileCodes=new Set(tiles.map(tile=>tile.code));
 
 const rulesData=readJson('src/data/rules.json');
+const standardRulesDoc=readText('docs/STANDARD_RULES.md');
 assert.equal(rulesData.schemaVersion,1,'標準ルールのスキーマバージョンが不正です');
 assert.ok(Array.isArray(rulesData.rulesets)&&rulesData.rulesets.length>=1,'標準ルールセットがありません');
 const standardRules=rulesData.rulesets.find(rule=>rule.id==='wakaranjan-standard-v1');
 assert.ok(standardRules,'ワカランジャン標準ルール v1 がありません');
+assert.match(standardRulesDoc,new RegExp(standardRules.displayNameJa.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')),'標準ルール文書と実行データの版が一致していません');
 assert.equal(standardRules.scope.players,4,'標準ルールは4人麻雀である必要があります');
 assert.equal(standardRules.scope.tileCount,136,'標準ルールの使用牌は136枚である必要があります');
 assert.equal(Object.values(standardRules.scope.redFives).reduce((sum,value)=>sum+value,0),3,'赤牌は3枚である必要があります');
