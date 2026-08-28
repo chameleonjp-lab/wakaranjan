@@ -11,10 +11,10 @@ function getTile(ctx,code){return ctx.tileByCode.get(code)||ctx.tileById.get(`ti
 
 export function renderIntro04(app,ctx){
   const lesson=ctx.lessonById.get('lesson-intro-04');
-  app.innerHTML=`<section class="hero"><div class="eyebrow">入門 1-4</div><h1>${lesson.title}</h1><p>まず「3枚の組」と「同じ牌2枚」を見分けます。そのあとで正式な名前を覚えます。</p></section><section class="lesson-panel"><h2>組を見比べよう</h2><div id="shapeExamples" class="shape-grid"></div></section><section class="lesson-panel"><h2>完成形を5つに分ける</h2><p>基本のあがり形は、3枚の組が4つと、同じ牌2枚の組が1つです。</p><div id="completeHand" class="block-hand"></div><div class="callout">3枚の組を<strong>面子（メンツ）</strong>、最後の2枚組を<strong>雀頭（ジャントウ）</strong>と呼びます。</div></section><div class="action-row"><a class="secondary" href="#lesson-intro-03">前へ</a><a href="#lesson-intro-05">次へ</a></div>`;
+  app.innerHTML=`<section class="hero"><div class="eyebrow">入門 1-4</div><h1>${lesson.title}</h1><p>まず「3枚の組」と「同じ牌2枚」を見分けます。そのあとで正式な名前を覚えます。</p></section><section class="lesson-panel"><h2>組を見比べよう</h2><div id="shapeExamples" class="shape-grid"></div></section><section class="lesson-panel"><h2>完成形を5つに分ける</h2><p>基本のあがり形は、3枚の組が4つと、同じ牌2枚の組が1つです。</p><div id="completeHand" class="block-hand tile-scroll"></div><div class="callout">3枚の組を<strong>面子（メンツ）</strong>、最後の2枚組を<strong>雀頭（ジャントウ）</strong>と呼びます。</div></section><div class="action-row"><a class="secondary" href="#lesson-intro-03">前へ</a><a href="#lesson-intro-05">次へ</a></div>`;
   const grid=app.querySelector('#shapeExamples');
   examples.forEach(ex=>{
-    const card=document.createElement('article');card.className='shape-card';card.innerHTML=`<h3>${ex.title}</h3><div class="shape-tiles"></div><p>${ex.desc}</p>`;
+    const card=document.createElement('article');card.className='shape-card';card.innerHTML=`<h3>${ex.title}</h3><div class="shape-tiles tile-scroll"></div><p>${ex.desc}</p>`;
     ex.codes.forEach(c=>card.querySelector('.shape-tiles').append(createTile(getTile(ctx,c))));
     grid.append(card);
   });

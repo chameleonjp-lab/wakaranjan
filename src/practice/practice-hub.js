@@ -37,7 +37,7 @@ function renderDrawDiscard(app,ctx){
     if(state==='ready'){message.textContent='まず「1枚ツモする」を押してください。';}
     if(state==='drawn'){message.textContent='14枚になりました。捨てたい牌を1枚タップしてください。';}
     if(state==='done'){message.textContent='1枚取って1枚捨てる流れを確認できました。';feedback.className='feedback good';feedback.textContent='正解・不正解のない操作練習です。実際の対局では、何を残すかを考えて捨てます。';}
-    appendTileRow(handBox,hand,{interactive:state==='drawn',drawnIndex:state==='drawn'?hand.length-1:-1,onSelect:(_tile,_options,_element,index)=>{if(state==='drawn'){river.push(hand[index]);hand.splice(index,1);state='done';render()}}});
+    appendTileRow(handBox,hand.map(code=>ctx.tileByCode.get(code)),{interactive:state==='drawn',drawnIndex:state==='drawn'?hand.length-1:-1,onSelect:(_tile,_options,_element,index)=>{if(state==='drawn'){river.push(hand[index]);hand.splice(index,1);state='done';render()}}});
     river.forEach(code=>riverBox.append(tile(ctx,code)));
     if(state==='ready'){const b=document.createElement('button');b.className='primary';b.type='button';b.textContent='1枚ツモする';b.onclick=()=>{hand.push(DRAW_TILE);state='drawn';render()};actions.append(b)}
     if(state==='done'){const b=document.createElement('button');b.className='secondary';b.type='button';b.textContent='もう一度練習する';b.onclick=()=>{hand=[...INITIAL_HAND];river=[];state='ready';render()};actions.append(b)}
