@@ -148,7 +148,13 @@ async function run(){
     });
     await visit(browser,base,'#problems',{width:402,height:874},async page=>{
       await page.locator('[data-category]').first().click();
-      await page.locator('#problem-options > button').first().click();
+      const textChoice=page.locator('#problem-options > button');
+      if(await textChoice.count()){
+        await textChoice.first().click();
+      }else{
+        await page.locator('#problem-options .tile-answer-tile').first().click();
+        await page.locator('.tile-answer-submit').click();
+      }
       await page.locator('#problem-actions button').first().waitFor({state:'attached',timeout:10000});
       assert.match(await page.locator('#problem-feedback').innerText(),/正解|不正解/);
     });
