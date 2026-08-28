@@ -34,6 +34,8 @@ assert.ok(standardRules,'ワカランジャン標準ルール v1 がありませ
 assert.equal(standardRules.scope.players,4,'標準ルールは4人麻雀である必要があります');
 assert.equal(standardRules.scope.tileCount,136,'標準ルールの使用牌は136枚である必要があります');
 assert.equal(Object.values(standardRules.scope.redFives).reduce((sum,value)=>sum+value,0),3,'赤牌は3枚である必要があります');
+assert.deepEqual(standardRules.scoring.redDoraByType,{ '5m':1,'5p':1,'5s':1},'赤牌は牌の種類ごとに管理する必要があります');
+assert.equal(standardRules.scoring.renpuuPairFu,2,'連風牌の雀頭は2符である必要があります');
 assert.equal(standardRules.winning.furitenRon,false,'フリテン時のロンは不可である必要があります');
 assert.equal(standardRules.scoring.kazoeYakuman,false,'数え役満は標準ルールで不採用です');
 assert.equal(standardRules.multipleRon,'head-bump','同時ロンは頭ハネである必要があります');
