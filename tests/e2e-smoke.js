@@ -5,7 +5,7 @@ import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 import {chromium,webkit} from 'playwright';
 
-const root=path.resolve(fileURLToPath(new URL('..',import.meta.url)));
+const root=path.resolve(process.cwd(),process.env.E2E_ROOT||fileURLToPath(new URL('..',import.meta.url)));
 const practiceRoutes=[
   '#practice?mode=draw-discard',
   '#practice?mode=wall',
@@ -30,7 +30,8 @@ const mimeTypes={
   '.css':'text/css; charset=utf-8',
   '.html':'text/html; charset=utf-8',
   '.js':'text/javascript; charset=utf-8',
-  '.json':'application/json; charset=utf-8'
+  '.json':'application/json; charset=utf-8',
+  '.svg':'image/svg+xml'
 };
 
 function startStaticServer(){
@@ -69,6 +70,8 @@ async function visit(browser,base,route,viewport,onReady,beforeGoto){
     assert.ok(response?.ok(),`${route} returned HTTP ${response?.status()}`);
     await page.locator('#app > *').first().waitFor({state:'attached',timeout:10000});
     assert.doesNotMatch(await page.locator('#app').innerText(),/教材を読み込めませんでした/);
+    await assertNamedFormControls(page,route);
+    await assertHeaderTapTargets(page,route);
     if(onReady)await onReady(page);
     await page.waitForTimeout(40);
     assert.deepEqual(errors,[],`${route} generated browser errors:\n${errors.join('\n')}`);
@@ -126,7 +129,81 @@ async function assertNoPageOverflow(page,route,width){
   assert.ok(widest<=width+1,`${route} at ${width}px overflows: ${JSON.stringify(metrics)}`);
 }
 
+async function assertNamedFormControls(page,route){
+  const missing=await page.locator('input:not([type="hidden"]),select,textarea').evaluateAll(elements=>elements.filter(element=>{
+    const labelledBy=(element.getAttribute('aria-labelledby')||'').split(/\s+/).filter(Boolean).map(id=>document.getElementById(id)?.textContent||'').join(' ').trim();
+    const label=element.getAttribute('aria-label')?.trim()||labelledBy||[...(element.labels||[])].map(labelElement=>labelElement.textContent||'').join(' ').trim();
+    return !label;
+  }).map(element=>({tag:element.tagName.toLowerCase(),id:element.id,type:element.getAttribute('type')||''})));
+  assert.deepEqual(missing,[],`${route} の入力欄に読み上げ可能な名前がありません: ${JSON.stringify(missing)}`);
+}
+
+async function assertHeaderTapTargets(page,route){
+  const sizes=await page.evaluate(()=>Object.fromEntries(['.brand','.header-settings'].map(selector=>[selector,document.querySelector(selector)?.getBoundingClientRect().height||0])));
+  for(const [selector,height] of Object.entries(sizes))assert.ok(height>=44,`${route} の ${selector} の操作領域が44px未満です: ${height}`);
+}
+
+async function assertFavicon(page){
+  const favicon=await page.evaluate(async()=>{
+    const link=document.querySelector('link[rel~="icon"]');
+    if(!link)return {href:'',status:0,type:''};
+    const response=await fetch(link.href,{cache:'no-store'});
+    return {href:link.getAttribute('href'),status:response.status,type:response.headers.get('content-type')||''};
+  });
+  assert.equal(favicon.status,200,`faviconが取得できません: ${JSON.stringify(favicon)}`);
+  assert.match(favicon.type,/image\/svg\+xml/i,`faviconのContent-Typeが不正です: ${JSON.stringify(favicon)}`);
+}
+
+async function assertSkipLinkPreservesRoute(browser,base,route){
+  await visit(browser,base,route,{width:402,height:874},async page=>{
+    const beforeHash=new URL(page.url()).hash||'#home';
+    const beforeHeading=await page.locator('#app h1').innerText();
+    await page.locator('.skip-link').focus();
+    await page.locator('.skip-link').click();
+    const state=await page.evaluate(()=>({hash:location.hash,activeId:document.activeElement?.id,appTop:document.querySelector('#app')?.getBoundingClientRect().top??Infinity}));
+    assert.equal(state.hash,beforeHash,`${route} の「本文へ移動」でURLの画面IDが変わりました`);
+    assert.equal(state.activeId,'app','「本文へ移動」で本文へキーボード操作位置が移りません');
+    assert.ok(state.appTop<=5,`「本文へ移動」で本文位置へスクロールされません: ${JSON.stringify(state)}`);
+    assert.equal(await page.locator('#app h1').innerText(),beforeHeading,'「本文へ移動」で表示内容が変わりました');
+    await page.reload({waitUntil:'networkidle',timeout:20000});
+    await page.locator('#app > *').first().waitFor({state:'attached',timeout:10000});
+    assert.equal(new URL(page.url()).hash,beforeHash,'再読み込み後に画面IDが変わりました');
+    assert.equal(await page.locator('#app h1').innerText(),beforeHeading,'再読み込み後に元の画面へ戻れません');
+  });
+}
+
+async function assertRetryAfterAssetFailure(browser,base,{route,asset,expectedText}){
+  const page=await browser.newPage({viewport:{width:402,height:874}});
+  const pageErrors=[];let requests=0;
+  page.on('pageerror',error=>pageErrors.push(error.message));
+  await page.route(`**${asset}*`,async request=>{
+    requests+=1;
+    if(requests===1)await request.abort();else await request.continue();
+  });
+  try{
+    const response=await page.goto(`${base}/index.html${route}`,{waitUntil:'networkidle',timeout:20000});
+    assert.ok(response?.ok(),`${route} returned HTTP ${response?.status()}`);
+    await page.locator('#load-retry').waitFor({state:'visible',timeout:10000});
+    assert.match(await page.locator('#app').innerText(),/通信状態/);
+    assert.equal(await page.locator('#load-retry').isEnabled(),true);
+    await page.locator('#load-retry').evaluate(button=>{button.click();button.click();button.click()});
+    await page.locator('#load-retry').waitFor({state:'detached',timeout:10000});
+    await page.locator('#app h1').waitFor({state:'attached',timeout:10000});
+    assert.match(await page.locator('#app').innerText(),expectedText);
+    assert.doesNotMatch(await page.locator('#app').innerText(),/教材を読み込めませんでした/);
+    assert.equal(requests,2,`${asset} が再試行の連打で多重取得されました`);
+    assert.deepEqual(pageErrors,[],`${route} の再試行でJavaScript例外が発生しました`);
+  }finally{
+    await page.unroute(`**${asset}*`);
+    await page.close();
+  }
+}
+
 async function run(){
+  for(const asset of ['index.html','favicon.svg','styles.css','accessibility.css','src/app.js','src/data/manifest.json']){
+    const assetStat=await stat(path.join(root,asset));
+    assert.ok(assetStat.isFile(),`公開用ファイルがありません: ${asset}`);
+  }
   const {server,base}=await startStaticServer();
   let browser;
   try{
@@ -134,6 +211,28 @@ async function run(){
     browser=await browserType.launch({headless:true});
     const routes=await discoverRoutes(browser,base);
     assert.ok(routes.length>=64,`expected at least 64 reachable hash routes, found ${routes.length}`);
+    for(const route of ['#home','#lesson-intro-04','#problems','#automatic-calculator'])await assertSkipLinkPreservesRoute(browser,base,route);
+    await assertRetryAfterAssetFailure(browser,base,{route:'#home',asset:'/src/data/manifest.json',expectedText:/牌を触りながら/});
+    await assertRetryAfterAssetFailure(browser,base,{route:'#lesson-intro-04',asset:'/src/data/lesson-quality-core.json',expectedText:/入門 1-4/});
+    await visit(browser,base,'#not-a-real-screen',{width:402,height:874},async page=>{
+      assert.equal(new URL(page.url()).hash,'#home','不正な画面IDからホームへ復旧できません');
+      assert.match(await page.locator('#app').innerText(),/牌を触りながら/);
+      const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('wakaranjan-settings-v1')||'{}').lastRoute);
+      assert.equal(saved,'#home','不正な画面IDを最後に開いたページとして保存しています');
+    });
+    await visit(browser,base,'#home',{width:402,height:874},async page=>{
+      await page.evaluate(()=>{
+        localStorage.setItem('wakaranjan-settings-v1','{"lastRoute":"#app","displayScale":"invalid"}');
+        localStorage.setItem('wakaranjan-lesson-progress-v1','{"completed":"broken","lastLesson":42}');
+        history.replaceState(null,'',location.pathname+location.search);
+      });
+      await page.reload({waitUntil:'networkidle',timeout:20000});
+      await page.locator('#app > *').first().waitFor({state:'attached',timeout:10000});
+      assert.equal(new URL(page.url()).hash||'#home','#home','壊れた保存データからホームへ復旧できません');
+      assert.match(await page.locator('#app').innerText(),/牌を触りながら/);
+      assert.doesNotMatch(await page.locator('#app').innerText(),/教材を読み込めませんでした/);
+    });
+    await visit(browser,base,'#home',{width:402,height:874},assertFavicon);
     const homeJsonRequests=[];
     await visit(browser,base,'#home',{width:402,height:874},async page=>{
       const jsonPaths=[...new Set(homeJsonRequests)].sort();
@@ -249,6 +348,11 @@ async function run(){
       assert.match(await page.locator('#winFeedback').innerText(),/正解です/);
     });
     await visit(browser,base,'#automatic-calculator',{width:402,height:874},async page=>{
+      for(const [id,label] of [['doraIndicators-select','表ドラ表示牌'],['uraIndicators-select','裏ドラ表示牌'],['kanDoraIndicators-select','槓ドラ表示牌'],['kanUraIndicators-select','槓裏ドラ表示牌'],['river-tile','自分の河へ追加する牌']]){
+        const labels=await page.locator(`#${id}`).evaluate(element=>[...(element.labels||[])].map(labelElement=>labelElement.textContent.trim()));
+        assert.deepEqual(labels,[label],`${label}の入力欄に読み上げ可能なラベルがありません`);
+        assert.equal(await page.getByRole('combobox',{name:label,exact:true}).count(),1,`${label}を読み上げ名で特定できません`);
+      }
       await page.locator('#example').click();
       await page.locator('#dealer').check();
       await page.locator('#win-kind').selectOption('tsumo');

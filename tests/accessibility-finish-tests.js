@@ -5,6 +5,8 @@ const read=path=>readFileSync(new URL(path,import.meta.url),'utf8');
 const html=read('../index.html');
 const css=read('../accessibility.css');
 const tile=read('../src/components/tile.js');
+const calculator=read('../src/tools/automatic-calculator.js');
+const settings=read('../settings.css');
 let passed=0;const test=(name,fn)=>{fn();passed++;console.log(`✓ ${name}`)};
 
 test('アクセシビリティCSSを最後に読み込む',()=>{
@@ -38,6 +40,16 @@ test('入力欄はiPhoneで自動拡大しにくい16px以上を維持する',()
 
 test('操作可能な牌は選択状態をaria-pressedで公開する',()=>{
   assert.match(tile,/setAttribute\('aria-pressed',selected\?'true':'false'\)/);
+});
+
+test('点数計算の表示牌と自分の河の入力欄を通常のlabelへ結び付ける',()=>{
+  assert.match(calculator,/class="field-label" for="\$\{key\}-select"/);
+  for(const title of ['表ドラ表示牌','裏ドラ表示牌','槓ドラ表示牌','槓裏ドラ表示牌'])assert.match(calculator,new RegExp(`indicatorSection\\('${title}'`));
+  assert.match(calculator,/for=\"river-tile\">自分の河へ追加する牌/);
+});
+
+test('ヘッダーの主要リンクも指で押せる高さを持つ',()=>{
+  assert.match(settings,/\.brand,\.header-settings\{min-height:44px/);assert.match(settings,/display:inline-flex/);
 });
 
 console.log(`\n${passed} accessibility finishing tests passed.`);

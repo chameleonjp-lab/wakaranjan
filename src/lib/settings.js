@@ -6,6 +6,8 @@ const ROUTE_PATTERN=/^#[A-Za-z0-9_-]+(?:\?[A-Za-z0-9._~%=&+,\-]*)?$/;
 
 function safeRoute(value){
   if(typeof value!=='string'||!ROUTE_PATTERN.test(value))return DEFAULTS.lastRoute;
+  const id=value.slice(1).split('?')[0];
+  if(id==='app')return DEFAULTS.lastRoute;
   return value;
 }
 function normalize(value){

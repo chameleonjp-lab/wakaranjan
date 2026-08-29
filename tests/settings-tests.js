@@ -10,6 +10,7 @@ assert.deepEqual(normalizeSettings([]),{displayScale:'system',sound:true,reduced
 assert.equal(normalizeSettings({displayScale:'huge',sound:'yes',reducedMotion:'fast',lastRoute:'javascript:alert(1)'}).lastRoute,'#home');
 assert.equal(normalizeSettings({lastRoute:'#settings?x=" onmouseover="alert(1)'}).lastRoute,'#home');
 assert.equal(normalizeSettings({lastRoute:'#teacher-record?<img src=x onerror=alert(1)>'}).lastRoute,'#home');
+assert.equal(normalizeSettings({lastRoute:'#app'}).lastRoute,'#home');
 assert.equal(normalizeSettings({lastRoute:'#practice?mode=hand-flow&scenario=call'}).lastRoute,'#practice?mode=hand-flow&scenario=call');
 
 updateSettings({displayScale:'larger',sound:false,reducedMotion:'on'});
