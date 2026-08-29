@@ -4,6 +4,7 @@ import {join,resolve,dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
 
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
+const manifest=readJson('src/data/manifest.json');
 const readText=path=>readFileSync(join(root,path),'utf8');
 const readJson=path=>JSON.parse(readFileSync(join(root,path),'utf8'));
 const appSource=readFileSync(join(root,'src/app.js'),'utf8');
