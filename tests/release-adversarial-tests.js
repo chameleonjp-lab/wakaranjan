@@ -36,11 +36,24 @@ test('主要公開ルートはapp.jsに実装されている',()=>{
 });
 
 test('公開時に必要なトップレベル資産が存在する',()=>{
-  for(const path of ['index.html','styles.css','accessibility.css','interactive-problems.css','settings.css','print-materials.css','src/app.js','src/data/manifest.json','src/data/tiles.json','src/data/yaku.json','src/data/rules.json'])assert.ok(readText(path).length>20,path);
+  for(const path of ['index.html','favicon.svg','styles.css','accessibility.css','interactive-problems.css','settings.css','print-materials.css','src/app.js','src/data/manifest.json','src/data/tiles.json','src/data/yaku.json','src/data/rules.json','scripts/prepare-pages.mjs','.github/actions/release-checks/action.yml'])assert.ok(readText(path).length>20,path);
 });
 
-test('エラー画面は再読み込み手段を利用者へ伝える',()=>{
-  const app=readText('src/app.js');assert.match(app,/教材を読み込めませんでした/);assert.match(app,/再読み込み/);
+test('スキップリンクは画面遷移とページ内移動を分離する',()=>{
+  const html=readText('index.html');const app=readText('src/app.js');
+  assert.match(html,/class="skip-link" href="#app"/);
+  assert.match(app,/preventDefault\(\)/);assert.match(app,/target\.focus\(\{preventScroll:true\}\)/);assert.match(app,/target\.scrollIntoView/);
+  assert.match(app,/if\(!isKnownRoute\(id,ctx\)\)/);assert.match(app,/history\.replaceState\(null,'','#home'\)/);
+});
+
+test('エラー画面は通信失敗から再試行できる',()=>{
+  const app=readText('src/app.js');assert.match(app,/教材を読み込めませんでした/);assert.match(app,/通信状態/);assert.match(app,/id="load-retry"/);assert.match(app,/もう一度読み込む/);
+});
+
+test('Pages公開前の検査は生成した同一ファイルを対象にする',()=>{
+  const action=readText('.github/actions/release-checks/action.yml');const deploy=readText('.github/workflows/deploy-pages.yml');const e2e=readText('tests/e2e-smoke.js');
+  assert.match(action,/npm run prepare:pages/);assert.match(action,/E2E_ROOT/);assert.match(action,/test:e2e:webkit/);assert.match(deploy,/release-checks/);assert.match(e2e,/process\.env\.E2E_ROOT/);
+  assert.doesNotMatch(deploy,/rm -rf _site|cp -R src/,'検査後に別のPages成果物を作り直しています');
 });
 
 test('学習進捗の保存処理はnull・配列・型違いを正規化する',()=>{

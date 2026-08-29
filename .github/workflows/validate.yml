@@ -16,13 +16,5 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Run validation tests
-        run: npm test
-      - name: Install browser test package
-        run: npm install --no-save --no-package-lock playwright@1.62.1
-      - name: Install Chromium and WebKit
-        run: npx playwright install --with-deps chromium webkit
-      - name: Run Chromium browser smoke tests
-        run: npm run test:e2e
-      - name: Run WebKit browser smoke tests
-        run: npm run test:e2e:webkit
+      - name: Run shared release checks
+        uses: ./.github/actions/release-checks

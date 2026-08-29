@@ -56,7 +56,30 @@ const ASSET_PATHS={
 };
 const QUALITY_ASSET_BY_SOURCE={lessons:'coreQuality',scoringCore:'coreQuality',advancedSpecial:'advancedQuality',curriculumExtra:'lessonQuality'};
 const INITIAL_ASSETS=['manifest','rules'];
+const FIXED_ROUTES=new Set(['home','intro-review','beginner-review','intermediate-review','problems','automatic-calculator','dictionary','yaku-guide','rules','study-record','teacher-record','print-materials','settings','practice','full-round']);
 let routeSequence=0;
+
+function routeId(hash){return hash.slice(1).split('?')[0]}
+function isKnownRoute(id,ctx){return FIXED_ROUTES.has(id)||Boolean(ctx.lessonById?.has(id)||ctx.dataLessonById?.has(id))}
+function currentRoute(ctx){
+  const hash=location.hash||'#home';
+  const id=routeId(hash);
+  if(!isKnownRoute(id,ctx)){
+    if(location.hash!=='#home')history.replaceState(null,'','#home');
+    return {hash:'#home',id:'home'};
+  }
+  return {hash,id};
+}
+
+function installSkipLink(){
+  document.querySelector('.skip-link')?.addEventListener('click',event=>{
+    event.preventDefault();
+    const target=document.querySelector('#app');
+    if(!target)return;
+    target.focus({preventScroll:true});
+    target.scrollIntoView({block:'start',behavior:'auto'});
+  });
+}
 
 async function loadJson(path,version=DATASET_VERSION,cache='default'){
   const separator=path.includes('?')?'&':'?';
@@ -127,6 +150,22 @@ async function ensureAssets(ctx,keys){
   hydrateContext(ctx);
 }
 
+function renderLoadError(retry){
+  app.innerHTML='<section class="hero" data-load-error><div class="eyebrow">読み込みエラー</div><h1>教材を読み込めませんでした</h1><p>必要なデータの読み込みに失敗しました。通信状態を確認してから、「もう一度読み込む」を押してください。</p><div id="load-status" class="feedback" role="status" aria-live="polite">再試行できます。</div><div class="action-row"><button id="load-retry" class="primary" type="button">もう一度読み込む</button><a class="secondary" href="#home">ホームへ戻る</a></div></section>';
+  app.focus({preventScroll:true});
+  const button=app.querySelector('#load-retry');
+  const status=app.querySelector('#load-status');
+  let retrying=false;
+  button?.addEventListener('click',async()=>{
+    if(retrying)return;
+    retrying=true;
+    if(button){button.disabled=true;button.textContent='読み込み中…'}
+    if(status)status.textContent='読み込みをやり直しています。';
+    try{await retry()}
+    catch(error){console.error(error);renderLoadError(retry)}
+  });
+}
+
 function renderLessonList(items,progress){return `<div class="lesson-list">${items.map(l=>`<a class="lesson-card" href="#${l.id}"><strong>${l.order}. ${l.title}</strong><small>${progress.completed.has(l.id)?'✓ 学習済み':`約${l.estimatedMinutes||7}分`}</small></a>`).join('')}</div>`}
 function progressSummary(items,progress){const done=items.filter(x=>progress.completed.has(x.id)).length;return `${done} / ${items.length} 完了`}
 function renderHome(ctx){
@@ -173,8 +212,7 @@ function routeAssetKeys(id,ctx){
 
 function route(ctx){
   const sequence=++routeSequence;
-  const hash=location.hash||'#home';
-  const id=hash.slice(1).split('?')[0];
+  const {hash,id}=currentRoute(ctx);
   setLastRoute(hash);
   return ensureAssets(ctx,routeAssetKeys(id,ctx)).then(()=>{
     if(sequence!==routeSequence)return;
@@ -219,7 +257,7 @@ function route(ctx){
   }).catch(error=>{
     if(sequence!==routeSequence)return;
     console.error(error);
-    app.innerHTML='<section class="hero"><h1>教材を読み込めませんでした</h1><p>必要なデータの読み込みに失敗しました。ページを再読み込みしてください。</p><div class="action-row"><a class="secondary" href="#home">ホームへ戻る</a></div></section>';
+    renderLoadError(()=>route(ctx));
   });
 }
 
@@ -227,8 +265,10 @@ async function start(){
   const settings=applySettings(document.documentElement,getSettings());
   if(!location.hash&&settings.lastRoute&&settings.lastRoute!=='#home')history.replaceState(null,'',settings.lastRoute);
   const ctx={assets:{},assetPromises:{},datasetVersion:DATASET_VERSION};
+  installSkipLink();
   addEventListener('hashchange',()=>{void route(ctx)});
+  const retryInitial=async()=>{try{await ensureAssets(ctx,INITIAL_ASSETS);await route(ctx)}catch(error){console.error(error);renderLoadError(retryInitial)}};
   try{await ensureAssets(ctx,INITIAL_ASSETS);await route(ctx)}
-  catch(error){console.error(error);app.innerHTML='<section class="hero"><h1>教材を読み込めませんでした</h1><p>ページを再読み込みしてください。改善しない場合は、公開ファイルの配置を確認してください。</p></section>'}
+  catch(error){console.error(error);renderLoadError(retryInitial)}
 }
 start();

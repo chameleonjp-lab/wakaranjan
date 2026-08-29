@@ -14,7 +14,7 @@
 #calc-result:empty,#head-result:empty{display:none}
 .meld-list{display:grid;gap:8px}
 .meld-card{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 12px;border:1px solid #d5ccbd;border-radius:12px;background:#faf7f0}
-.meld-card .secondary{margin-left:auto;min-height:38px;padding:6px 10px}
+.meld-card .secondary{margin-left:auto;min-height:44px;padding:6px 10px}
 .meld-builder{display:grid;grid-template-columns:1fr 1fr minmax(0,1.2fr) auto;gap:10px;align-items:end;margin-top:12px}
 .meld-builder label{display:grid;gap:5px;font-weight:700}
 .meld-red-controls{display:grid;grid-template-columns:1fr 1fr;gap:8px;min-width:0}
@@ -22,6 +22,7 @@
 .special-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 12px;margin-top:12px}
 .indicator-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .indicator-field{border:1px solid #ddd3c3;border-radius:12px;padding:12px;background:#faf7f0}
+.field-label{display:block;font-weight:700}
 .indicator-list{display:flex;gap:6px;flex-wrap:wrap;min-height:34px;margin:8px 0}
 .indicator-chip{border:1px solid #9aa59d;border-radius:999px;background:#fff;padding:6px 9px;color:#17211b}
 .indicator-add{display:grid;grid-template-columns:1fr auto;gap:8px}
@@ -33,7 +34,7 @@
 .search-row{display:grid;grid-template-columns:minmax(0,2fr) repeat(2,minmax(0,1fr));gap:10px;align-items:end}
 .search-row label{display:grid;gap:5px;font-weight:700}
 .kana-nav{display:flex;gap:6px;overflow-x:auto;padding:10px 0}
-.kana-nav button{min-height:40px;border:1px solid #aaa193;border-radius:999px;background:#fff;padding:7px 12px;white-space:nowrap}
+.kana-nav button{min-height:44px;border:1px solid #aaa193;border-radius:999px;background:#fff;padding:7px 12px;white-space:nowrap}
 .kana-nav button.active{background:#173d2b;color:#fff}
 .glossary-reading{font-size:.8rem;color:#6a716d}
 .yaku-card-top{display:flex;justify-content:space-between;gap:8px;align-items:baseline}

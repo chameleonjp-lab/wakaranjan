@@ -1,0 +1,32 @@
+name: Wakaranjan release checks
+description: Run the shared validation suite against the exact Pages artifact.
+inputs:
+  site-dir:
+    description: Directory containing the generated Pages files.
+    required: false
+    default: _site
+runs:
+  using: composite
+  steps:
+    - name: Run validation tests
+      shell: bash
+      run: npm test
+    - name: Install browser test package
+      shell: bash
+      run: npm install --no-save --no-package-lock playwright@1.62.1
+    - name: Install Chromium and WebKit
+      shell: bash
+      run: npx playwright install --with-deps chromium webkit
+    - name: Prepare exact Pages site
+      shell: bash
+      run: npm run prepare:pages -- "${{ inputs.site-dir }}"
+    - name: Run Chromium browser smoke tests
+      shell: bash
+      env:
+        E2E_ROOT: ${{ inputs.site-dir }}
+      run: npm run test:e2e
+    - name: Run WebKit browser smoke tests
+      shell: bash
+      env:
+        E2E_ROOT: ${{ inputs.site-dir }}
+      run: npm run test:e2e:webkit
