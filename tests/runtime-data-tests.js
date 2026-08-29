@@ -15,8 +15,9 @@ function uniqueIds(items,label){
   return new Set(ids);
 }
 
-const assetRefs=[...appSource.matchAll(/loadJson\(['\"](\.\/[^'\"]+)['\"]\)/g)].map(match=>match[1]);
-assert.equal(new Set(assetRefs).size,assetRefs.length,'app.js が同じJSONを重複読込しています');
+const assetRefs=[...appSource.matchAll(/^\s+\w+:'(\.\/src\/data\/[^']+\.json)'[,]?$/gm)].map(match=>match[1]);
+assert.equal(new Set(assetRefs).size,assetRefs.length,'app.js のデータ資産定義に重複があります');
+assert.ok(assetRefs.length>=20,'app.js に必要なデータ資産の定義が不足しています');
 for(const ref of assetRefs){
   const path=ref.replace(/^\.\//,'');
   assert.equal(existsSync(join(root,path)),true,`app.js の読込先がありません: ${path}`);
@@ -113,8 +114,11 @@ for(const [yakuId,example] of Object.entries(examples)){
   for(const code of [...(example.tiles||[]),example.winTile])if(code)assert.equal(tileCodes.has(code),true,`${yakuId} の成立例に未定義牌があります: ${code}`);
 }
 
-assert.match(appSource,/loadJson\(['\"]\.\/src\/data\/rules\.json['\"]\)/,'標準ルールJSONをapp.jsが読み込んでいません');
-assert.match(appSource,/coreQuality,rulesData\]=await Promise\.all/,'標準ルールJSONの読み込み結果をrulesDataへ結び付けていません');
+assert.match(appSource,/ASSET_PATHS[\s\S]+rules:'\.\/src\/data\/rules\.json'/,'標準ルールJSONをapp.jsが読み込める資産として定義していません');
+assert.match(appSource,/ensureAssets\(ctx,keys\)/,'画面ごとの遅延読み込み処理がありません');
+assert.match(appSource,/routeAssetKeys/,'ルートごとのデータ資産指定がありません');
+assert.doesNotMatch(appSource,/cache:'no-store'/,'データ資産を毎回キャッシュ無効で読み込んでいます');
+assert.match(appSource,/cache:'default'/,'データ資産の通常キャッシュ指定がありません');
 assert.match(appSource,/import \{renderStudyRecord\} from '\.\/tools\/study-record\.js'/,'学習記録ページをapp.jsが読み込んでいません');
 assert.match(appSource,/import \{renderPracticeHub\} from '\.\/practice\/practice-hub\.js'/,'対局練習ページをapp.jsが読み込んでいません');
 assert.match(appSource,/['\"]practice['\"]:\(\)=>renderPracticeHub/,'対局練習ページのルートがありません');
@@ -132,12 +136,21 @@ assert.match(eastRoundSource,/EAST_ROUNDS/,'模擬東風戦の局データがあ
 assert.match(appSource,/['\"]study-record['\"]:\(\)=>renderStudyRecord/,'学習記録ページのルートがありません');
 assert.match(appSource,/href="#study-record"/,'ホームから学習記録への導線がありません');
 assert.equal(existsSync(join(root,'src/tools/study-record.js')),true,'学習記録ページのモジュールがありません');
+assert.match(appSource,/import \{renderSettings\} from '\.\/tools\/settings\.js'/,'設定ページをapp.jsが読み込んでいません');
+assert.match(appSource,/['"]settings['"]:\(\)=>renderSettings/,'設定ページのルートがありません');
+assert.equal(existsSync(join(root,'src/tools/settings.js')),true,'設定ページのモジュールがありません');
+assert.match(appSource,/import \{renderTeacherRecord\} from '\.\/tools\/teacher-record\.js'/,'家庭・先生向けページをapp.jsが読み込んでいません');
+assert.match(appSource,/['"]teacher-record['"]:\(\)=>renderTeacherRecord/,'家庭・先生向けページのルートがありません');
+assert.equal(existsSync(join(root,'src/tools/teacher-record.js')),true,'家庭・先生向けページのモジュールがありません');
+assert.match(appSource,/import \{renderPrintMaterials\} from '\.\/tools\/print-materials\.js'/,'印刷用教材をapp.jsが読み込んでいません');
+assert.match(appSource,/['"]print-materials['"]:\(\)=>renderPrintMaterials/,'印刷用教材のルートがありません');
+assert.equal(existsSync(join(root,'src/tools/print-materials.js')),true,'印刷用教材のモジュールがありません');
 const problemHubSource=readFileSync(join(root,'src/questions/problem-hub.js'),'utf8');
 assert.match(problemHubSource,/export function getProblemStudyRecord/,'問題の学習記録取得関数がありません');
 assert.match(problemHubSource,/export function clearProblemStudyRecord/,'問題の学習記録削除関数がありません');
 assert.match(appSource,/['\"]rules['\"]:\(\)=>renderRules/,'標準ルールページのルートがありません');
-assert.match(appSource,/rulesets:rulesData\.rulesets/,'標準ルールセットが実行時コンテキストにありません');
-assert.match(appSource,/standardRules:rulesData\.rulesets\.find/,'標準ルールの選択が実行時コンテキストにありません');
+assert.match(appSource,/rulesets,/,'標準ルールセットが実行時コンテキストにありません');
+assert.match(appSource,/standardRules:rulesets\.find/,'標準ルールの選択が実行時コンテキストにありません');
 assert.equal(existsSync(join(root,'src/tools/rules.js')),true,'標準ルールページのモジュールがありません');
 assert.match(appSource,/const isDataLesson=ctx\.dataLessonById\.has\(id\)/,'データ駆動章の判定がありません');
 assert.match(appSource,/else if\(isDataLesson\)renderDataLesson/,'データ駆動章のルートがありません');

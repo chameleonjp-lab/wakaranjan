@@ -13,7 +13,7 @@ const scoringLessons=readJson('src/data/scoring-core.json').lessons;
 const advanced=readJson('src/data/advanced-special.json').lessons;
 const extra=readJson('src/data/curriculum-extra.json').lessons;
 const lessonIds=new Set([...lessonData,...scoringLessons,...advanced,...extra].map(x=>x.id));
-const fixedRoutes=new Set(['home','intro-review','beginner-review','intermediate-review','problems','automatic-calculator','dictionary','yaku-guide','rules','study-record','practice','full-round']);
+const fixedRoutes=new Set(['home','intro-review','beginner-review','intermediate-review','problems','automatic-calculator','dictionary','yaku-guide','rules','study-record','teacher-record','print-materials','settings','practice','full-round']);
 const documentFragments=new Set(['app']);
 
 function staticHashTargets(){
@@ -36,7 +36,7 @@ test('主要公開ルートはapp.jsに実装されている',()=>{
 });
 
 test('公開時に必要なトップレベル資産が存在する',()=>{
-  for(const path of ['index.html','styles.css','accessibility.css','interactive-problems.css','src/app.js','src/data/tiles.json','src/data/yaku.json','src/data/rules.json'])assert.ok(readText(path).length>20,path);
+  for(const path of ['index.html','styles.css','accessibility.css','interactive-problems.css','settings.css','print-materials.css','src/app.js','src/data/tiles.json','src/data/yaku.json','src/data/rules.json'])assert.ok(readText(path).length>20,path);
 });
 
 test('エラー画面は再読み込み手段を利用者へ伝える',()=>{

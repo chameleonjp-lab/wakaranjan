@@ -27,7 +27,7 @@ jobs:
           node-version: 22
           package-manager-cache: false
 
-      - name: Run validation tests
+      - name: Run release validation tests
         run: npm test
 
       - name: Configure Pages
