@@ -22,7 +22,7 @@ const practiceRoutes=[
   '#dictionary?term=term-riichi',
   '#yaku-guide?yaku=yaku-riichi'
 ];
-const widthRoutes=['#home','#lesson-intro-04','#lesson-intro-05','#automatic-calculator','#practice?mode=draw-discard','#practice?mode=east-round','#settings','#teacher-record','#print-materials'];
+const widthRoutes=['#home','#lesson-intro-04','#lesson-intro-05','#automatic-calculator','#practice?mode=draw-discard','#practice?mode=wall','#practice?mode=kan','#practice?mode=hand-flow&scenario=draw','#practice?mode=round-flow','#practice?mode=east-round','#full-round','#settings','#teacher-record','#print-materials'];
 const widths=[320,375,390,402,430];
 
 const mimeTypes={
@@ -120,9 +120,42 @@ async function run(){
       assert.match(await page.locator('#draw-message').innerText(),/確認できました/);
     });
     await visit(browser,base,'#practice?mode=east-round',{width:402,height:874},async page=>{
-      await page.locator('#east-options .practice-choice').first().click();
-      await page.locator('#east-actions button').click();
-      assert.match(await page.locator('.east-round-head').innerText(),/東風戦 2/);
+      for(let round=0;round<4;round++){
+        await page.locator('#east-options .practice-choice').first().click();
+        await page.locator('#east-actions button').click();
+      }
+      assert.match(await page.locator('h1').innerText(),/4局を終えました/);
+      assert.match(await page.locator('#app').innerText(),/模擬東風戦（案内版）/);
+    });
+    await visit(browser,base,'#practice?mode=round-flow',{width:402,height:874},async page=>{
+      for(let step=0;step<6;step++)await page.locator('#flow-actions button').click();
+      assert.match(await page.locator('h1').innerText(),/局の進み方を確認できました/);
+    });
+    await visit(browser,base,'#practice?mode=kan',{width:402,height:874},async page=>{
+      for(let scene=0;scene<3;scene++){
+        await page.locator('#kan-actions button.primary').click();
+        if(scene<2)await page.locator('#kan-actions button.primary').click();
+      }
+      assert.match(await page.locator('#kan-feedback').innerText(),/加槓の処理を確認しました/);
+    });
+    await visit(browser,base,'#full-round',{width:402,height:874},async page=>{
+      for(let scenario=0;scenario<3;scenario++){
+        let steps=0;
+        while(await page.locator('#round-options .practice-choice').count()){
+          assert.ok(steps<6,'通し型実戦練習が完了しません（シナリオ'+(scenario+1)+'）');
+          await page.locator('#round-options .practice-choice').first().click();
+          await page.locator('#round-actions button.primary').click();
+          steps+=1;
+        }
+        assert.equal(steps,5,'通し型実戦練習の判断数が想定外です（シナリオ'+(scenario+1)+'）');
+        assert.match(await page.locator('h1').innerText(),/完了/);
+        if(scenario<2)await page.locator('#next-scenario').click();
+      }
+    });
+    await visit(browser,base,'#practice?mode=hand-flow&scenario=draw',{width:402,height:874},async page=>{
+      await page.getByRole('button',{name:'他家のツモ・捨て牌を進める',exact:true}).click();
+      await page.getByRole('button',{name:'流局として完了',exact:true}).click();
+      assert.match(await page.locator('#hand-flow-feedback').innerText(),/流局でこの一局は完了しています/);
     });
     await visit(browser,base,'#settings',{width:402,height:874},async page=>{
       await page.locator('#settings-display').selectOption('large');

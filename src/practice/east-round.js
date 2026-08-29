@@ -87,7 +87,7 @@ function resultText(result){
   return `${score}、${formatPayment(best.score)}。${payers||'点数の移動はありません'}。`;
 }
 function renderHand(app,ctx,round){
-  const hand=app.querySelector('#east-hand');if(hand)appendTileRow(hand,round.evaluation.concealedTiles.map(code=>ctx.tileByCode.get(code)));
+  const hand=app.querySelector('#east-hand');if(hand)appendTileRow(hand,(round.evaluation?.concealedTiles||round.hand||[]).map(code=>ctx.tileByCode.get(code)));
   const river=app.querySelector('#east-river');if(river)round.river.forEach(code=>river.append(tile(ctx,code)));
 }
 function nav(){return '<div class="lesson-nav"><a class="secondary" href="#practice">対局練習へ戻る</a><a class="primary" href="#home">ホームへ</a></div>'}
