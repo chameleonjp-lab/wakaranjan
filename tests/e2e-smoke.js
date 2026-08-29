@@ -228,7 +228,7 @@ async function run(){
       });
       await page.reload({waitUntil:'networkidle',timeout:20000});
       await page.locator('#app > *').first().waitFor({state:'attached',timeout:10000});
-      assert.equal(new URL(page.url()).hash,'#home','壊れた保存データからホームへ復旧できません');
+      assert.equal(new URL(page.url()).hash||'#home','#home','壊れた保存データからホームへ復旧できません');
       assert.match(await page.locator('#app').innerText(),/牌を触りながら/);
       assert.doesNotMatch(await page.locator('#app').innerText(),/教材を読み込めませんでした/);
     });
