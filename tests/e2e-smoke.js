@@ -158,6 +158,7 @@ async function assertSkipLinkPreservesRoute(browser,base,route){
   await visit(browser,base,route,{width:402,height:874},async page=>{
     const beforeHash=new URL(page.url()).hash||'#home';
     const beforeHeading=await page.locator('#app h1').innerText();
+    await page.locator('.skip-link').focus();
     await page.locator('.skip-link').click();
     const state=await page.evaluate(()=>({hash:location.hash,activeId:document.activeElement?.id,appTop:document.querySelector('#app')?.getBoundingClientRect().top??Infinity}));
     assert.equal(state.hash,beforeHash,`${route} の「本文へ移動」でURLの画面IDが変わりました`);
