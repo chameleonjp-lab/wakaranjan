@@ -54,6 +54,7 @@ const ASSET_PATHS={
   coreQuality:'./src/data/lesson-quality-core.json',
   rules:'./src/data/rules.json'
 };
+const QUALITY_ASSET_BY_SOURCE={lessons:'coreQuality',scoringCore:'coreQuality',advancedSpecial:'advancedQuality',curriculumExtra:'lessonQuality'};
 const INITIAL_ASSETS=['manifest','rules'];
 let routeSequence=0;
 
@@ -158,12 +159,12 @@ function routeAssetKeys(id,ctx){
   if(id==='automatic-calculator')return ['tiles','yaku'];
   if(id==='practice'||id==='full-round')return ['tiles'];
   if(id.startsWith('lesson-')){
-    const keys=['lessonQuality','advancedQuality','coreQuality','terms','termsExtra'];
-    keys.push('tiles');
-    if(id==='lesson-beginner-01')keys.push('tiles','waits');
-    if(id==='lesson-beginner-02')keys.push('tiles','calls');
-    if(/^lesson-beginner-0[3-6]$/.test(id))keys.push('tiles','beginnerCore','yaku');
     const source=ctx?.lessonIndexById?.get(id)?.source;
+    const quality=QUALITY_ASSET_BY_SOURCE[source]||'lessonQuality';
+    const keys=[quality,'terms','termsExtra','tiles'];
+    if(id==='lesson-beginner-01')keys.push('waits');
+    if(id==='lesson-beginner-02')keys.push('calls');
+    if(/^lesson-beginner-0[3-6]$/.test(id))keys.push('beginnerCore','yaku');
     if(source&&source!=='lessons'&&!keys.includes(source))keys.push(source);
     return keys;
   }
