@@ -112,7 +112,7 @@ async function run(){
     browser=await chromium.launch({headless:true});
     const routes=await discoverRoutes(browser,base);
     assert.ok(routes.length>=64,`expected at least 64 reachable hash routes, found ${routes.length}`);
-    for(const route of routes)await visit(browser,base,route,{width:402,height:874});
+    for(const route of routes)await visit(browser,base,route,{width:402,height:874},page=>assertNoPageOverflow(page,route,402));
 
     await visit(browser,base,'#practice?mode=draw-discard',{width:402,height:874},async page=>{
       await page.locator('#draw-actions button').click();
