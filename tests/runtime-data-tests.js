@@ -118,7 +118,9 @@ assert.match(appSource,/ASSET_PATHS[\s\S]+rules:'\.\/src\/data\/rules\.json'/,'�
 assert.match(appSource,/ensureAssets\(ctx,keys\)/,'画面ごとの遅延読み込み処理がありません');
 assert.match(appSource,/routeAssetKeys/,'ルートごとのデータ資産指定がありません');
 assert.doesNotMatch(appSource,/cache:'no-store'/,'データ資産を毎回キャッシュ無効で読み込んでいます');
-assert.match(appSource,/cache:'default'/,'データ資産の通常キャッシュ指定がありません');
+assert.match(appSource,/version=DATASET_VERSION,cache='default'/,'データ資産の通常キャッシュ指定がありません');
+assert.match(appSource,/\{cache\}/,'指定したキャッシュ方式をfetchへ渡していません');
+assert.match(appSource,/ASSET_PATHS\.manifest,DATASET_VERSION,'no-cache'/,'manifestを再検証していません');
 assert.match(appSource,/import \{renderStudyRecord\} from '\.\/tools\/study-record\.js'/,'学習記録ページをapp.jsが読み込んでいません');
 assert.match(appSource,/import \{renderPracticeHub\} from '\.\/practice\/practice-hub\.js'/,'対局練習ページをapp.jsが読み込んでいません');
 assert.match(appSource,/['\"]practice['\"]:\(\)=>renderPracticeHub/,'対局練習ページのルートがありません');

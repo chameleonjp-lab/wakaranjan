@@ -57,9 +57,9 @@ const ASSET_PATHS={
 const INITIAL_ASSETS=['manifest','lessons','scoringCore','advancedSpecial','curriculumExtra','rules'];
 let routeSequence=0;
 
-async function loadJson(path,version=DATASET_VERSION){
+async function loadJson(path,version=DATASET_VERSION,cache='default'){
   const separator=path.includes('?')?'&':'?';
-  const res=await fetch(`${path}${separator}v=${encodeURIComponent(version)}`,{cache:'default'});
+  const res=await fetch(`${path}${separator}v=${encodeURIComponent(version)}`,{cache});
   if(!res.ok)throw new Error(`${path} の読み込みに失敗しました`);
   return res.json();
 }
@@ -110,7 +110,7 @@ function hydrateContext(ctx){
 async function ensureAssets(ctx,keys){
   const wanted=[...new Set(keys)].filter(key=>ASSET_PATHS[key]);
   if(wanted.includes('manifest')&&!ctx.assets.manifest){
-    ctx.assets.manifest=await loadJson(ASSET_PATHS.manifest,DATASET_VERSION);
+    ctx.assets.manifest=await loadJson(ASSET_PATHS.manifest,DATASET_VERSION,'no-cache');
     ctx.datasetVersion=ctx.assets.manifest.datasetVersion||DATASET_VERSION;
   }
   ctx.datasetVersion=ctx.assets.manifest?.datasetVersion||ctx.datasetVersion||DATASET_VERSION;

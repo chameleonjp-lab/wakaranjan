@@ -2,7 +2,7 @@ const KEY='wakaranjan-settings-v1';
 const DEFAULTS={displayScale:'system',sound:true,reducedMotion:'system',lastRoute:'#home'};
 const DISPLAY_SCALES=new Set(['system','large','larger']);
 const MOTION_MODES=new Set(['system','on','off']);
-const ROUTE_PATTERN=/^#[A-Za-z0-9_-]+(?:\?[^#\s]*)?$/;
+const ROUTE_PATTERN=/^#[A-Za-z0-9_-]+(?:\?[A-Za-z0-9._~%=&+,\-]*)?$/;
 
 function safeRoute(value){
   if(typeof value!=='string'||!ROUTE_PATTERN.test(value))return DEFAULTS.lastRoute;
