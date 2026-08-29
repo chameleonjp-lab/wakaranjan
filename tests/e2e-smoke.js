@@ -3,7 +3,7 @@ import {createServer} from 'node:http';
 import {readFile,stat} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
-import {chromium} from 'playwright';
+import {chromium,webkit} from 'playwright';
 
 const root=path.resolve(fileURLToPath(new URL('..',import.meta.url)));
 const practiceRoutes=[
@@ -24,6 +24,7 @@ const practiceRoutes=[
 ];
 const widthRoutes=['#home','#lesson-intro-04','#lesson-intro-05','#automatic-calculator','#practice?mode=draw-discard','#practice?mode=wall','#practice?mode=kan','#practice?mode=hand-flow&scenario=draw','#practice?mode=round-flow','#practice?mode=east-round','#full-round','#settings','#teacher-record','#print-materials'];
 const widths=[320,375,390,402,430];
+const qualityJsonPaths=new Set(['/src/data/lesson-quality.json','/src/data/lesson-quality-advanced.json','/src/data/lesson-quality-core.json']);
 
 const mimeTypes={
   '.css':'text/css; charset=utf-8',
@@ -91,6 +92,25 @@ async function discoverRoutes(browser,base){
   return [...routes];
 }
 
+async function assertLessonAssetSelection(browser,base,route,{quality,content}){
+  const jsonPaths=[];
+  await visit(browser,base,route,{width:402,height:874},async()=>{
+    const unique=[...new Set(jsonPaths)].sort();
+    const qualityPath=`/src/data/${quality}.json`;
+    assert.ok(unique.includes(qualityPath),`${route} が ${qualityPath} を取得していません: ${unique.join(', ')}`);
+    assert.equal(unique.filter(path=>qualityJsonPaths.has(path)).length,1,`${route} が品質JSONを複数取得しています: ${unique.join(', ')}`);
+    if(content){
+      const contentPath=`/src/data/${content}.json`;
+      assert.ok(unique.includes(contentPath),`${route} が ${contentPath} を取得していません: ${unique.join(', ')}`);
+    }
+  },async page=>{
+    page.on('request',request=>{
+      const url=new URL(request.url());
+      if(url.pathname.startsWith('/src/data/')&&url.pathname.endsWith('.json'))jsonPaths.push(url.pathname);
+    });
+  });
+}
+
 async function assertNoPageOverflow(page,route,width){
   const metrics=await page.evaluate(()=>{
     const app=document.querySelector('#app');
@@ -110,7 +130,8 @@ async function run(){
   const {server,base}=await startStaticServer();
   let browser;
   try{
-    browser=await chromium.launch({headless:true});
+    const browserType=process.env.PLAYWRIGHT_BROWSER==='webkit'?webkit:chromium;
+    browser=await browserType.launch({headless:true});
     const routes=await discoverRoutes(browser,base);
     assert.ok(routes.length>=64,`expected at least 64 reachable hash routes, found ${routes.length}`);
     const homeJsonRequests=[];
@@ -123,6 +144,12 @@ async function run(){
         if(url.pathname.startsWith('/src/data/')&&url.pathname.endsWith('.json'))homeJsonRequests.push(url.pathname);
       });
     });
+    for(const [route,assets] of [
+      ['#lesson-intro-04',{quality:'lesson-quality-core'}],
+      ['#lesson-intermediate-01',{quality:'lesson-quality-core'}],
+      ['#lesson-beginner-07',{quality:'lesson-quality',content:'curriculum-extra'}],
+      ['#lesson-advanced-01',{quality:'lesson-quality-advanced',content:'advanced-special'}]
+    ])await assertLessonAssetSelection(browser,base,route,assets);
     for(const route of routes)await visit(browser,base,route,{width:402,height:874},page=>assertNoPageOverflow(page,route,402));
 
     await visit(browser,base,'#practice?mode=draw-discard',{width:402,height:874},async page=>{
@@ -259,7 +286,7 @@ async function run(){
         await visit(browser,base,route,{width,height:874},page=>assertNoPageOverflow(page,route,width));
       }
     }
-    console.log(`browser smoke tests passed: ${routes.length} routes, widths ${widths.join(', ')}`);
+    console.log(`browser smoke tests passed [${process.env.PLAYWRIGHT_BROWSER||'chromium'}]: ${routes.length} routes, widths ${widths.join(', ')}`);
   }finally{
     await browser?.close();
     await new Promise(resolve=>server.close(resolve));

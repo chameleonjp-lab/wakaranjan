@@ -127,6 +127,8 @@ for(const [yakuId,example] of Object.entries(examples)){
 assert.match(appSource,/ASSET_PATHS[\s\S]+rules:'\.\/src\/data\/rules\.json'/,'標準ルールJSONをapp.jsが読み込める資産として定義していません');
 assert.match(appSource,/const INITIAL_ASSETS=\['manifest','rules'\]/,'ホームで教材本文を初回取得しています');
 assert.match(appSource,/lessonIndexById/,'教材索引から本文データを選ぶ処理がありません');
+assert.match(appSource,/QUALITY_ASSET_BY_SOURCE/,'章ごとの品質データ対応表がありません');
+for(const mapping of ["lessons:'coreQuality'","scoringCore:'coreQuality'","advancedSpecial:'advancedQuality'","curriculumExtra:'lessonQuality'"])assert.match(appSource,new RegExp(mapping),mapping+' の品質データ対応がありません');
 assert.match(appSource,/routeAssetKeys\(id,ctx\)/,'章ごとの本文遅延読み込み元がありません');
 assert.match(appSource,/ensureAssets\(ctx,keys\)/,'画面ごとの遅延読み込み処理がありません');
 assert.match(appSource,/routeAssetKeys/,'ルートごとのデータ資産指定がありません');
