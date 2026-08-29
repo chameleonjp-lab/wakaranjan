@@ -55,7 +55,7 @@ function startStaticServer(){
   });
 }
 
-async function visit(browser,base,route,viewport,onReady){
+async function visit(browser,base,route,viewport,onReady,beforeGoto){
   const page=await browser.newPage({viewport});
   const errors=[];
   const onPageError=error=>errors.push(`pageerror: ${error.message}`);
@@ -63,6 +63,7 @@ async function visit(browser,base,route,viewport,onReady){
   page.on('pageerror',onPageError);
   page.on('console',onConsole);
   try{
+    if(beforeGoto)await beforeGoto(page);
     const response=await page.goto(`${base}/index.html${route}`,{waitUntil:'networkidle',timeout:20000});
     assert.ok(response?.ok(),`${route} returned HTTP ${response?.status()}`);
     await page.locator('#app > *').first().waitFor({state:'attached',timeout:10000});
@@ -112,6 +113,16 @@ async function run(){
     browser=await chromium.launch({headless:true});
     const routes=await discoverRoutes(browser,base);
     assert.ok(routes.length>=64,`expected at least 64 reachable hash routes, found ${routes.length}`);
+    const homeJsonRequests=[];
+    await visit(browser,base,'#home',{width:402,height:874},async page=>{
+      const jsonPaths=[...new Set(homeJsonRequests)].sort();
+      assert.deepEqual(jsonPaths,['/src/data/manifest.json','/src/data/rules.json'],'ホーム初回表示で不要なJSONを取得しています');
+    },async page=>{
+      page.on('request',request=>{
+        const url=new URL(request.url());
+        if(url.pathname.startsWith('/src/data/')&&url.pathname.endsWith('.json'))homeJsonRequests.push(url.pathname);
+      });
+    });
     for(const route of routes)await visit(browser,base,route,{width:402,height:874},page=>assertNoPageOverflow(page,route,402));
 
     await visit(browser,base,'#practice?mode=draw-discard',{width:402,height:874},async page=>{
@@ -157,6 +168,13 @@ async function run(){
       await page.getByRole('button',{name:'流局として完了',exact:true}).click();
       assert.match(await page.locator('#hand-flow-feedback').innerText(),/流局でこの一局は完了しています/);
     });
+    for(const route of ['#problems','#dictionary?term=term-riichi','#automatic-calculator','#practice?mode=east-round']){
+      await visit(browser,base,route,{width:402,height:874},async page=>{
+        await page.reload({waitUntil:'networkidle',timeout:20000});
+        await page.locator('#app > *').first().waitFor({state:'attached',timeout:10000});
+        assert.doesNotMatch(await page.locator('#app').innerText(),/教材を読み込めませんでした/);
+      });
+    }
     await visit(browser,base,'#settings',{width:402,height:874},async page=>{
       await page.locator('#settings-display').selectOption('large');
       await page.locator('#settings-sound').uncheck();
