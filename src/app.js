@@ -54,7 +54,7 @@ const ASSET_PATHS={
   coreQuality:'./src/data/lesson-quality-core.json',
   rules:'./src/data/rules.json'
 };
-const INITIAL_ASSETS=['manifest','lessons','scoringCore','advancedSpecial','curriculumExtra','rules'];
+const INITIAL_ASSETS=['manifest','rules'];
 let routeSequence=0;
 
 async function loadJson(path,version=DATASET_VERSION,cache='default'){
@@ -69,9 +69,12 @@ function hydrateContext(ctx){
   const assets=ctx.assets;
   const tileData=assets.tiles||{tiles:[]};
   const lessonData=assets.lessons||{lessons:[]};
+  const indexedLessons=Array.isArray(assets.manifest?.lessonIndex)?assets.manifest.lessonIndex:[];
   const intermediateLessons=(assets.scoringCore?.lessons||[]).map(x=>({...x,level:'intermediate',estimatedMinutes:7}));
   const dataLessons=[...(assets.advancedSpecial?.lessons||[]),...(assets.curriculumExtra?.lessons||[])];
-  const lessons=[...(lessonData.lessons||[]),...intermediateLessons,...dataLessons];
+  const contentLessons=[...(lessonData.lessons||[]),...intermediateLessons,...dataLessons];
+  const contentById=new Map(contentLessons.map(lesson=>[lesson.id,lesson]));
+  const lessons=indexedLessons.length?indexedLessons.map(indexEntry=>({...indexEntry,...(contentById.get(indexEntry.id)||{})})):contentLessons;
   const baseCatalog=assets.problemCatalog||emptyCatalog();
   const practical=assets.practicalRules||{};
   const visual=assets.visualCatalog||{};
@@ -98,6 +101,7 @@ function hydrateContext(ctx){
     rulesets,
     standardRules:rulesets.find(r=>r.id==='wakaranjan-standard-v1'),
     lessonById:new Map(lessons.map(l=>[l.id,l])),
+    lessonIndexById:new Map(indexedLessons.map(l=>[l.id,l])),
     dataLessonById:new Map(dataLessons.map(l=>[l.id,l])),
     lessonQualityById:new Map(qualityLessons.map(l=>[l.id,l])),
     termById:new Map(terms.map(t=>[t.id,t])),
@@ -142,7 +146,7 @@ function renderHome(ctx){
 }
 function renderUnavailable(id,ctx){const lesson=ctx.lessonById.get(id);app.innerHTML=`<section class="hero"><div class="eyebrow">準備中</div><h1>${lesson?.title||'このページ'}</h1><p>この章はまだ実装前です。</p><div class="action-row"><a class="secondary" href="#home">一覧へ戻る</a></div></section>`}
 
-function routeAssetKeys(id){
+function routeAssetKeys(id,ctx){
   if(id==='home'||id==='rules'||id==='settings'||id==='print-materials')return [];
   if(id==='intro-review')return ['introReview'];
   if(id==='beginner-review')return ['beginnerReview'];
@@ -159,6 +163,8 @@ function routeAssetKeys(id){
     if(id==='lesson-beginner-01')keys.push('tiles','waits');
     if(id==='lesson-beginner-02')keys.push('tiles','calls');
     if(/^lesson-beginner-0[3-6]$/.test(id))keys.push('tiles','beginnerCore','yaku');
+    const source=ctx?.lessonIndexById?.get(id)?.source;
+    if(source&&source!=='lessons'&&!keys.includes(source))keys.push(source);
     return keys;
   }
   return [];
@@ -168,10 +174,10 @@ function route(ctx){
   const sequence=++routeSequence;
   const hash=location.hash||'#home';
   const id=hash.slice(1).split('?')[0];
-  const isDataLesson=ctx.dataLessonById.has(id);
   setLastRoute(hash);
-  return ensureAssets(ctx,routeAssetKeys(id)).then(()=>{
+  return ensureAssets(ctx,routeAssetKeys(id,ctx)).then(()=>{
     if(sequence!==routeSequence)return;
+    const isDataLesson=ctx.dataLessonById.has(id);
     const routes={
       'lesson-intro-01':()=>renderIntro01(app,ctx),
       'lesson-intro-02':()=>renderIntro02(app,ctx),

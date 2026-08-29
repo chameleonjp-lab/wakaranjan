@@ -6,6 +6,7 @@ import {fileURLToPath} from 'node:url';
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const readText=path=>readFileSync(join(root,path),'utf8');
 const readJson=path=>JSON.parse(readFileSync(join(root,path),'utf8'));
+const manifest=readJson('src/data/manifest.json');
 const appSource=readFileSync(join(root,'src/app.js'),'utf8');
 
 function uniqueIds(items,label){
@@ -52,6 +53,15 @@ const scoringData=readJson('src/data/scoring-core.json').lessons.map(lesson=>({.
 const dataLessons=[...readJson('src/data/advanced-special.json').lessons,...readJson('src/data/curriculum-extra.json').lessons];
 const lessons=[...lessonData,...scoringData,...dataLessons];
 const lessonIds=uniqueIds(lessons,'学習ページ');
+const lessonIndex=manifest.lessonIndex;
+const lessonIndexIds=uniqueIds(lessonIndex,'ホーム用教材索引');
+assert.equal(manifest.expected.lessonCount,38,'manifestの教材数が38章ではありません');
+assert.equal(lessonIndex.length,38,'ホーム用教材索引の章数が38章ではありません');
+assert.deepEqual([...lessonIndexIds].sort(),[...lessonIds].sort(),'ホーム用教材索引と実行時教材のIDが一致しません');
+for(const item of lessonIndex){
+  assert.ok(['lessons','scoringCore','advancedSpecial','curriculumExtra'].includes(item.source),item.id+' の教材本文元が不正です');
+  assert.ok(item.level&&Number.isInteger(item.order)&&item.title&&Number.isInteger(item.estimatedMinutes),item.id+' のホーム用メタデータが不足しています');
+}
 assert.equal(lessons.length,38,'実行時に統合される章数が38章ではありません');
 for(const lesson of lessons){
   for(const prerequisite of lesson.prerequisites||[])assert.equal(lessonIds.has(prerequisite),true,`${lesson.id} の前提ページがありません: ${prerequisite}`);
@@ -115,6 +125,9 @@ for(const [yakuId,example] of Object.entries(examples)){
 }
 
 assert.match(appSource,/ASSET_PATHS[\s\S]+rules:'\.\/src\/data\/rules\.json'/,'標準ルールJSONをapp.jsが読み込める資産として定義していません');
+assert.match(appSource,/const INITIAL_ASSETS=\['manifest','rules'\]/,'ホームで教材本文を初回取得しています');
+assert.match(appSource,/lessonIndexById/,'教材索引から本文データを選ぶ処理がありません');
+assert.match(appSource,/routeAssetKeys\(id,ctx\)/,'章ごとの本文遅延読み込み元がありません');
 assert.match(appSource,/ensureAssets\(ctx,keys\)/,'画面ごとの遅延読み込み処理がありません');
 assert.match(appSource,/routeAssetKeys/,'ルートごとのデータ資産指定がありません');
 assert.doesNotMatch(appSource,/cache:'no-store'/,'データ資産を毎回キャッシュ無効で読み込んでいます');
