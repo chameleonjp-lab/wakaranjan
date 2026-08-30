@@ -214,7 +214,7 @@ function renderHome(ctx){
     await flushCloudSync();
     const next=activateProfile(input?.value||'');
     if(!next){if(status)status.textContent='名前を1文字以上入力してください。';if(submit){submit.disabled=false;submit.textContent=profile?'この名前でメニューへ':'名前を入力して始める'}input?.focus();return}
-    const result=await synchronizeActiveProfileFromCloud({force:true});
+    const result=await retryActiveProfileCloudSync();
     if(status)status.textContent=result.ok?'学習記録を読み込みました。':'通信できないため、この端末の記録で続けます。';
     updateSettings({lastRoute:'#menu'});
     location.hash='#menu';
