@@ -27,7 +27,7 @@ import {attachLessonSupport} from './lessons/lesson-support.js';
 import {attachLessonProgress,getLessonProgress,clearLessonProgress} from './lib/progress.js';
 import {applySettings,getSettings,setLastRoute,updateSettings} from './lib/settings.js';
 import {activateProfile,getActiveProfile,hasActiveProfile} from './lib/profile.js';
-import {flushCloudSync,getCloudSyncStatus,synchronizeActiveProfileFromCloud} from './lib/cloud-sync.js';
+import {flushCloudSync,getCloudSyncStatus,retryActiveProfileCloudSync,synchronizeActiveProfileFromCloud} from './lib/cloud-sync.js';
 import {decorateMahjongTerms} from './lib/mahjong-ruby.js';
 import {scrollAppToTop} from './lib/navigation.js';
 
@@ -231,7 +231,15 @@ function renderMenu(ctx){
   const continueHtml=next?`<a class="continue-card" href="#${next.id}"><span>続きから</span><strong>${escapeHtml(next.title)}</strong><small>前回の教材を開きます</small></a>`:'';
   const levelLinks=Object.entries(LEVEL_META).map(([id,item])=>`<a class="menu-card menu-level-card" href="#learn?level=${id}"><strong>${item.label}</strong><span>${item.description}</span><small>${progressSummary(lessonItems(ctx,id),progress)}</small></a>`).join('');
   const sync=getCloudSyncStatus();
-  app.innerHTML=`<section class="hero menu-hero"><div class="eyebrow">メニュー</div><h1>何をしますか？</h1><p><strong>${escapeHtml(profile.name)}さん</strong>の学習記録を使います。迷ったら「入門」から始めてください。</p><p class="sync-status" data-sync-state="${sync.state}" role="status" aria-live="polite">${escapeHtml(sync.message)}</p>${continueHtml}<a class="profile-switch" href="#home">学ぶ人を切り替える</a></section><section class="menu-section" aria-labelledby="learn-menu-title"><h2 id="learn-menu-title">学ぶ</h2><div class="menu-grid menu-level-grid"><a class="menu-card menu-card-main" href="#learn"><strong>学ぶ全体</strong><span>5つの段階を一覧で見て、順番を決めます。</span><small>教材38章・進捗表示</small></a>${levelLinks}</div></section><section class="menu-section" aria-labelledby="practice-menu-title"><h2 id="practice-menu-title">解く・練習する</h2><div class="menu-grid"><a class="menu-card" href="#problems"><strong>問題集</strong><span>文章問題と牌姿問題で理解を確かめます。</span><small>総復習・苦手復習</small></a><a class="menu-card" href="#practice"><strong>対局練習</strong><span>ツモ、捨て牌、鳴き、リーチを操作します。</span><small>短い練習から一局まで</small></a><a class="menu-card" href="#practice?mode=east-round"><strong>模擬東風戦</strong><span>4局の進み方を案内付きで確認します。</span><small>対局の流れを体験</small></a></div></section><section class="menu-section" aria-labelledby="tools-menu-title"><h2 id="tools-menu-title">調べる・記録する</h2><div class="menu-grid"><a class="menu-card" href="#automatic-calculator"><strong>点数計算</strong><span>牌と局面を入力して、役・符・点数を確認します。</span></a><a class="menu-card" href="#lookup"><strong>用語・役を調べる</strong><span>読み方、意味、役の成立条件を探します。</span></a><a class="menu-card" href="#study-record"><strong>学習記録</strong><span>教材の完了状況と問題の正答状況を見ます。</span></a><a class="menu-card" href="#settings"><strong>設定</strong><span>文字の大きさ、音、動きを変更します。</span></a></div></section>`;
+  const retryHtml=sync.state==='error'?'<div class="action-row"><button id="retry-cloud-sync-menu" class="secondary" type="button">Supabase同期を再試行</button></div>':'';
+  app.innerHTML=`<section class="hero menu-hero"><div class="eyebrow">メニュー</div><h1>何をしますか？</h1><p><strong>${escapeHtml(profile.name)}さん</strong>の学習記録を使います。迷ったら「入門」から始めてください。</p><p class="sync-status" data-sync-state="${sync.state}" role="status" aria-live="polite">${escapeHtml(sync.message)}</p>${retryHtml}${continueHtml}<a class="profile-switch" href="#home">学ぶ人を切り替える</a></section><section class="menu-section" aria-labelledby="learn-menu-title"><h2 id="learn-menu-title">学ぶ</h2><div class="menu-grid menu-level-grid"><a class="menu-card menu-card-main" href="#learn"><strong>学ぶ全体</strong><span>5つの段階を一覧で見て、順番を決めます。</span><small>教材38章・進捗表示</small></a>${levelLinks}</div></section><section class="menu-section" aria-labelledby="practice-menu-title"><h2 id="practice-menu-title">解く・練習する</h2><div class="menu-grid"><a class="menu-card" href="#problems"><strong>問題集</strong><span>文章問題と牌姿問題で理解を確かめます。</span><small>総復習・苦手復習</small></a><a class="menu-card" href="#practice"><strong>対局練習</strong><span>ツモ、捨て牌、鳴き、リーチを操作します。</span><small>短い練習から一局まで</small></a><a class="menu-card" href="#practice?mode=east-round"><strong>模擬東風戦</strong><span>4局の進み方を案内付きで確認します。</span><small>対局の流れを体験</small></a></div></section><section class="menu-section" aria-labelledby="tools-menu-title"><h2 id="tools-menu-title">調べる・記録する</h2><div class="menu-grid"><a class="menu-card" href="#automatic-calculator"><strong>点数計算</strong><span>牌と局面を入力して、役・符・点数を確認します。</span></a><a class="menu-card" href="#lookup"><strong>用語・役を調べる</strong><span>読み方、意味、役の成立条件を探します。</span></a><a class="menu-card" href="#study-record"><strong>学習記録</strong><span>教材の完了状況と問題の正答状況を見ます。</span></a><a class="menu-card" href="#settings"><strong>設定</strong><span>文字の大きさ、音、動きを変更します。</span></a></div></section>`;
+  app.querySelector('#retry-cloud-sync-menu')?.addEventListener('click',async event=>{
+    const button=event.currentTarget;
+    button.disabled=true;
+    button.textContent='同期しています…';
+    await retryActiveProfileCloudSync();
+    renderMenu(ctx);
+  });
 }
 
 function renderLearn(ctx){

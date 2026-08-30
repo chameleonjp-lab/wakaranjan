@@ -233,10 +233,10 @@ async function assertCloudSyncFailureRetry(browser,base){
     // Reload after seeding so this follows the same path as a returning user.
     await page.reload({waitUntil:'networkidle',timeout:20000});
     await page.locator('.sync-status[data-sync-state="error"]').waitFor({state:'visible',timeout:10000});
-    await page.goto(`${base}/index.html#study-record`,{waitUntil:'networkidle',timeout:20000});
-    await page.locator('#retry-cloud-sync').click();
-    await page.locator('text=Supabaseから学習記録を読み込みました。').waitFor({state:'visible',timeout:10000});
-    assert.match(await page.locator('#app').innerText(),/1 \/ 38章/,'再試行後にクラウドの教材進捗を反映できません');
+    await page.goto(`${base}/index.html#menu`,{waitUntil:'networkidle',timeout:20000});
+    await page.locator('#retry-cloud-sync-menu').click();
+    await page.locator('.sync-status[data-sync-state="synced"]').waitFor({state:'visible',timeout:10000});
+    assert.match(await page.locator('#app').innerText(),/1 \/ 6 完了/,'再試行後にクラウドの教材進捗を反映できません');
     assert.equal(requests,2,'Supabase同期の再試行でリクエストが重複しました');
     assert.deepEqual(pageErrors,[],'Supabase同期の失敗・再試行でJavaScript例外が発生しました');
   }finally{
