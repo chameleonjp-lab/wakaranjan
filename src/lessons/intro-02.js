@@ -15,7 +15,7 @@ export function renderIntro02(root,ctx){
     <section><h2 class="section-title">牌をタップして読みを確認</h2><div class="panel detail-card" id="detail"><div class="muted">上の牌を1枚タップしてください。</div></div></section>
     <section><h2 class="section-title">赤い5について</h2><div class="callout"><strong>赤5は別の種類ではありません。</strong><br>五萬・五筒・五索の特別な見た目です。通常の5と同じ数字の牌として数えます。</div><div id="red-demo" class="panel tile-row"></div></section>
     <section><h2 class="section-title">確認</h2><div class="panel"><p><strong>Q.</strong> 「字牌」だけに入っているものはどれ？</p><div id="quiz" class="quiz-options"><button type="button" data-code="3m">三萬</button><button type="button" data-code="1z">東</button><button type="button" data-code="7p">七筒</button></div><div id="feedback" class="feedback" hidden></div></div></section>
-    <nav class="lesson-nav"><a class="secondary" href="#lesson-intro-01">前へ</a><a class="primary" href="#home">入門一覧へ</a></nav>`;
+    <nav class="lesson-nav"><a class="secondary" href="#lesson-intro-01">前へ</a><a class="primary" href="#learn?level=intro">入門一覧へ</a></nav>`;
 
   const tabs=root.querySelector('#tabs'); const grid=root.querySelector('#tile-grid');
   GROUPS.forEach(([key,name])=>{const b=document.createElement('button');b.type='button';b.textContent=name;b.dataset.group=key;b.setAttribute('aria-pressed',key==='man'?'true':'false');b.addEventListener('click',()=>showGroup(key));tabs.append(b);});

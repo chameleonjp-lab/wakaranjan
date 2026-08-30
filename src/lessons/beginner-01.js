@@ -64,7 +64,7 @@ export function renderBeginner01(app,ctx){
     quiz.querySelector('.action-row').append(check);
     app.append(quiz);
 
-    const nav=document.createElement('div');nav.className='lesson-nav';nav.innerHTML='<a class="secondary" href="#home">ホームへ</a><a class="secondary" href="#lesson-beginner-02">次：鳴き</a>';app.append(nav);
+    const nav=document.createElement('div');nav.className='lesson-nav';nav.innerHTML='<a class="secondary" href="#learn?level=beginner">初級一覧</a><a class="secondary" href="#lesson-beginner-02">次：鳴き</a>';app.append(nav);
   };
 
   const showResult=()=>{

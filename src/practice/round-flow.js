@@ -40,7 +40,7 @@ const FLOW_STEPS=[
 ];
 
 function nav(){
-  return '<div class="lesson-nav"><a class="secondary" href="#practice">対局練習へ戻る</a><a class="primary" href="#home">ホームへ</a></div>';
+  return '<div class="lesson-nav"><a class="secondary" href="#practice">対局練習へ戻る</a><a class="primary" href="#menu">メニューへ</a></div>';
 }
 
 function scoreBoard(state){

@@ -29,7 +29,7 @@ export function renderStudyRecord(app,ctx){
     '</section>',
     '<section class="panel"><h2>教材の進み具合</h2><div class="record-level-grid">'+LEVELS.map(level=>levelCard(level,ctx.lessons.filter(item=>item.level===level[0]),lessonProgress)).join('')+'</div></section>',
     '<section class="panel"><h2>問題の記録</h2><p>正答率は、この端末で保存された回答をもとに表示しています。</p>'+problemSummary(problem)+'</section>',
-    '<section class="panel"><h2>最近の状態</h2>'+lastHtml+'<div class="action-row"><a class="primary" href="#problems">問題を解く</a><a class="secondary" href="#home">ホームへ戻る</a></div></section>',
+    '<section class="panel"><h2>最近の状態</h2>'+lastHtml+'<div class="action-row"><a class="primary" href="#problems">問題を解く</a><a class="secondary" href="#menu">メニューへ戻る</a></div></section>',
     '<section class="callout"><strong>保存場所について</strong><br>学習記録はこの端末のブラウザ内に保存されます。ブラウザのデータを消去すると、記録も消えることがあります。</section>',
     '<section class="panel"><h2>記録を消す</h2><p>教材の進捗、問題の正答記録、復習待ちの問題をまとめて消します。</p><div class="action-row"><button id="clear-all-study-record" class="secondary" type="button">この端末の学習記録を消す</button></div></section>'
   ].join('');

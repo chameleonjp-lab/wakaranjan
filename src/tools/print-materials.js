@@ -4,7 +4,7 @@ export function renderPrintMaterials(app,ctx){
   const winning=rule.winning||{};
   const scoring=rule.scoring||{};
   const redDoraCount=Object.values(scoring.redDoraByType||{}).reduce((sum,count)=>sum+(Number(count)||0),0)||3;
-  app.innerHTML=`<section class="print-material"><div class="print-controls action-row"><button id="print-materials" class="primary" type="button">印刷する</button><a class="secondary" href="#home">ホームへ戻る</a></div><header><div class="eyebrow">ワカランジャン</div><h1>麻雀 学習用まとめ</h1><p>画面を見ながら、または印刷して、確認したいところに印をつけて使います。</p></header>
+  app.innerHTML=`<section class="print-material"><div class="print-controls action-row"><button id="print-materials" class="primary" type="button">印刷する</button><a class="secondary" href="#menu">メニューへ戻る</a></div><header><div class="eyebrow">ワカランジャン</div><h1>麻雀 学習用まとめ</h1><p>画面を見ながら、または印刷して、確認したいところに印をつけて使います。</p></header>
   <section class="print-sheet"><h2>まず覚える順番</h2><ol><li>自分の番に1枚ツモって、1枚捨てる</li><li>4つの面子と1つの雀頭を作る</li><li>役を1つ以上そろえてあがる</li><li>翻と符、親子、ロン・ツモで点数を確認する</li></ol></section>
   <section class="print-sheet"><h2>牌の分類</h2><div class="print-columns"><div><h3>数牌</h3><p>萬子・筒子・索子の1〜9。1と9は端牌、2〜8は中張牌です。</p></div><div><h3>字牌</h3><p>東・南・西・北の風牌、白・發・中の三元牌です。</p></div></div></section>
   <section class="print-sheet"><h2>あがり前の確認</h2><ul class="check-list"><li>□ 手牌の形が整っている</li><li>□ ドラではない役が1つ以上ある</li><li>□ フリテンではない（ロンの場合）</li><li>□ リーチ・鳴き・待ちを確認した</li></ul></section>

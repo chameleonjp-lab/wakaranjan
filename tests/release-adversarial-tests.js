@@ -13,7 +13,7 @@ const scoringLessons=readJson('src/data/scoring-core.json').lessons;
 const advanced=readJson('src/data/advanced-special.json').lessons;
 const extra=readJson('src/data/curriculum-extra.json').lessons;
 const lessonIds=new Set([...lessonData,...scoringLessons,...advanced,...extra].map(x=>x.id));
-const fixedRoutes=new Set(['home','intro-review','beginner-review','intermediate-review','problems','automatic-calculator','dictionary','yaku-guide','rules','study-record','teacher-record','print-materials','settings','practice','full-round']);
+const fixedRoutes=new Set(['home','menu','learn','lookup','intro-review','beginner-review','intermediate-review','problems','automatic-calculator','dictionary','yaku-guide','rules','study-record','teacher-record','print-materials','settings','practice','full-round']);
 const documentFragments=new Set(['app']);
 
 function staticHashTargets(){
@@ -36,7 +36,7 @@ test('主要公開ルートはapp.jsに実装されている',()=>{
 });
 
 test('公開時に必要なトップレベル資産が存在する',()=>{
-  for(const path of ['index.html','favicon.svg','styles.css','accessibility.css','interactive-problems.css','settings.css','print-materials.css','src/app.js','src/data/manifest.json','src/data/tiles.json','src/data/yaku.json','src/data/rules.json','scripts/prepare-pages.mjs','.github/actions/release-checks/action.yml'])assert.ok(readText(path).length>20,path);
+  for(const path of ['index.html','favicon.svg','styles.css','accessibility.css','interactive-problems.css','settings.css','print-materials.css','ux-reorganization.css','src/app.js','src/lib/profile.js','src/lib/mahjong-ruby.js','src/data/manifest.json','src/data/tiles.json','src/data/yaku.json','src/data/rules.json','scripts/prepare-pages.mjs','.github/actions/release-checks/action.yml'])assert.ok(readText(path).length>20,path);
 });
 
 test('スキップリンクは画面遷移とページ内移動を分離する',()=>{
@@ -58,6 +58,21 @@ test('Pages公開前の検査は生成した同一ファイルを対象にする
 
 test('学習進捗の保存処理はnull・配列・型違いを正規化する',()=>{
   const src=readText('src/lib/progress.js');assert.match(src,/!value\|\|typeof value!=='object'/);assert.match(src,/Array\.isArray\(value\.completed\)/);assert.match(src,/typeof value\.lastLesson==='string'/);
+});
+
+test('名前別の学習記録と問題記録を分離する',()=>{
+  const profile=readText('src/lib/profile.js');const app=readText('src/app.js');const problem=readText('src/questions/problem-hub.js');
+  assert.match(app,/id="profile-form"/);assert.match(app,/activateProfile/);assert.match(profile,/wakaranjan-profiles-v1/);assert.match(profile,/profileStorageKey/);
+  assert.match(problem,/profileStorageKey\(WRONG_KEY\)/);assert.match(problem,/profileStorageKey\(STATS_KEY\)/);
+});
+
+test('ルビと横スクロール不要の牌姿表示を実装する',()=>{
+  const ruby=readText('src/lib/mahjong-ruby.js');const problem=readText('src/questions/problem-hub.js');const css=readText('ux-reorganization.css');
+  assert.match(ruby,/createElement\('ruby'\)/);assert.match(ruby,/麻雀/);assert.match(ruby,/reading/);assert.match(problem,/no-scroll-hand/);assert.match(css,/grid-template-columns:repeat\(7/);assert.match(css,/overflow:visible/);
+});
+
+test('ページごとに共通の戻る・メニュー操作を取り付ける',()=>{
+  const app=readText('src/app.js');assert.match(app,/className='page-toolbar'/);assert.match(app,/className='page-back'/);assert.match(app,/textContent='メニュー'/);assert.match(app,/routeHistory/);
 });
 
 console.log(`\n${passed} release adversarial tests passed.`);

@@ -35,7 +35,7 @@ const SCENES=[
   }
 ];
 
-function nav(){return '<div class="lesson-nav"><a class="secondary" href="#practice">対局練習へ戻る</a><a class="primary" href="#home">ホームへ</a></div>';}
+function nav(){return '<div class="lesson-nav"><a class="secondary" href="#practice">対局練習へ戻る</a><a class="primary" href="#menu">メニューへ</a></div>';}
 function tileFor(ctx,code,options={}){return createTile(ctx.tileByCode.get(code),options);}
 function appendBlock(container,ctx,label,codes,className='practice-tile-block'){
   const box=document.createElement('div');box.className=className;

@@ -19,7 +19,7 @@ const FURITEN_STEPS=[
 ];
 
 function tile(ctx,code,options={}){return createTile(ctx.tileByCode.get(code),options)}
-function nav(){return '<div class="lesson-nav"><a class="secondary" href="#practice">対局練習へ戻る</a><a class="primary" href="#home">ホームへ</a></div>'}
+function nav(){return '<div class="lesson-nav"><a class="secondary" href="#practice">対局練習へ戻る</a><a class="primary" href="#menu">メニューへ</a></div>'}
 function tileBlock(ctx,label,codes,className='practice-tile-block'){
   const box=document.createElement('div');box.className=className;
   const title=document.createElement('strong');title.textContent=label;box.append(title);

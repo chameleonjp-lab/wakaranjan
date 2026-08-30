@@ -11,7 +11,7 @@ function tileRow(codes,ctx,label){
 function neighbor(ctx,lesson,delta){
   const same=ctx.lessons.filter(x=>x.level===lesson.level).sort((a,b)=>a.order-b.order);const i=same.findIndex(x=>x.id===lesson.id);return same[i+delta]||null;
 }
-function endLink(lesson){if(lesson.level==='beginner')return {href:'beginner-review',label:'初級の総復習へ'};if(lesson.level==='intermediate')return {href:'intermediate-review',label:'中級の総復習へ'};return {href:'home',label:'一覧へ戻る'}}
+function endLink(lesson){if(lesson.level==='intro')return {href:'learn?level=intro',label:'入門一覧へ'};if(lesson.level==='beginner')return {href:'beginner-review',label:'初級の総復習へ'};if(lesson.level==='intermediate')return {href:'intermediate-review',label:'中級の総復習へ'};if(lesson.level==='advanced')return {href:'learn?level=advanced',label:'上級一覧へ'};if(lesson.level==='special')return {href:'learn?level=special',label:'特例一覧へ'};return {href:'learn',label:'学ぶへ戻る'}}
 function relatedTerms(quality,ctx){
   const terms=(quality?.termRefs||[]).map(id=>ctx.termById.get(id)).filter(Boolean);if(!terms.length)return null;
   const section=document.createElement('section');section.className='panel';section.innerHTML=`<h2>関連用語</h2><p class="muted">わからない言葉は、ここから用語集を開けます。</p><div class="related-term-links">${terms.map(t=>`<a class="secondary" href="#dictionary?term=${encodeURIComponent(t.id)}">${t.nameJa}<small>${t.readingJa}</small></a>`).join('')}</div>`;return section;
@@ -39,5 +39,5 @@ export function renderDataLesson(app,ctx,lesson){
   if(quality?.mistakes?.length){const mistakes=document.createElement('section');mistakes.className='panel';mistakes.innerHTML=`<h2>よくある間違い</h2><div class="mistake-grid">${quality.mistakes.map(x=>`<article class="mistake-card"><strong>注意</strong><p>${x}</p></article>`).join('')}</div>`;app.append(mistakes)}
   app.append(renderQuiz(lesson,quality));
   const terms=relatedTerms(quality,ctx);if(terms)app.append(terms);
-  const prev=neighbor(ctx,lesson,-1),next=neighbor(ctx,lesson,1),end=endLink(lesson);const nav=document.createElement('div');nav.className='lesson-nav';nav.innerHTML=`${prev?`<a class="secondary" href="#${prev.id}">前へ：${prev.title}</a>`:'<a class="secondary" href="#home">一覧へ戻る</a>'}${next?`<a class="primary" href="#${next.id}">次へ：${next.title}</a>`:`<a class="primary" href="#${end.href}">${end.label}</a>`}`;app.append(nav);
+  const prev=neighbor(ctx,lesson,-1),next=neighbor(ctx,lesson,1),end=endLink(lesson);const nav=document.createElement('div');nav.className='lesson-nav';nav.innerHTML=`${prev?`<a class="secondary" href="#${prev.id}">前へ：${prev.title}</a>`:`<a class="secondary" href="#learn?level=${lesson.level}">${LEVEL_NAME[lesson.level]||'学ぶ'}一覧へ</a>`}${next?`<a class="primary" href="#${next.id}">次へ：${next.title}</a>`:`<a class="primary" href="#${end.href}">${end.label}</a>`}`;app.append(nav);
 }

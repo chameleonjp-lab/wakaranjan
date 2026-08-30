@@ -1,3 +1,5 @@
+import {scrollAppToTop} from '../lib/navigation.js';
+
 function shuffled(items){
   const copy=[...items];
   for(let i=copy.length-1;i>0;i--){
@@ -15,10 +17,11 @@ export function renderIntroReview(app,ctx){
   let answered=false;
 
   const render=()=>{
+    scrollAppToTop();
     const q=session[index];
     if(!q){
       const percent=Math.round((correct/session.length)*100);
-      app.innerHTML=`<section class="hero"><div class="eyebrow">入門 総復習</div><h1>${correct} / ${session.length} 問正解</h1><p>${percent}%でした。間違えた内容は、解説ページへ戻って確認できます。</p><div class="action-row"><button class="primary" id="retry-review" type="button">別の問題でやり直す</button><a class="secondary" href="#home">入門一覧へ戻る</a></div></section>`;
+      app.innerHTML=`<section class="hero"><div class="eyebrow">入門 総復習</div><h1>${correct} / ${session.length} 問正解</h1><p>${percent}%でした。間違えた内容は、解説ページへ戻って確認できます。</p><div class="action-row"><button class="primary" id="retry-review" type="button">別の問題でやり直す</button><a class="secondary" href="#learn?level=intro">入門一覧へ戻る</a></div></section>`;
       app.querySelector('#retry-review')?.addEventListener('click',()=>renderIntroReview(app,ctx));
       return;
     }

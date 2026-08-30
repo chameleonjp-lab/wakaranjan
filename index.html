@@ -16,12 +16,13 @@
   <link rel="stylesheet" href="./settings.css">
   <link rel="stylesheet" href="./print-materials.css">
   <link rel="stylesheet" href="./accessibility.css">
+  <link rel="stylesheet" href="./ux-reorganization.css">
 </head>
 <body>
   <a class="skip-link" href="#app">本文へ移動</a>
   <header class="site-header">
     <a class="brand" href="#home" aria-label="ワカランジャン ホーム">ワカランジャン</a>
-    <div class="header-actions"><span class="level-badge">学習</span><a class="header-settings" href="#settings">設定</a></div>
+    <div class="header-actions"><span class="header-context" id="header-context" aria-hidden="true"></span><span class="level-badge">はじめに</span><a class="header-settings" href="#home">設定</a></div>
   </header>
   <main id="app" tabindex="-1"></main>
   <script type="module" src="./src/app.js"></script>

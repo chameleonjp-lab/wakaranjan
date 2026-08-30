@@ -9,7 +9,7 @@ export function renderSettings(app){
   <label class="settings-field settings-check" for="settings-sound"><span><strong>音</strong><small>音声・効果音を使う教材で再生を許可する</small></span><input id="settings-sound" type="checkbox"${current.sound?' checked':''}></label>
   <label class="settings-field" for="settings-motion"><strong>動き</strong><span>端末の「視差効果を減らす」設定にも合わせられます。</span><select id="settings-motion"><option value="system"${selected(current.reducedMotion,'system')}>端末設定に合わせる</option><option value="on"${selected(current.reducedMotion,'on')}>動きを少なくする</option><option value="off"${selected(current.reducedMotion,'off')}>通常の動き</option></select></label>
   <div id="settings-status" class="callout" role="status">変更は自動的に保存されます。</div>
-  <div class="action-row"><button id="reset-settings" class="secondary" type="button">設定を初期値に戻す</button><a class="primary" href="#home">ホームへ戻る</a></div></section>
+  <div class="action-row"><button id="reset-settings" class="secondary" type="button">設定を初期値に戻す</button><a class="primary" href="#menu">メニューへ戻る</a></div></section>
   <section class="panel"><h2>最後に開いたページ</h2><p>ハッシュなしでサイトを開いたとき、最後に開いていたページへ戻ります。</p><div class="action-row"><a class="secondary" href="${current.lastRoute}">最後のページを開く</a></div></section>`;
   const display=app.querySelector('#settings-display');
   const sound=app.querySelector('#settings-sound');

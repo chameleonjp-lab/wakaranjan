@@ -16,6 +16,6 @@ export function renderTeacherRecord(app,ctx){
   <section class="panel"><h2>段階ごとの進み具合</h2><div class="record-level-grid">${LEVELS.map(([id,label])=>{const items=ctx.lessons.filter(item=>item.level===id);const done=items.filter(item=>lessons.completed.has(item.id)).length;const rate=items.length?Math.round(done/items.length*100):0;return `<article class="record-card"><div class="record-card-heading"><h3>${label}</h3><strong>${done} / ${items.length}章</strong></div><div class="record-bar" role="progressbar" aria-label="${label}の進み具合" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${rate}"><span style="width:${rate}%"></span></div><p>${rate}%完了</p></article>`}).join('')}</div></section>
   <section class="panel"><h2>最近の状態</h2><p>${lastLesson?`最後に開いた教材：<a href="#${lastLesson.id}">${lastLesson.title}</a>`:'最後に開いた教材はありません。'}</p><p>教材以外を含む最後のページ：${lastPage}</p><div class="action-row"><a class="primary" href="#study-record">詳しい学習記録</a><button id="print-teacher-record" class="secondary" type="button">この記録を印刷</button></div></section>
   <section class="callout"><strong>見守るときのポイント</strong><br>正答率だけでなく、間違えた問題を一緒に解き直し、教材の「学習済み」ボタンを押すタイミングを本人と確認してください。</section>
-  <div class="lesson-nav"><a class="secondary" href="#print-materials">印刷用教材</a><a class="primary" href="#home">ホームへ戻る</a></div>`;
+  <div class="lesson-nav"><a class="secondary" href="#print-materials">印刷用教材</a><a class="primary" href="#menu">メニューへ戻る</a></div>`;
   app.querySelector('#print-teacher-record').addEventListener('click',()=>window.print());
 }
