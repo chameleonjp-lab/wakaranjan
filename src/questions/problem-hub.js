@@ -3,10 +3,11 @@ import {clarifyQuestion} from './question-copy.js';
 import {misconceptionOf,misconceptionKeysFor,MISCONCEPTION_LABELS} from './misconceptions.js';
 import {getActiveProfile,profileStorageKey} from '../lib/profile.js';
 import {scrollAppToTop} from '../lib/navigation.js';
+import {LEARNING_STORAGE_KEYS,queueCloudSync} from '../lib/cloud-sync.js';
 
-const WRONG_KEY='wakaranjan-wrong-question-ids-v2';
-const STATS_KEY='wakaranjan-question-stats-v2';
-const MISCONCEPTION_KEY='wakaranjan-misconceptions-v2';
+const WRONG_KEY=LEARNING_STORAGE_KEYS.wrongQuestionIds;
+const STATS_KEY=LEARNING_STORAGE_KEYS.questionStats;
+const MISCONCEPTION_KEY=LEARNING_STORAGE_KEYS.misconceptions;
 const RECORD_VERSION=2;
 function shuffled(items){const copy=[...items];for(let i=copy.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[copy[i],copy[j]]=[copy[j],copy[i]]}return copy}
 function validQuestionIds(data){return new Set((data?.questions||[]).map(q=>q.id).filter(id=>typeof id==='string'))}
@@ -16,20 +17,20 @@ function readProfileStorage(baseKey){
   try{return localStorage.getItem(key)}catch{return null}
 }
 function loadWrong(data){try{return normalizeWrong(JSON.parse(readProfileStorage(WRONG_KEY)||'null'),validQuestionIds(data))}catch{return new Set()}}
-function saveWrong(set){try{localStorage.setItem(profileStorageKey(WRONG_KEY),JSON.stringify({version:RECORD_VERSION,ids:[...set]}))}catch{}}
+function saveWrong(set){try{localStorage.setItem(profileStorageKey(WRONG_KEY),JSON.stringify({version:RECORD_VERSION,ids:[...set]}));queueCloudSync()}catch{}}
 function emptyStats(){return {version:RECORD_VERSION,questions:{}}}
 function normalizeStats(value,ids){if(!value||typeof value!=='object'||Array.isArray(value)||value.version!==RECORD_VERSION||!value.questions||typeof value.questions!=='object'||Array.isArray(value.questions))return emptyStats();const questions={};for(const [id,item] of Object.entries(value.questions)){if(!ids.has(id)||!item||typeof item!=='object'||Array.isArray(item)||!Number.isInteger(item.correct)||item.correct<0||!Number.isInteger(item.wrong)||item.wrong<0)return emptyStats();questions[id]={correct:item.correct,wrong:item.wrong}}return {version:RECORD_VERSION,questions}}
 function loadStats(data){try{return normalizeStats(JSON.parse(readProfileStorage(STATS_KEY)||'null'),validQuestionIds(data))}catch{return emptyStats()}}
-function saveStats(stats){try{localStorage.setItem(profileStorageKey(STATS_KEY),JSON.stringify(stats))}catch{}}
+function saveStats(stats){try{localStorage.setItem(profileStorageKey(STATS_KEY),JSON.stringify(stats));queueCloudSync()}catch{}}
 function normalizeMisconceptions(value){if(!value||typeof value!=='object'||Array.isArray(value)||value.version!==RECORD_VERSION||!value.items||typeof value.items!=='object'||Array.isArray(value.items))return {};const items={};for(const [key,count] of Object.entries(value.items)){if(!Number.isInteger(count)||count<0)return {};items[key]=count}return items}
 function loadMisconceptions(){try{return normalizeMisconceptions(JSON.parse(readProfileStorage(MISCONCEPTION_KEY)||'null'))}catch{return {}}}
-function saveMisconceptions(items){try{localStorage.setItem(profileStorageKey(MISCONCEPTION_KEY),JSON.stringify({version:RECORD_VERSION,items}))}catch{}}
+function saveMisconceptions(items){try{localStorage.setItem(profileStorageKey(MISCONCEPTION_KEY),JSON.stringify({version:RECORD_VERSION,items}));queueCloudSync()}catch{}}
 function recordMisconception(items,q,choiceIndex,ok){if(ok)return;const key=misconceptionOf(q,choiceIndex);if(!key)return;items[key]=(items[key]||0)+1;saveMisconceptions(items)}
 function misconceptionScore(q,items){return Math.max(0,...misconceptionKeysFor(q).map(key=>Number(items[key]||0)))}
 function topMisconceptions(items){return Object.entries(items).filter(([,n])=>n>0).sort((a,b)=>b[1]-a[1]).slice(0,3)}
 export function clearProblemWrong(){saveWrong(new Set())}
-export function clearProblemStats(){try{localStorage.removeItem(profileStorageKey(STATS_KEY))}catch{}}
-export function clearProblemMisconceptions(){try{localStorage.removeItem(profileStorageKey(MISCONCEPTION_KEY))}catch{}}
+export function clearProblemStats(){try{localStorage.removeItem(profileStorageKey(STATS_KEY));queueCloudSync()}catch{}}
+export function clearProblemMisconceptions(){try{localStorage.removeItem(profileStorageKey(MISCONCEPTION_KEY));queueCloudSync()}catch{}}
 export function clearProblemStudyRecord(){clearProblemWrong();clearProblemStats();clearProblemMisconceptions()}
 function skillOf(q){return q.skill||q.yakuRef||q.lessonRef||q.category}
 function recordStat(stats,q,ok){const s=stats.questions[q.id]||{correct:0,wrong:0};s[ok?'correct':'wrong']++;stats.questions[q.id]=s;saveStats(stats)}

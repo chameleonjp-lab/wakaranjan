@@ -27,6 +27,7 @@ import {attachLessonSupport} from './lessons/lesson-support.js';
 import {attachLessonProgress,getLessonProgress,clearLessonProgress} from './lib/progress.js';
 import {applySettings,getSettings,setLastRoute,updateSettings} from './lib/settings.js';
 import {activateProfile,getActiveProfile,hasActiveProfile} from './lib/profile.js';
+import {flushCloudSync,getCloudSyncStatus,synchronizeActiveProfileFromCloud} from './lib/cloud-sync.js';
 import {decorateMahjongTerms} from './lib/mahjong-ruby.js';
 import {scrollAppToTop} from './lib/navigation.js';
 
@@ -200,13 +201,21 @@ function renderLessonList(items,progress){
 function renderHome(ctx){
   const profile=getActiveProfile();
   const name=profile?.name||'';
-  app.innerHTML=`<section class="hero profile-hero"><div class="eyebrow">麻雀を知らなくても大丈夫</div><h1>${profile?`${escapeHtml(name)}さん、続きから学びましょう。`:'まず、名前を入力してください。'}</h1><p>名前はこの端末のブラウザだけに保存します。入力した名前ごとに、教材と問題の進み具合を分けて記録します。</p><form id="profile-form" class="profile-form"><label for="profile-name">学ぶ人の名前<input id="profile-name" name="name" type="text" maxlength="40" autocomplete="name" required value="${escapeHtml(name)}" placeholder="例：まさ"></label><p id="profile-status" class="muted">${profile?'名前を変えると、別の学習記録へ切り替えられます。':'名前を入力するとメニューへ進めます。'}</p><button class="primary" type="submit">${profile?'この名前でメニューへ':'名前を入力して始める'}</button></form></section><section class="panel profile-note"><h2>このサイトでできること</h2><div class="profile-benefits"><span>教材を順番に学ぶ</span><span>問題で確かめる</span><span>対局の流れを練習する</span><span>点数を計算する</span></div></section>`;
-  app.querySelector('#profile-form')?.addEventListener('submit',event=>{
+  const sync=getCloudSyncStatus();
+  app.innerHTML=`<section class="hero profile-hero"><div class="eyebrow">麻雀を知らなくても大丈夫</div><h1>${profile?`${escapeHtml(name)}さん、続きから学びましょう。`:'まず、名前を入力してください。'}</h1><p>名前と学習状態はSupabaseに保存します。同じ名前で開くと、同じ学習記録を使います。ゲームのスコアとは別に管理します。</p><p class="muted">名前だけで共有する方式のため、同じ名前を使う人が記録を変更・解除できます。</p><form id="profile-form" class="profile-form"><label for="profile-name">学ぶ人の名前<input id="profile-name" name="name" type="text" maxlength="40" autocomplete="name" required value="${escapeHtml(name)}" placeholder="例：まさ"></label><p id="profile-status" class="muted">${profile?'名前を変えると、その名前の学習記録へ切り替わります。':'名前を入力するとメニューへ進めます。'}</p><button class="primary" type="submit">${profile?'この名前でメニューへ':'名前を入力して始める'}</button></form><p class="sync-status" data-sync-state="${sync.state}" role="status" aria-live="polite">${escapeHtml(sync.message)}</p></section><section class="panel profile-note"><h2>このサイトでできること</h2><div class="profile-benefits"><span>教材を順番に学ぶ</span><span>問題で確かめる</span><span>対局の流れを練習する</span><span>点数を計算する</span></div></section>`;
+  app.querySelector('#profile-form')?.addEventListener('submit',async event=>{
     event.preventDefault();
     const input=app.querySelector('#profile-name');
     const status=app.querySelector('#profile-status');
+    const submit=app.querySelector('#profile-form button[type="submit"]');
+    if(submit?.disabled)return;
+    if(status)status.textContent='現在の記録を保存しています。';
+    if(submit){submit.disabled=true;submit.textContent='読み込み中…'}
+    await flushCloudSync();
     const next=activateProfile(input?.value||'');
-    if(!next){if(status)status.textContent='名前を1文字以上入力してください。';input?.focus();return}
+    if(!next){if(status)status.textContent='名前を1文字以上入力してください。';if(submit){submit.disabled=false;submit.textContent=profile?'この名前でメニューへ':'名前を入力して始める'}input?.focus();return}
+    const result=await synchronizeActiveProfileFromCloud({force:true});
+    if(status)status.textContent=result.ok?'学習記録を読み込みました。':'通信できないため、この端末の記録で続けます。';
     updateSettings({lastRoute:'#menu'});
     location.hash='#menu';
   });
@@ -221,7 +230,8 @@ function renderMenu(ctx){
   const next=last&&!progress.completed.has(last.id)?last:ordered.find(lesson=>!progress.completed.has(lesson.id));
   const continueHtml=next?`<a class="continue-card" href="#${next.id}"><span>続きから</span><strong>${escapeHtml(next.title)}</strong><small>前回の教材を開きます</small></a>`:'';
   const levelLinks=Object.entries(LEVEL_META).map(([id,item])=>`<a class="menu-card menu-level-card" href="#learn?level=${id}"><strong>${item.label}</strong><span>${item.description}</span><small>${progressSummary(lessonItems(ctx,id),progress)}</small></a>`).join('');
-  app.innerHTML=`<section class="hero menu-hero"><div class="eyebrow">メニュー</div><h1>何をしますか？</h1><p><strong>${escapeHtml(profile.name)}さん</strong>の学習記録を使います。迷ったら「入門」から始めてください。</p>${continueHtml}<a class="profile-switch" href="#home">学ぶ人を切り替える</a></section><section class="menu-section" aria-labelledby="learn-menu-title"><h2 id="learn-menu-title">学ぶ</h2><div class="menu-grid menu-level-grid"><a class="menu-card menu-card-main" href="#learn"><strong>学ぶ全体</strong><span>5つの段階を一覧で見て、順番を決めます。</span><small>教材38章・進捗表示</small></a>${levelLinks}</div></section><section class="menu-section" aria-labelledby="practice-menu-title"><h2 id="practice-menu-title">解く・練習する</h2><div class="menu-grid"><a class="menu-card" href="#problems"><strong>問題集</strong><span>文章問題と牌姿問題で理解を確かめます。</span><small>総復習・苦手復習</small></a><a class="menu-card" href="#practice"><strong>対局練習</strong><span>ツモ、捨て牌、鳴き、リーチを操作します。</span><small>短い練習から一局まで</small></a><a class="menu-card" href="#practice?mode=east-round"><strong>模擬東風戦</strong><span>4局の進み方を案内付きで確認します。</span><small>対局の流れを体験</small></a></div></section><section class="menu-section" aria-labelledby="tools-menu-title"><h2 id="tools-menu-title">調べる・記録する</h2><div class="menu-grid"><a class="menu-card" href="#automatic-calculator"><strong>点数計算</strong><span>牌と局面を入力して、役・符・点数を確認します。</span></a><a class="menu-card" href="#lookup"><strong>用語・役を調べる</strong><span>読み方、意味、役の成立条件を探します。</span></a><a class="menu-card" href="#study-record"><strong>学習記録</strong><span>教材の完了状況と問題の正答状況を見ます。</span></a><a class="menu-card" href="#settings"><strong>設定</strong><span>文字の大きさ、音、動きを変更します。</span></a></div></section>`;
+  const sync=getCloudSyncStatus();
+  app.innerHTML=`<section class="hero menu-hero"><div class="eyebrow">メニュー</div><h1>何をしますか？</h1><p><strong>${escapeHtml(profile.name)}さん</strong>の学習記録を使います。迷ったら「入門」から始めてください。</p><p class="sync-status" data-sync-state="${sync.state}" role="status" aria-live="polite">${escapeHtml(sync.message)}</p>${continueHtml}<a class="profile-switch" href="#home">学ぶ人を切り替える</a></section><section class="menu-section" aria-labelledby="learn-menu-title"><h2 id="learn-menu-title">学ぶ</h2><div class="menu-grid menu-level-grid"><a class="menu-card menu-card-main" href="#learn"><strong>学ぶ全体</strong><span>5つの段階を一覧で見て、順番を決めます。</span><small>教材38章・進捗表示</small></a>${levelLinks}</div></section><section class="menu-section" aria-labelledby="practice-menu-title"><h2 id="practice-menu-title">解く・練習する</h2><div class="menu-grid"><a class="menu-card" href="#problems"><strong>問題集</strong><span>文章問題と牌姿問題で理解を確かめます。</span><small>総復習・苦手復習</small></a><a class="menu-card" href="#practice"><strong>対局練習</strong><span>ツモ、捨て牌、鳴き、リーチを操作します。</span><small>短い練習から一局まで</small></a><a class="menu-card" href="#practice?mode=east-round"><strong>模擬東風戦</strong><span>4局の進み方を案内付きで確認します。</span><small>対局の流れを体験</small></a></div></section><section class="menu-section" aria-labelledby="tools-menu-title"><h2 id="tools-menu-title">調べる・記録する</h2><div class="menu-grid"><a class="menu-card" href="#automatic-calculator"><strong>点数計算</strong><span>牌と局面を入力して、役・符・点数を確認します。</span></a><a class="menu-card" href="#lookup"><strong>用語・役を調べる</strong><span>読み方、意味、役の成立条件を探します。</span></a><a class="menu-card" href="#study-record"><strong>学習記録</strong><span>教材の完了状況と問題の正答状況を見ます。</span></a><a class="menu-card" href="#settings"><strong>設定</strong><span>文字の大きさ、音、動きを変更します。</span></a></div></section>`;
 }
 
 function renderLearn(ctx){
@@ -416,7 +426,7 @@ async function start(){
   installRubyObserver(ctx);
   addEventListener('hashchange',()=>{void route(ctx)});
   const retryInitial=async()=>{try{await ensureAssets(ctx,INITIAL_ASSETS);await route(ctx)}catch(error){console.error(error);renderLoadError(retryInitial)}};
-  try{await ensureAssets(ctx,INITIAL_ASSETS);await route(ctx)}
+  try{if(profile)await synchronizeActiveProfileFromCloud();await ensureAssets(ctx,INITIAL_ASSETS);await route(ctx)}
   catch(error){console.error(error);renderLoadError(retryInitial)}
 }
 

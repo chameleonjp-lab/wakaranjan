@@ -66,6 +66,7 @@ async function seedProfile(page,base,name='E2E学習者'){
 
 async function visit(browser,base,route,viewport,onReady,beforeGoto){
   const page=await browser.newPage({viewport});
+  await page.addInitScript(()=>{window.__WAKARANJAN_DISABLE_CLOUD__=true});
   const errors=[];
   const onPageError=error=>errors.push(`pageerror: ${error.message}`);
   const onConsole=message=>{if(message.type()==='error')errors.push(`console: ${message.text()}`)};
@@ -214,6 +215,36 @@ async function assertRetryAfterAssetFailure(browser,base,{route,asset,expectedTe
   }
 }
 
+async function assertCloudSyncFailureRetry(browser,base){
+  const page=await browser.newPage({viewport:{width:402,height:874}});
+  const pageErrors=[];let requests=0;
+  page.on('pageerror',error=>pageErrors.push(error.message));
+  await page.goto(`${base}/index.html#home`,{waitUntil:'networkidle',timeout:20000});
+  await page.evaluate(()=>{
+    localStorage.setItem('wakaranjan-profiles-v1',JSON.stringify({version:1,activeId:'profile-1',profiles:[{id:'profile-1',name:'Cloud E2E',nameKey:'cloud e2e',progress:{completed:[],lastLesson:null}}]}));
+  });
+  await page.route('**/rest/v1/wakaranjan_learning_profiles**',async request=>{
+    requests+=1;
+    if(requests===1){await request.abort();return}
+    await request.fulfill({status:200,headers:{'content-type':'application/json'},body:JSON.stringify([{display_name:'Cloud E2E',learning_state:{lessonProgress:{completed:['lesson-intro-01'],lastLesson:'lesson-intro-01'}}}])});
+  });
+  try{
+    // A direct hash change does not rerun the boot-time profile hydration.
+    // Reload after seeding so this follows the same path as a returning user.
+    await page.reload({waitUntil:'networkidle',timeout:20000});
+    await page.locator('.sync-status[data-sync-state="error"]').waitFor({state:'visible',timeout:10000});
+    await page.goto(`${base}/index.html#study-record`,{waitUntil:'networkidle',timeout:20000});
+    await page.locator('#retry-cloud-sync').click();
+    await page.locator('text=Supabaseから学習記録を読み込みました。').waitFor({state:'visible',timeout:10000});
+    assert.match(await page.locator('#app').innerText(),/1 \/ 38章/,'再試行後にクラウドの教材進捗を反映できません');
+    assert.equal(requests,2,'Supabase同期の再試行でリクエストが重複しました');
+    assert.deepEqual(pageErrors,[],'Supabase同期の失敗・再試行でJavaScript例外が発生しました');
+  }finally{
+    await page.unroute('**/rest/v1/wakaranjan_learning_profiles**');
+    await page.close();
+  }
+}
+
 async function run(){
   for(const asset of ['index.html','favicon.svg','styles.css','accessibility.css','ux-reorganization.css','src/app.js','src/lib/profile.js','src/data/manifest.json']){
     const assetStat=await stat(path.join(root,asset));
@@ -255,6 +286,7 @@ async function run(){
     for(const route of ['#home','#menu','#learn?level=intro','#lesson-intro-04','#problems','#automatic-calculator'])await assertSkipLinkPreservesRoute(browser,base,route);
     await assertRetryAfterAssetFailure(browser,base,{route:'#home',asset:'/src/data/manifest.json',expectedText:/名前を入力して始める/});
     await assertRetryAfterAssetFailure(browser,base,{route:'#lesson-intro-04',asset:'/src/data/lesson-quality-core.json',expectedText:/入門 1-4/});
+    await assertCloudSyncFailureRetry(browser,base);
     await visit(browser,base,'#not-a-real-screen',{width:402,height:874},async page=>{
       assert.equal(new URL(page.url()).hash,'#home','不正な画面IDからホームへ復旧できません');
       assert.match(await page.locator('#app').innerText(),/まず、名前を入力してください/);
@@ -396,7 +428,7 @@ async function run(){
     });
     await visit(browser,base,'#teacher-record',{width:402,height:874},async page=>{
       assert.match(await page.locator('h1').innerText(),/学習状況の確認/);
-      assert.match(await page.locator('#app').innerText(),/この端末のブラウザ/);
+      assert.match(await page.locator('#app').innerText(),/Supabase/);
     });
     await visit(browser,base,'#print-materials',{width:402,height:874},async page=>{
       assert.match(await page.locator('h1').innerText(),/麻雀(?:マージャン)? 学習用まとめ/);
@@ -421,6 +453,16 @@ async function run(){
       await page.locator('h1').waitFor({state:'attached',timeout:10000});
       assert.match(await page.locator('#app').innerText(),/学習記録/);
       assert.match(await page.locator('#app').innerText(),/0回答/);
+    });
+    await visit(browser,base,'#study-record',{width:402,height:874},async page=>{
+      let accepted=false;
+      page.once('dialog',async dialog=>{accepted=dialog.message().includes('Supabase');await dialog.accept()});
+      await page.locator('#clear-all-study-record').click();
+      await page.locator('text=学習状況を解除しました。').waitFor({state:'visible',timeout:10000});
+      assert.equal(accepted,true,'学習状況解除の確認ダイアログが表示されません');
+      assert.match(await page.locator('#app').innerText(),/0 \/ 38章/);
+      const remaining=await page.evaluate(()=>Object.keys(localStorage).filter(key=>/wakaranjan-(lesson-progress|wrong-question|question-stats|misconceptions)/.test(key)));
+      assert.deepEqual(remaining,[],'解除後に学習状態のlocalStorageを残しています');
     });
     await visit(browser,base,'#lesson-intro-05',{width:402,height:874},async page=>{
       await page.locator('[data-answer="no"]').click();
