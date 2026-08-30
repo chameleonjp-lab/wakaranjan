@@ -10,10 +10,12 @@ globalThis.window={addEventListener(){}};
 globalThis.document={};
 
 let remoteRows=[];
+let failNextPost=false;
 const requests=[];
 const response=(body,status=200)=>({ok:status>=200&&status<300,status,text:async()=>JSON.stringify(body),json:async()=>body});
 globalThis.fetch=async(url,options={})=>{
   requests.push({url:String(url),method:options.method||'GET',body:options.body?JSON.parse(options.body):null,hasAuthorization:Object.keys(options.headers||{}).some(key=>key.toLowerCase()==='authorization')});
+  if(options.method==='POST'&&failNextPost){failNextPost=false;return response({message:'temporary failure'},503)}
   return options.method==='POST'?response([]):response(remoteRows);
 };
 
@@ -24,6 +26,7 @@ const {
   normalizeLearningState,
   queueCloudSync,
   resetActiveLearningState,
+  retryActiveProfileCloudSync,
   synchronizeActiveProfileFromCloud
 }=await import('../src/lib/cloud-sync.js');
 
@@ -61,6 +64,17 @@ assert.deepEqual(requests.at(-1).body.learning_state.lessonProgress.completed,['
 remoteRows=[{display_name:'Cloud Tester',learning_state:{lessonProgress:{completed:['lesson-beginner-01'],lastLesson:'lesson-beginner-01'}}}];
 await synchronizeActiveProfileFromCloud({force:true});
 assert.deepEqual(JSON.parse(store.get(profileStorageKey(LEARNING_STORAGE_KEYS.lessonProgress))),{completed:['lesson-beginner-01'],lastLesson:'lesson-beginner-01'});
+
+store.set(profileStorageKey(LEARNING_STORAGE_KEYS.lessonProgress),JSON.stringify({completed:['lesson-intermediate-01'],lastLesson:'lesson-intermediate-01'}));
+failNextPost=true;
+queueCloudSync();
+const failedSave=await flushCloudSync();
+assert.equal(failedSave.ok,false,'保存失敗を呼び出し元へ返します');
+const getsBeforeRetry=requests.filter(request=>request.method==='GET').length;
+const retriedSave=await retryActiveProfileCloudSync();
+assert.equal(retriedSave.ok,true,'未送信の最新記録を再送できます');
+assert.equal(requests.filter(request=>request.method==='GET').length,getsBeforeRetry,'保存失敗の再試行で古いクラウド状態を読み込みません');
+assert.deepEqual(requests.at(-1).body.learning_state.lessonProgress.completed,['lesson-intermediate-01']);
 
 const reset=await resetActiveLearningState();
 assert.equal(reset.ok,true);

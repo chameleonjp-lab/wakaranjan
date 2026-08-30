@@ -1,7 +1,7 @@
 import {getLessonProgress} from '../lib/progress.js';
 import {getProblemStudyRecord} from '../questions/problem-hub.js';
 import {getActiveProfile} from '../lib/profile.js';
-import {getCloudSyncStatus,resetActiveLearningState,synchronizeActiveProfileFromCloud} from '../lib/cloud-sync.js';
+import {getCloudSyncStatus,resetActiveLearningState,retryActiveProfileCloudSync} from '../lib/cloud-sync.js';
 
 const LEVELS=[['intro','入門'],['beginner','初級'],['intermediate','中級'],['advanced','上級'],['special','特例・ルール差']];
 const percent=(done,total)=>total?Math.round(done/total*100):0;
@@ -34,7 +34,7 @@ export function renderStudyRecord(app,ctx,{notice=''}={}){
     '<article class="record-stat"><span>復習待ち</span><strong>'+problem.wrongCount+'問</strong><small>間違えた問題</small></article>',
     '</section>',
     '<section class="panel"><h2>教材の進み具合</h2><div class="record-level-grid">'+LEVELS.map(level=>levelCard(level,ctx.lessons.filter(item=>item.level===level[0]),lessonProgress)).join('')+'</div></section>',
-    '<section class="panel"><h2>問題の記録</h2><p>正答率は、この端末で保存された回答をもとに表示しています。</p>'+problemSummary(problem)+'</section>',
+    '<section class="panel"><h2>問題の記録</h2><p>正答率は、この名前で保存された回答をもとに表示しています。通信できない間の回答は端末内に保持し、復帰後に同期します。</p>'+problemSummary(problem)+'</section>',
     '<section class="panel"><h2>最近の状態</h2>'+lastHtml+'<div class="action-row"><a class="primary" href="#problems">問題を解く</a><a class="secondary" href="#menu">メニューへ戻る</a></div></section>',
     '<section class="callout"><strong>保存場所について</strong><br>名前と学習記録はSupabaseへ保存します。通信できないときは端末内の記録を使い、復帰後に保存を再試行します。ゲームスコアは別の仕組みで管理します。</section>',
     (notice?'<section class="callout" role="status">'+escapeHtml(notice)+'</section>':''),
@@ -44,7 +44,7 @@ export function renderStudyRecord(app,ctx,{notice=''}={}){
     const button=event.currentTarget;
     button.disabled=true;
     button.textContent='同期しています…';
-    const result=await synchronizeActiveProfileFromCloud({force:true});
+    const result=await retryActiveProfileCloudSync();
     renderStudyRecord(app,ctx,{notice:result.ok?'Supabaseから学習記録を読み込みました。':'同期できませんでした。端末内の記録は保持しています。'});
   });
   app.querySelector('#clear-all-study-record')?.addEventListener('click',async event=>{

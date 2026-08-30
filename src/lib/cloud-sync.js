@@ -222,6 +222,7 @@ export async function flushCloudSync(){
     setStatus('syncing',`${snapshot.displayName}さんの学習記録をSupabaseへ保存しています。`);
     try{
       await writeRemote(snapshot);
+      if(retryTimer){clearTimeout(retryTimer);retryTimer=null}
       setStatus('synced',`${snapshot.displayName}さんの学習記録をSupabaseと同期しました。`);
       return {ok:true};
     }catch(error){
@@ -235,6 +236,12 @@ export async function flushCloudSync(){
   inFlight=null;
   if(pendingSnapshot&&result.ok)return flushCloudSync();
   return result;
+}
+
+export async function retryActiveProfileCloudSync(){
+  const profile=getActiveProfile();
+  if(profile&&pendingSnapshot?.nameKey===profile.nameKey)return flushCloudSync();
+  return synchronizeActiveProfileFromCloud({force:true});
 }
 
 export async function resetActiveLearningState(){

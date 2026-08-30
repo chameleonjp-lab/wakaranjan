@@ -69,7 +69,7 @@ test('名前別の学習記録と問題記録を分離する',()=>{
 test('学習状態はゲームスコアと別のSupabase表へ名前で同期する',()=>{
   const config=readText('src/lib/supabase-config.js');const cloud=readText('src/lib/cloud-sync.js');const migration=readText('supabase/migrations/20260830090000_create_wakaranjan_learning_profiles.sql');
   assert.match(config,/SUPABASE_PUBLISHABLE_KEY/);assert.match(config,/sb_publishable_/);assert.doesNotMatch(config,/SUPABASE_PUBLISHABLE_KEY[^\n]*(service_role|secret)/i);
-  assert.match(cloud,/SUPABASE_LEARNING_TABLE/);assert.match(cloud,/learning_state/);assert.match(cloud,/nameKey/);assert.match(cloud,/resetActiveLearningState/);
+  assert.match(cloud,/SUPABASE_LEARNING_TABLE/);assert.match(cloud,/learning_state/);assert.match(cloud,/nameKey/);assert.match(cloud,/retryActiveProfileCloudSync/);assert.match(cloud,/resetActiveLearningState/);
   assert.match(migration,/create table if not exists public\.wakaranjan_learning_profiles/);assert.match(migration,/enable row level security/);assert.match(migration,/grant select, insert, update, delete/);assert.doesNotMatch(migration,/game_scores|score_runs/);
 });
 
