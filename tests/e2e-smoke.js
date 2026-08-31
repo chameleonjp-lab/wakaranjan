@@ -384,7 +384,8 @@ async function run(){
         await page.locator('#kan-actions button.primary').click();
         if(scene<2)await page.locator('#kan-actions button.primary').click();
       }
-      assert.match(await page.locator('#kan-feedback').innerText(),/加槓.*の処理を確認しました/);
+      const feedback=(await page.locator('#kan-feedback').innerText()).replace(/\s+/g,'');
+      assert.match(feedback,/加槓.*の処理を確認しました/);
     });
     await visit(browser,base,'#full-round',{width:402,height:874},async page=>{
       for(let scenario=0;scenario<3;scenario++){
@@ -403,7 +404,8 @@ async function run(){
     await visit(browser,base,'#practice?mode=hand-flow&scenario=draw',{width:402,height:874},async page=>{
       await page.locator('#hand-flow-actions button').first().click();
       await page.locator('#hand-flow-actions button').first().click();
-      assert.match(await page.locator('#hand-flow-feedback').innerText(),/流局.*一局.*完了しています/);
+      const feedback=(await page.locator('#hand-flow-feedback').innerText()).replace(/\s+/g,'');
+      assert.match(feedback,/流局.*一局.*完了しています/);
     });
     for(const route of ['#problems','#dictionary?term=term-riichi','#automatic-calculator','#practice?mode=east-round']){
       await visit(browser,base,route,{width:402,height:874},async page=>{
@@ -431,7 +433,8 @@ async function run(){
       assert.match(await page.locator('#app').innerText(),/Supabase/);
     });
     await visit(browser,base,'#print-materials',{width:402,height:874},async page=>{
-      assert.match(await page.locator('h1').innerText(),/麻雀(?:マージャン)? 学習用まとめ/);
+      const title=(await page.locator('h1').innerText()).replace(/\s+/g,'');
+      assert.match(title,/麻雀(?:マージャン)?学習用まとめ/);
       await page.locator('#print-materials').click();
     });
     await visit(browser,base,'#problems',{width:402,height:874},async page=>{
