@@ -1,4 +1,7 @@
-const KEY='wakaranjan-lesson-progress-v1';
+import {getActiveProfile,profileStorageKey} from './profile.js';
+import {LEARNING_STORAGE_KEYS,queueCloudSync} from './cloud-sync.js';
+
+const KEY=LEARNING_STORAGE_KEYS.lessonProgress;
 function fallback(){return {completed:[],lastLesson:null}}
 function normalize(value){
   if(!value||typeof value!=='object'||Array.isArray(value))return fallback();
@@ -7,12 +10,17 @@ function normalize(value){
   return {completed,lastLesson};
 }
 function load(){
-  try{return normalize(JSON.parse(localStorage.getItem(KEY)||'{"completed":[],"lastLesson":null}'))}
-  catch{return fallback()}
+  try{
+    const profile=getActiveProfile();
+    const key=profileStorageKey(KEY);
+    const value=localStorage.getItem(key);
+    if(value===null&&!profile)return normalize(JSON.parse(localStorage.getItem(KEY)||'{"completed":[],"lastLesson":null}'));
+    return normalize(JSON.parse(value||'{"completed":[],"lastLesson":null}'));
+  }catch{return fallback()}
 }
-function save(v){try{localStorage.setItem(KEY,JSON.stringify(normalize(v)))}catch{}}
+function save(v){try{localStorage.setItem(profileStorageKey(KEY),JSON.stringify(normalize(v)));queueCloudSync()}catch{}}
 export function getLessonProgress(){const p=load();return {completed:new Set(p.completed),lastLesson:p.lastLesson}}
 export function markLessonComplete(id){const p=load();const set=new Set(p.completed);set.add(id);save({completed:[...set],lastLesson:id})}
 export function markLessonVisited(id){const p=load();save({completed:p.completed,lastLesson:id})}
-export function clearLessonProgress(){try{localStorage.removeItem(KEY)}catch{}}
+export function clearLessonProgress(){try{localStorage.removeItem(KEY);localStorage.removeItem(profileStorageKey(KEY));queueCloudSync()}catch{}}
 export function attachLessonProgress(app,id,{onChange}={}){markLessonVisited(id);const current=getLessonProgress();const wrap=document.createElement('section');wrap.className='panel progress-panel';wrap.innerHTML=`<h2>この章の学習記録</h2><p>${current.completed.has(id)?'この章は学習済みです。':'内容を確認できたら「学習済みにする」を押してください。'}</p><div class="action-row"><button class="primary" type="button" id="lesson-complete" ${current.completed.has(id)?'disabled':''}>${current.completed.has(id)?'学習済み':'学習済みにする'}</button></div>`;app.append(wrap);wrap.querySelector('#lesson-complete')?.addEventListener('click',e=>{markLessonComplete(id);e.currentTarget.disabled=true;e.currentTarget.textContent='学習済み';wrap.querySelector('p').textContent='この章は学習済みです。';onChange?.()})}

@@ -4,15 +4,17 @@
 
 ## 作業開始時の確認
 
-2026年8月29日、`main`の先頭 `b98bc773b2e42c25da656978dd3174b660e98fab` を確認した時点では、GitHub APIの結果は次のとおりでした。
+2026年8月30日、ユーザーがGitHubのRuleset画面から設定を保存した後の状態を確認しました。`main`の先頭は `8916fed5c4385e87416d5abf277a2be3132dfc92` です。
 
-- `main`：`protected: false`
-- リポジトリRulesets：なし
-- 未マージPull Request：なし
-- 最新の `Deploy GitHub Pages`：成功
-- 必須検査候補：`Validate mahjong logic / validate`
-
-この作業環境のGitHub連携では、ブランチ保護の読み取りが403になり、設定を書き込む機能も提供されていません。そのため、コードと検査の改善は実施しましたが、`main`の保護そのものはユーザーがGitHub画面から設定してください。
+- Ruleset：`Protect main`
+- Enforcement status：`Active`
+- 対象：Default branch（`main`）
+- Bypass list：空欄。通常のバイパスなし
+- Pull Request必須：有効
+- 必須ステータスチェック：`Validate mahjong logic / validate`
+- Restrict deletions：有効
+- Block force pushes：有効
+- GitHub API上の `main`：`protected: true`
 
 ## iPhoneからmainを保護する
 
@@ -37,7 +39,7 @@ Rulesetの場合は、対象ブランチに `main` を指定し、Enforcementを
 3. Pull Requestの画面で、検査が成功するまでマージできない表示になることを確認する。
 4. Pages公開はPull Requestをmainへ反映したあとだけ起動し、`Deploy GitHub Pages`内の公開前検査が成功してからデプロイされることを確認する。
 
-保護設定完了前は、mainを「検査なしで変更できない」と判定しません。
+上記のRulesetがActiveで表示され、必須チェック名が一致しているため、現在のmainは「検査なしで変更できない」状態として扱います。緊急時を除き、Rulesetの一時無効化やバイパス登録は行いません。
 
 ## ワークフローの役割
 
@@ -46,3 +48,12 @@ Rulesetの場合は、対象ブランチに `main` を指定し、Enforcementを
 - `.github/actions/release-checks/action.yml`：`npm test`、Pagesファイル生成、Chromium、WebKitの共通処理です。
 
 同じ検査コードをPull Request用と公開用に複製していません。Pull Request検査と公開前検査は必要な役割が異なるため、公開前検査は残し、無意味な同一ジョブの追加実行は避けています。
+
+## Supabaseの学習状態
+
+- 名前と教材・問題の学習状態は `public.wakaranjan_learning_profiles` に保存する。
+- この表はゲームスコア用の `game_scores`、`score_runs` などとは別で、既存のスコア保存処理を変更しない。
+- 同じ名前を同期キーにする仕様のため、同名で開いた利用者は同じ学習状態を共有・上書きできる。
+- 学習記録画面の「この名前の学習状況を解除」は、現在の名前の学習状態をSupabaseと端末から初期化する。
+- ブラウザへ配布するのはSupabaseのpublishable keyだけで、service role keyやsecret keyは使用しない。
+- Supabase側ではRLSを有効にし、`anon`・`authenticated`ロールへ学習表の必要な操作だけを許可する。

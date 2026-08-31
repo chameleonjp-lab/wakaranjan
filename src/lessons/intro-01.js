@@ -10,7 +10,7 @@ export function renderIntro01(root,ctx){
     <section><h2 class="section-title">完成形を先に見よう</h2><div class="panel"><p>基本は、<strong>3枚の組を4つ＋同じ牌2枚</strong>です。正式な名前は次の章で覚えれば大丈夫です。</p><div id="shape-demo" class="hand-scroll"></div></div></section>
     <section><h2 class="section-title">1枚取って、1枚捨てる</h2><div class="panel"><p id="flow-message" class="status">今は13枚。まず「1枚取る」を押してください。</p><div id="hand" class="hand-scroll" aria-label="あなたの手牌"></div><div class="action-row"><button id="draw" class="primary" type="button">1枚取る</button><button id="reset" class="secondary" type="button">やり直す</button></div><h3 class="section-title">捨てた牌</h3><div id="river" class="river" aria-label="捨てた牌"></div></div></section>
     <section><h2 class="section-title">確認</h2><div class="panel"><p><strong>Q.</strong> 牌を1枚取って14枚になったあと、通常はどうする？</p><div class="quiz-options" id="quiz"><button type="button" data-answer="wrong">もう1枚取る</button><button type="button" data-answer="correct">1枚捨てる</button><button type="button" data-answer="wrong">全部並べ直す</button></div><div id="quiz-feedback" class="feedback" hidden></div></div></section>
-    <nav class="lesson-nav"><a class="secondary" href="#home">ホーム</a><a class="primary" href="#lesson-intro-02">次へ：牌の種類と読み</a></nav>`;
+    <nav class="lesson-nav"><a class="secondary" href="#learn?level=intro">入門一覧</a><a class="primary" href="#lesson-intro-02">次へ：牌の種類と読み</a></nav>`;
 
   const get=c=>ctx.tileByCode.get(c);
   const demo=[get('1m'),get('2m'),get('3m'),get('4p'),get('5p'),get('6p'),get('2s'),get('3s'),get('4s'),get('1z'),get('1z'),get('1z'),get('5z'),get('5z')];

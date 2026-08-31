@@ -14,7 +14,7 @@ if(!relativeOutput||relativeOutput.startsWith('..')||path.isAbsolute(relativeOut
 await rm(output,{recursive:true,force:true});
 await mkdir(output,{recursive:true});
 
-for(const entry of ['index.html','favicon.svg','styles.css','waits.css','scoring.css','lesson-quality.css','mobile-lesson-quality.css','interactive-problems.css','tile-faces.css','settings.css','print-materials.css','accessibility.css']){
+for(const entry of ['index.html','favicon.svg','styles.css','waits.css','scoring.css','lesson-quality.css','mobile-lesson-quality.css','interactive-problems.css','tile-faces.css','settings.css','print-materials.css','accessibility.css','ux-reorganization.css']){
   await cp(path.join(projectRoot,entry),path.join(output,entry));
 }
 await cp(path.join(projectRoot,'src'),path.join(output,'src'),{recursive:true});

@@ -73,6 +73,6 @@ export function renderRules(app,ctx){
     ruleItem('供託・本場',scoring.riichiSticks&&scoring.honba?'点数に反映':'ルールによる'),
     '</dl></section>',
     '<section class="panel"><h2>補足</h2><ul class="rule-note">'+(rule.notes||[]).map(note=>'<li>'+note+'</li>').join('')+'</ul></section>',
-    '<div class="lesson-nav"><a class="secondary" href="#home">ホームへ戻る</a><a class="primary" href="#automatic-calculator">点数計算を試す</a></div>'
+    '<div class="lesson-nav"><a class="secondary" href="#menu">メニューへ戻る</a><a class="primary" href="#automatic-calculator">点数計算を試す</a></div>'
   ].join('');
 }

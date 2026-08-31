@@ -5,7 +5,7 @@ import {roundLabel,SEATS,SEAT_LABEL_MAP} from '../lib/round-state.js';
 import {deadWallRemaining,liveTilesRemaining} from '../lib/tile-wall.js';
 
 function nav(){
-  return '<div class="lesson-nav"><a class="secondary" href="#practice">対局練習へ戻る</a><a class="primary" href="#home">ホームへ</a></div>';
+  return '<div class="lesson-nav"><a class="secondary" href="#practice">対局練習へ戻る</a><a class="primary" href="#menu">メニューへ</a></div>';
 }
 
 function physicalItem(ctx,tile){

@@ -1,0 +1,126 @@
+/* Shared information architecture and mobile layout. */
+:root{
+  --wj-ink:#17211b;
+  --wj-green:#173d2b;
+  --wj-green-soft:#e9f2eb;
+  --wj-paper:#fffdf8;
+  --wj-line:#d9d0c0;
+  --wj-muted:#657067;
+  --wj-accent:#b65f36;
+  --wj-radius:16px;
+}
+
+body{color:var(--wj-ink);overflow-x:hidden}
+.site-header{padding:4px max(12px,env(safe-area-inset-left)) 4px max(12px,env(safe-area-inset-right));min-height:52px}
+.brand,.header-settings{min-height:44px}
+.brand{padding:8px 4px;white-space:nowrap}
+.header-actions{min-width:0;gap:6px}
+.header-context{max-width:9rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--wj-muted);font-size:.78rem}
+.level-badge{max-width:9rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:6px 10px}
+.header-settings{padding:8px 12px;white-space:nowrap}
+#app{padding:18px 16px 64px}
+#app>*+*{margin-top:16px}
+
+.hero,.panel,.lesson-card,.lesson-panel{border-color:var(--wj-line);border-radius:var(--wj-radius);box-shadow:0 5px 18px rgba(52,42,28,.06)}
+.hero{padding:22px}
+.hero h1,.lesson-head h1{letter-spacing:.01em}
+.hero p,.lead{line-height:1.8}
+.eyebrow{color:#765c42}
+.panel{padding:18px}
+.panel h2,.menu-section h2{margin-top:0}
+.lesson-head{padding:4px 2px 0;margin-bottom:0}
+.lesson-head .lead{margin-bottom:.65rem}
+.action-row{margin-top:16px}
+.action-row a,.action-row button,.lesson-nav a,.page-toolbar button,.page-toolbar a{min-height:48px}
+
+.page-toolbar{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:8px;padding:4px 0 12px;border-bottom:1px solid var(--wj-line)}
+.page-toolbar button,.page-toolbar a{display:inline-flex;align-items:center;justify-content:center;border-radius:12px;padding:8px 12px;font-weight:700;text-decoration:none;white-space:nowrap}
+.page-back{border:1px solid #8d968f;background:#fff;color:var(--wj-ink)}
+.page-menu-link{background:var(--wj-green);color:#fff}
+.page-breadcrumb{text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#526058;font-weight:700}
+
+.profile-hero{border-top:5px solid var(--wj-green)}
+.profile-form{display:grid;gap:12px;margin-top:18px}
+.profile-form label,.search-row label{display:grid;gap:6px;font-weight:700}
+.profile-form input{width:100%;min-height:50px;border:1px solid #9da79f;border-radius:12px;padding:10px 12px;background:#fff;font-size:16px}
+.profile-form .primary{width:100%}
+.profile-note{background:var(--wj-green-soft)}
+.sync-status{margin:.8rem 0 0;padding:8px 10px;border-radius:9px;background:#f1eee6;color:#526058;font-size:.9rem}
+.sync-status[data-sync-state="synced"]{background:#e6f3e9;color:#245f43}
+.sync-status[data-sync-state="error"]{background:#fff0e7;color:#8a3e2e}
+.sync-status[data-sync-state="loading"],.sync-status[data-sync-state="syncing"],.sync-status[data-sync-state="pending"]{background:#fff7dc;color:#73551d}
+.profile-benefits{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.profile-benefits span{padding:10px 12px;border-radius:10px;background:#fff;border:1px solid #d2e0d4;font-size:.92rem}
+
+.menu-hero{background:linear-gradient(135deg,#fffdf8 0%,#f1f7f1 100%)}
+.continue-card{display:grid;gap:2px;margin-top:18px;padding:15px 16px;border:2px solid #6f9a7c;border-radius:14px;background:#fff;color:var(--wj-ink);text-decoration:none}
+.continue-card span,.continue-card small{color:#526058}
+.continue-card strong{font-size:1.05rem}
+.profile-switch{display:inline-flex;align-items:center;justify-content:center;min-height:44px;margin-top:12px;padding:8px 12px;border:1px solid #9da79f;border-radius:12px;background:#fff;color:var(--wj-green);font-weight:700;text-decoration:none}
+.menu-section{padding:2px 0}
+.menu-section h2{font-size:1.05rem;margin-bottom:10px}
+.menu-grid,.level-grid,.lookup-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.menu-card,.level-card,.lookup-grid a{display:flex;flex-direction:column;gap:6px;min-width:0;min-height:132px;padding:16px;border:1px solid var(--wj-line);border-radius:14px;background:var(--wj-paper);color:var(--wj-ink);text-decoration:none;box-shadow:0 3px 10px rgba(52,42,28,.04)}
+.menu-card:hover,.level-card:hover,.lookup-grid a:hover,.lesson-card:hover{border-color:#6f9a7c}
+.menu-card strong,.level-card strong{font-size:1.08rem}
+.menu-card span,.menu-card small,.level-card p,.lookup-grid span{color:#526058}
+.menu-card small{margin-top:auto}
+.menu-card-main{border:2px solid #6f9a7c;background:var(--wj-green-soft)}
+.menu-level-card{min-height:118px}
+.level-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.level-card{min-height:160px}
+.level-card-label{display:inline-flex;align-self:flex-start;padding:4px 9px;border-radius:999px;background:var(--wj-green);color:#fff;font-size:.8rem;font-weight:700}
+.level-card p{margin:0;line-height:1.65}
+.progress-badge{display:inline-block;margin:.2rem 0 0;padding:5px 10px;border-radius:999px;background:var(--wj-green-soft);color:var(--wj-green);font-weight:700}
+.review-card{display:flex;flex-direction:column;gap:4px;margin-top:16px;padding:14px 16px;border:1px solid #6f9a7c;border-radius:12px;background:#f4faf4;color:var(--wj-ink);text-decoration:none}
+.review-card span{color:#526058}
+.lesson-list{gap:10px;margin-top:14px}
+.lesson-card{padding:15px 16px}
+.lesson-card small{margin-top:3px}
+.lookup-grid a{min-height:140px}
+
+/* Put the reading above Mahjong terms without changing their meaning. */
+ruby.mahjong-ruby{ruby-position:over;text-decoration:none;white-space:nowrap}
+ruby.mahjong-ruby rt{color:#765c42;font-size:.56em;font-weight:700;line-height:1;letter-spacing:.02em;white-space:nowrap}
+ruby.mahjong-ruby rb{font-weight:inherit}
+.glossary-reading,.yaku-card-top span{color:#765c42;font-weight:700}
+
+/* A problem hand is a fixed grid, so a learner never has to swipe sideways. */
+.visual-question-block{min-width:0}
+.visual-question-tiles.no-scroll-hand{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;width:100%;overflow:visible;flex-wrap:initial;padding:8px;border:1px solid #ddd3c3;border-radius:12px;background:#faf7f0}
+.visual-question-tiles.no-scroll-hand .tile{width:100%;min-width:0;min-height:0;height:auto;aspect-ratio:5 / 7;padding:2px;flex:initial}
+.visual-question-tiles.no-scroll-hand .tile-face{min-width:0;min-height:0}
+.visual-question-tiles.no-scroll-hand .tile-art{width:100%;height:100%;max-width:100%}
+.visual-win-tile{display:flex;align-items:center;gap:10px;margin-top:12px}
+.visual-win-tile .tile{flex:0 0 auto}
+
+@media(min-width:640px){
+  #app{padding-top:26px}
+  .visual-question-tiles.no-scroll-hand{grid-template-columns:repeat(14,minmax(0,1fr));gap:5px}
+  .menu-grid,.lookup-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .level-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:390px){
+  .header-context{display:none}
+  .site-header{padding-inline:8px}
+  .brand{font-size:1rem}
+  .level-badge{max-width:6.2rem;padding-inline:8px}
+  .header-settings{padding-inline:9px;font-size:.85rem}
+  #app{padding-inline:12px}
+  .hero,.panel{padding:16px}
+  .menu-grid,.level-grid,.lookup-grid{gap:8px}
+  .menu-card,.level-card,.lookup-grid a{padding:13px 12px}
+  .menu-card{min-height:146px}
+  .menu-grid .menu-level-card{min-height:118px}
+  .level-card{min-height:180px}
+  .profile-benefits{gap:6px}
+  .profile-benefits span{padding:9px 8px;font-size:.86rem}
+  .page-toolbar{gap:5px}
+  .page-toolbar button,.page-toolbar a{padding-inline:9px;font-size:.9rem}
+}
+@media(max-width:335px){
+  .brand{font-size:.94rem}
+  .level-badge{max-width:5.2rem}
+  .header-settings{padding-inline:7px}
+  .menu-card,.level-card,.lookup-grid a{font-size:.93rem}
+}
