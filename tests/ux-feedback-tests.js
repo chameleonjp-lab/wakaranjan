@@ -33,6 +33,8 @@ for(const source of [
 
 assert.match(ux,/ruby\.mahjong-ruby\{[\s\S]*display:inline-block/,'ルビを独自のインライン要素として扱う');
 assert.match(ux,/ruby\.mahjong-ruby rt\{[\s\S]*position:absolute/,'ルビを絶対配置して漢字の行送りを変えない');
+assert.match(ux,/ruby\.mahjong-ruby\{[\s\S]*padding-top:\.72em/,'ルビの上側表示領域を予約する');
+assert.match(ux,/ruby\.mahjong-ruby rt\{[\s\S]*top:\.08em[\s\S]*bottom:auto/,'ルビを予約領域の中に配置する');
 assert.match(ux,/\.hand-fit-row\{[\s\S]*flex-wrap:nowrap/,'手牌は折り返さない');
 assert.match(ux,/\.hand-fit-row\{[\s\S]*overflow:visible/, '横一列の手牌を横スクロールにしない');
 

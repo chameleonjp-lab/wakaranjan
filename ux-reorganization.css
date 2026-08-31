@@ -134,13 +134,17 @@ ruby.mahjong-ruby{
   ruby-position:over;
   white-space:nowrap;
   text-decoration:none;
+  /* Reserve the annotation area without moving the base text down. */
+  padding-top:.72em;
+  box-sizing:border-box;
   z-index:0;
 }
 ruby.mahjong-ruby rb{display:inline;font-weight:inherit}
 ruby.mahjong-ruby rt{
   position:absolute;
   left:50%;
-  bottom:calc(100% + .08em);
+  top:.08em;
+  bottom:auto;
   display:block;
   width:max-content;
   max-width:none;
