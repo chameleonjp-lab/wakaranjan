@@ -1,7 +1,7 @@
 import {createTile} from '../components/tile.js';
 
 function tile(ctx,code){return createTile(ctx.tileByCode.get(code))}
-function row(ctx,codes){const el=document.createElement('div');el.className='tile-row';codes.forEach(c=>el.append(tile(ctx,c)));return el}
+function row(ctx,codes){const el=document.createElement('div');el.className='tile-row hand-fit-row';codes.forEach(c=>el.append(tile(ctx,c)));return el}
 
 export function renderBeginner02(app,ctx){
   app.innerHTML='<section class="lesson-head"><div class="eyebrow">初級 2</div><h1>鳴き</h1><p class="lead">他の人の捨て牌を使って組を完成させる方法を学びます。</p></section>';
@@ -23,7 +23,7 @@ export function renderBeginner02(app,ctx){
   app.append(cards);
 
   const quiz=document.createElement('section');quiz.className='panel';
-  quiz.innerHTML='<h2>練習</h2><p id="call-q"></p><div id="call-tiles" class="call-question"></div><div id="call-options" class="quiz-options"></div><div id="call-feedback" class="feedback" aria-live="polite"></div><div class="action-row"><button id="call-next" class="primary" type="button" hidden>次の問題</button></div>';
+  quiz.innerHTML='<h2>練習</h2><p id="call-q"></p><div class="selection-area selection-area-choices"><h3>選択肢</h3><div id="call-options" class="quiz-options"></div></div><div class="selection-area selection-area-hand"><h3>手牌と捨て牌</h3><div id="call-tiles" class="call-question"></div></div><div id="call-feedback" class="feedback" aria-live="polite"></div><div class="action-row"><button id="call-next" class="primary" type="button" hidden>次の問題</button></div>';
   app.append(quiz);
 
   const questions=[

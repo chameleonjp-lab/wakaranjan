@@ -2,6 +2,16 @@ import {createTile} from '../components/tile.js';
 
 function tile(ctx,code){return createTile(ctx.tileByCode.get(code))}
 function addNav(app,prev,next){const nav=document.createElement('div');nav.className='lesson-nav';nav.innerHTML=`<a class="secondary" href="#${prev}">前へ</a><a class="secondary" href="#${next}">次へ</a>`;app.append(nav)}
+function appendYakuExample(card,y,ctx){
+  const example=ctx.yakuExamples?.[y.id];
+  if(!example)return;
+  const visual=document.createElement('div');visual.className='yaku-card-example';
+  const heading=document.createElement('strong');heading.textContent='牌姿の例';
+  const row=document.createElement('div');row.className='tile-row hand-fit-row yaku-example-row';
+  example.tiles.forEach(code=>{const item=ctx.tileByCode.get(code);if(item)row.append(createTile(item,{interactive:false}))});
+  const note=document.createElement('p');note.className='yaku-example-note';note.textContent=example.note;
+  visual.append(heading,row,note);card.append(visual);
+}
 function quiz(app,questions){let i=0,score=0;const box=document.createElement('section');box.className='panel';app.append(box);const render=()=>{if(i>=questions.length){box.innerHTML=`<h2>確認終了</h2><p><strong>${questions.length}問中 ${score}問正解</strong></p><button class="primary" type="button" id="retry">もう一度</button>`;box.querySelector('#retry').onclick=()=>{i=0;score=0;render()};return}const q=questions[i];box.innerHTML=`<div class="eyebrow">確認 ${i+1}/${questions.length}</div><h2>${q.q}</h2><div class="quiz-options">${q.options.map((o,n)=>`<button type="button" data-i="${n}">${o}</button>`).join('')}</div><div class="feedback" aria-live="polite"></div>`;const fb=box.querySelector('.feedback');box.querySelectorAll('.quiz-options button').forEach(b=>b.onclick=()=>{const n=Number(b.dataset.i);const ok=n===q.answer;if(ok)score++;box.querySelectorAll('.quiz-options button').forEach((x,j)=>{x.disabled=true;if(j===q.answer)x.dataset.correct='true';else if(j===n)x.dataset.wrong='true'});fb.className=`feedback ${ok?'good':'bad'}`;fb.innerHTML=`<strong>${ok?'正解':'不正解'}</strong><br>${q.explain}<div class="action-row"><button type="button" id="nextq">${i+1===questions.length?'結果を見る':'次の問題'}</button></div>`;fb.querySelector('#nextq').onclick=()=>{i++;render()}})};render()}
 
 export function renderBeginner03(app,ctx){
@@ -23,7 +33,7 @@ export function renderBeginner04(app,ctx){
 export function renderBeginner05(app,ctx){
   const yaku=ctx.yaku.filter(y=>ctx.beginnerCore.beginnerYakuIds.includes(y.id));
   app.innerHTML='<section class="lesson-head"><div class="eyebrow">初級 5</div><h1>初級役</h1><p class="lead">まず、よく出会う役を「門前限定」「鳴いても成立」に分けて覚えます。</p></section>';
-  const grid=document.createElement('div');grid.className='shape-grid';yaku.forEach(y=>{const a=document.createElement('article');a.className='shape-card';const open=y.openHan===null?'門前限定':`鳴いても成立${y.openHan!==y.closedHan?`（${y.openHan}翻）`:''}`;a.innerHTML=`<div class="eyebrow">${y.closedHan}翻</div><h2>${y.displayNameJa}</h2><p>${y.summary}</p><p class="muted">${open}</p>`;grid.append(a)});app.append(grid);
+  const grid=document.createElement('div');grid.className='shape-grid';yaku.forEach(y=>{const a=document.createElement('article');a.className='shape-card';const open=y.openHan===null?'門前限定':`鳴いても成立${y.openHan!==y.closedHan?`（${y.openHan}翻）`:''}`;a.innerHTML=`<div class="eyebrow">${y.closedHan}翻</div><h2>${y.displayNameJa}</h2><p>${y.summary}</p><p class="muted">${open}</p>`;appendYakuExample(a,y,ctx);grid.append(a)});app.append(grid);
   quiz(app,[{q:'2〜8の数牌だけで作る役は？',options:['タンヤオ','七対子','一気通貫'],answer:0,explain:'タンヤオは1・9・字牌を使わず、2〜8の数牌だけで作ります。'},{q:'白を3枚そろえたとき成立する役は？',options:['ピンフ','役牌 白','一盃口'],answer:1,explain:'白・發・中は3枚組または4枚組にすると、それぞれ役牌になります。'},{q:'同じ牌2枚の組を7組作る特殊な形は？',options:['七対子','対々和','三色同順'],answer:0,explain:'七対子は基本の「4面子1雀頭」とは別の特殊なあがり形です。'},{q:'4つの面子をすべて刻子・槓子で作る役は？',options:['対々和','一気通貫','門前ツモ'],answer:0,explain:'対々和はすべての面子を3枚組または4枚組で作ります。'}]);
   addNav(app,'lesson-beginner-04','lesson-beginner-06');
 }

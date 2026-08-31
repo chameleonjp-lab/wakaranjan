@@ -5,7 +5,15 @@ const norm=s=>(s||'').toString().normalize('NFKC').toLowerCase().replace(/\s+/g,
 const kataToHira=s=>(s||'').replace(/[ァ-ヶ]/g,c=>String.fromCharCode(c.charCodeAt(0)-0x60));
 function hanLabel(y){if(y.yakumanValue)return y.yakumanValue>1?`${y.yakumanValue}倍役満`:'役満';if(y.openHan==null)return `門前 ${y.closedHan}翻・鳴き不可`;if(y.openHan===y.closedHan)return `${y.closedHan}翻（鳴いても同じ）`;return `門前 ${y.closedHan}翻・鳴き ${y.openHan}翻`}
 function lessonHint(y){if(y.lessonLevel==='beginner')return 'まず覚えたい役';if(y.lessonLevel==='intermediate')return '点数計算と一緒に覚える役';return '上級・特殊な場面で出る役'}
-function renderTiles(codes,ctx){const box=document.createElement('div');box.className='tile-row yaku-example-row';for(const code of codes){const tile=ctx.tileByCode.get(code);if(tile)box.append(createTile(tile,{interactive:false}))}return box}
+function renderTiles(codes,ctx){const box=document.createElement('div');box.className='tile-row yaku-example-row hand-fit-row';for(const code of codes){const tile=ctx.tileByCode.get(code);if(tile)box.append(createTile(tile,{interactive:false}))}return box}
+function appendListExample(card,y,ctx){
+  const example=ctx.yakuExamples?.[y.id];
+  if(!example)return;
+  const visual=document.createElement('div');visual.className='yaku-card-example';
+  const heading=document.createElement('strong');heading.textContent='牌姿の例';
+  const note=document.createElement('p');note.className='yaku-example-note';note.textContent=example.note;
+  visual.append(heading,renderTiles(example.tiles,ctx),note);card.append(visual);
+}
 
 export function renderYakuGuide(app,ctx){
   const params=new URLSearchParams((location.hash.split('?')[1]||''));const selected=ctx.yakuById.get(params.get('yaku'));
@@ -13,5 +21,5 @@ export function renderYakuGuide(app,ctx){
   const list=[...ctx.yaku].filter(y=>y.standard).sort((a,b)=>(a.yakumanValue-b.yakumanValue)||(a.closedHan||99)-(b.closedHan||99)||a.readingJa.localeCompare(b.readingJa,'ja'));
   app.innerHTML=`<section class="lesson-head"><div class="eyebrow">調べる</div><h1>役図鑑</h1><p class="lead">役名、読み方、別名から探せます。翻数、鳴けるか、学ぶ段階を並べて比較できます。</p></section><section class="panel"><div class="search-row"><label class="search-label">役を検索<input id="yaku-search" type="search" inputmode="search" placeholder="例：三色、さんしょく、トイトイ"></label><label>種類<select id="yaku-kind"><option value="">すべて</option><option value="normal">通常役</option><option value="yakuman">役満</option></select></label><label>学習段階<select id="yaku-level"><option value="">すべて</option><option value="beginner">初級</option><option value="intermediate">中級</option><option value="advanced">上級</option></select></label></div><p id="yaku-count" class="muted"></p><div id="yaku-results" class="yaku-grid"></div></section><div class="lesson-nav"><a class="secondary" href="#dictionary">用語集を見る</a><a class="primary" href="#menu">メニューへ</a></div>`;
   const input=app.querySelector('#yaku-search'),kind=app.querySelector('#yaku-kind'),level=app.querySelector('#yaku-level'),out=app.querySelector('#yaku-results'),count=app.querySelector('#yaku-count');
-  const draw=()=>{const q=norm(kataToHira(input.value));const rows=list.filter(y=>{const hay=norm(kataToHira([y.nameJa,y.displayNameJa,y.readingJa,...(y.aliases||[])].join('')));return (!q||hay.includes(q))&&(!kind.value||y.category===kind.value)&&(!level.value||y.lessonLevel===level.value)});count.textContent=`${rows.length}役表示`;out.innerHTML=rows.map(y=>`<a class="yaku-card" href="#yaku-guide?yaku=${encodeURIComponent(y.id)}"><div class="yaku-card-top"><strong>${y.displayNameJa}</strong><span>${y.readingJa}</span></div><p>${y.summary}</p><div class="yaku-tags"><span>${hanLabel(y)}</span><span>${LEVEL_LABEL[y.lessonLevel]||y.lessonLevel}</span></div></a>`).join('')||'<p>該当する役がありません。</p>'};input.oninput=draw;kind.onchange=draw;level.onchange=draw;draw();
+  const draw=()=>{const q=norm(kataToHira(input.value));const rows=list.filter(y=>{const hay=norm(kataToHira([y.nameJa,y.displayNameJa,y.readingJa,...(y.aliases||[])].join('')));return (!q||hay.includes(q))&&(!kind.value||y.category===kind.value)&&(!level.value||y.lessonLevel===level.value)});count.textContent=`${rows.length}役表示`;out.innerHTML=rows.map(y=>`<a class="yaku-card" href="#yaku-guide?yaku=${encodeURIComponent(y.id)}"><div class="yaku-card-top"><strong>${y.displayNameJa}</strong><span>${y.readingJa}</span></div><p>${y.summary}</p><div class="yaku-tags"><span>${hanLabel(y)}</span><span>${LEVEL_LABEL[y.lessonLevel]||y.lessonLevel}</span></div></a>`).join('')||'<p>該当する役がありません。</p>';out.querySelectorAll('.yaku-card').forEach((card,index)=>appendListExample(card,rows[index],ctx))};input.oninput=draw;kind.onchange=draw;level.onchange=draw;draw();
 }

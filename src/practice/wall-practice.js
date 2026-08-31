@@ -33,7 +33,7 @@ export function renderWallPractice(app,ctx){
 
   const render=()=>{
     const finished=turn==='draw'&&!roundWall.live.length;
-    app.innerHTML='<section class="lesson-head"><div class="eyebrow">対局練習 1.5</div><h1>牌山と手番（基礎）</h1><p class="lead">実際の136枚を、通常の牌山と王牌に分けてから13枚を配ります。</p></section><section class="callout"><strong>この練習の範囲</strong><br>通常の牌山122枚と王牌14枚を分け、ドラ表示牌を確認します。カン後の嶺上牌・追加ドラは、別のカン練習で確認します。</section><section class="practice-surface"><div class="wall-status-grid"><div class="wall-status-card"><span>通常の牌山</span><strong>'+liveTilesRemaining(roundWall)+'枚</strong></div><div class="wall-status-card"><span>王牌</span><strong>'+deadWallRemaining(roundWall)+'枚</strong></div><div class="wall-status-card"><span>今回のツモ</span><strong>'+draws+'回</strong></div></div><div class="practice-step-list wall-practice-steps"><span class="'+(turn==='draw'&&!finished?'active':'')+'">1 ツモ</span><span class="'+(turn==='discard'?'active':'')+'">2 捨てる</span></div><p id="wall-message" class="status" aria-live="polite"></p><h2 class="section-title">あなたの手牌</h2><div class="practice-hand" id="wall-hand"></div><h2 class="section-title">ドラ表示牌（説明用）</h2><div class="practice-tile-block wall-dora" id="wall-dora"></div><h2 class="section-title">あなたの河</h2><div class="river" id="wall-river"></div><div class="action-row" id="wall-actions"></div><div class="feedback" id="wall-feedback"></div></section>'+nav();
+    app.innerHTML='<section class="lesson-head"><div class="eyebrow">対局練習 1.5</div><h1>牌山と手番（基礎）</h1><p class="lead">実際の136枚を、通常の牌山と王牌に分けてから13枚を配ります。</p></section><section class="callout"><strong>この練習の範囲</strong><br>通常の牌山122枚と王牌14枚を分け、ドラ表示牌を確認します。カン後の嶺上牌・追加ドラは、別のカン練習で確認します。</section><section class="practice-surface"><div class="wall-status-grid"><div class="wall-status-card"><span>通常の牌山</span><strong>'+liveTilesRemaining(roundWall)+'枚</strong></div><div class="wall-status-card"><span>王牌</span><strong>'+deadWallRemaining(roundWall)+'枚</strong></div><div class="wall-status-card"><span>今回のツモ</span><strong>'+draws+'回</strong></div></div><div class="practice-step-list wall-practice-steps"><span class="'+(turn==='draw'&&!finished?'active':'')+'">1 ツモ</span><span class="'+(turn==='discard'?'active':'')+'">2 捨てる</span></div><p id="wall-message" class="status" aria-live="polite"></p><h2 class="section-title">あなたの手牌</h2><div class="practice-hand hand-fit-scroll" id="wall-hand"></div><h2 class="section-title">ドラ表示牌（説明用）</h2><div class="practice-tile-block wall-dora" id="wall-dora"></div><h2 class="section-title">あなたの河</h2><div class="river" id="wall-river"></div><div class="action-row" id="wall-actions"></div><div class="feedback" id="wall-feedback"></div></section>'+nav();
 
     const message=app.querySelector('#wall-message');
     const handBox=app.querySelector('#wall-hand');
@@ -55,7 +55,7 @@ export function renderWallPractice(app,ctx){
       feedback.textContent='最後にツモった牌は少し浮いて表示されます。';
     }
 
-    appendTileRow(handBox,hand.map(tile=>physicalItem(ctx,tile)),{
+    appendTileRow(handBox,hand.map(tile=>physicalItem(ctx,tile)),{rowClass:'hand-fit-row',
       interactive:turn==='discard',
       drawnIndex:turn==='discard'?hand.length-1:-1,
       onSelect:(_tile,_options,_element,index)=>{
