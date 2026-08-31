@@ -125,39 +125,22 @@ ruby.mahjong-ruby rb{font-weight:inherit}
   .menu-card,.level-card,.lookup-grid a{font-size:.93rem}
 }
 
-/* Keep ruby annotations out of the normal line box so the kanji stay aligned. */
+/* Let the native ruby layout reserve space consistently in Chromium and WebKit. */
 ruby.mahjong-ruby{
-  display:inline-block;
-  position:relative;
   vertical-align:baseline;
-  line-height:inherit;
   ruby-position:over;
+  ruby-align:center;
   white-space:nowrap;
   text-decoration:none;
-  /* Reserve the annotation area without moving the base text down. */
-  padding-top:.72em;
-  box-sizing:border-box;
-  z-index:0;
 }
-ruby.mahjong-ruby rb{display:inline;font-weight:inherit}
+ruby.mahjong-ruby rb{font-weight:inherit}
 ruby.mahjong-ruby rt{
-  position:absolute;
-  left:50%;
-  top:.08em;
-  bottom:auto;
-  display:block;
-  width:max-content;
-  max-width:none;
-  margin:0;
-  transform:translateX(-50%);
-  color:#765c42;
   font-size:.56em;
   font-weight:700;
-  line-height:1;
+  line-height:.7;
   letter-spacing:.02em;
   white-space:nowrap;
-  pointer-events:none;
-  z-index:1;
+  color:#765c42;
 }
 
 /* A displayed hand is a single visual unit. Fit the tiles instead of wrapping or scrolling. */

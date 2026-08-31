@@ -31,10 +31,9 @@ for(const source of [
   'src/tools/automatic-calculator.js','src/tools/yaku-guide.js'
 ])assert.match(read(source),/hand-fit-row|hand-fit-scroll/,`${source} に横一列の手牌指定がありません`);
 
-assert.match(ux,/ruby\.mahjong-ruby\{[\s\S]*display:inline-block/,'ルビを独自のインライン要素として扱う');
-assert.match(ux,/ruby\.mahjong-ruby rt\{[\s\S]*position:absolute/,'ルビを絶対配置して漢字の行送りを変えない');
-assert.match(ux,/ruby\.mahjong-ruby\{[\s\S]*padding-top:\.72em/,'ルビの上側表示領域を予約する');
-assert.match(ux,/ruby\.mahjong-ruby rt\{[\s\S]*top:\.08em[\s\S]*bottom:auto/,'ルビを予約領域の中に配置する');
+assert.match(ux,/ruby\.mahjong-ruby\{[\s\S]*ruby-position:over/,'ルビを漢字の上へ表示する');
+assert.match(ux,/ruby\.mahjong-ruby\{[\s\S]*ruby-align:center/,'ルビを漢字の中央へそろえる');
+assert.doesNotMatch(ux,/ruby\.mahjong-ruby rt\{[\s\S]*position:absolute/,'ルビをブラウザごとの標準レイアウトで配置する');
 assert.match(ux,/\.hand-fit-row\{[\s\S]*flex-wrap:nowrap/,'手牌は折り返さない');
 assert.match(ux,/\.hand-fit-row\{[\s\S]*overflow:visible/, '横一列の手牌を横スクロールにしない');
 

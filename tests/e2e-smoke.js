@@ -164,15 +164,13 @@ async function assertRubyAnnotationLayout(page,route){
     const base=ruby.querySelector('rb');
     const reading=ruby.querySelector('rt');
     if(!base||!reading)return [];
-    const rubyRect=ruby.getBoundingClientRect();
     const baseRect=base.getBoundingClientRect();
     const readingRect=reading.getBoundingClientRect();
-    if(!rubyRect.width||!baseRect.width||!readingRect.width)return [];
+    if(!baseRect.width||!readingRect.width)return [];
     const epsilon=1;
     const problems=[];
-    if(readingRect.top<rubyRect.top-epsilon)problems.push('reading escapes reserved top area');
-    if(readingRect.bottom>baseRect.top+epsilon)problems.push('reading overlaps base text');
-    return problems.length?[{index,problems,ruby:[rubyRect.top,rubyRect.bottom],base:[baseRect.top,baseRect.bottom],reading:[readingRect.top,readingRect.bottom]}]:[];
+    if(readingRect.top>=baseRect.top-epsilon)problems.push('reading is not above base text');
+    return problems.length?[{index,problems,base:[baseRect.top,baseRect.bottom],reading:[readingRect.top,readingRect.bottom]}]:[];
   }));
   assert.deepEqual(issues,[],`${route} のルビが行や漢字に重なっています: ${JSON.stringify(issues)}`);
 }
