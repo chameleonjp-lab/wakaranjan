@@ -87,7 +87,7 @@ function resultText(result){
   return `${score}、${formatPayment(best.score)}。${payers||'点数の移動はありません'}。`;
 }
 function renderHand(app,ctx,round){
-  const hand=app.querySelector('#east-hand');if(hand)appendTileRow(hand,(round.evaluation?.concealedTiles||round.hand||[]).map(code=>ctx.tileByCode.get(code)));
+  const hand=app.querySelector('#east-hand');if(hand)appendTileRow(hand,(round.evaluation?.concealedTiles||round.hand||[]).map(code=>ctx.tileByCode.get(code)),{rowClass:'hand-fit-row'});
   const river=app.querySelector('#east-river');if(river)round.river.forEach(code=>river.append(tile(ctx,code)));
 }
 function nav(){return '<div class="lesson-nav"><a class="secondary" href="#practice">対局練習へ戻る</a><a class="primary" href="#menu">メニューへ</a></div>'}
@@ -102,7 +102,7 @@ export function renderEastRound(app,ctx){
     }
     const round=EAST_ROUNDS[index];
     const yourRole=round.dealerSeat==='south'?'東家（親）':'南家（子）';
-    app.innerHTML='<section class="lesson-head"><div class="eyebrow">模擬東風戦（案内版）</div><h1>'+round.label+'：'+round.title+'</h1><p class="lead">'+round.prompt+'</p></section><section class="practice-surface"><div class="east-round-head"><span>東風戦 '+(index+1)+' / '+EAST_ROUNDS.length+'</span><strong>親：'+seatLabel(round.dealerSeat)+' ・ あなた：'+yourRole+'</strong></div>'+scoreBoard(scores)+'<div class="east-round-hand"><h2 class="section-title">あなたの手牌</h2><div id="east-hand"></div><h2 class="section-title">あなたの河</h2><div class="river" id="east-river"></div></div><p class="status">'+(state==='question'?'次の判断を選んでください。':state==='result'?'結果を確認して次の局へ進みます。':'')+'</p><div class="practice-options" id="east-options"></div><div class="feedback" id="east-feedback" aria-live="polite"></div><div class="action-row" id="east-actions"></div></section>'+nav();
+    app.innerHTML='<section class="lesson-head"><div class="eyebrow">模擬東風戦（案内版）</div><h1>'+round.label+'：'+round.title+'</h1><p class="lead">'+round.prompt+'</p></section><section class="practice-surface"><div class="east-round-head"><span>東風戦 '+(index+1)+' / '+EAST_ROUNDS.length+'</span><strong>親：'+seatLabel(round.dealerSeat)+' ・ あなた：'+yourRole+'</strong></div>'+scoreBoard(scores)+'<p class="status">'+(state==='question'?'次の判断を選んでください。':state==='result'?'結果を確認して次の局へ進みます。':'')+'</p><div class="selection-area selection-area-choices"><h3>選択肢</h3><div class="practice-options" id="east-options"></div></div><div class="selection-area selection-area-hand"><h3>手牌と河</h3><div class="east-round-hand"><h2 class="section-title">あなたの手牌</h2><div id="east-hand"></div><h2 class="section-title">あなたの河</h2><div class="river" id="east-river"></div></div></div><div class="feedback" id="east-feedback" aria-live="polite"></div><div class="action-row" id="east-actions"></div></section>'+nav();
     renderHand(app,ctx,round);
     const options=app.querySelector('#east-options');const feedback=app.querySelector('#east-feedback');const actions=app.querySelector('#east-actions');
     if(state==='question'){

@@ -40,13 +40,13 @@ function tileFor(ctx,code,options={}){return createTile(ctx.tileByCode.get(code)
 function appendBlock(container,ctx,label,codes,className='practice-tile-block'){
   const box=document.createElement('div');box.className=className;
   const title=document.createElement('strong');title.textContent=label;box.append(title);
-  appendTileRow(box,codes.map(code=>ctx.tileByCode.get(code)));
+  appendTileRow(box,codes.map(code=>ctx.tileByCode.get(code)),{rowClass:'hand-fit-row'});
   container.append(box);
 }
 function appendMeldBlock(container,ctx,label,melds){
   const box=document.createElement('div');box.className='practice-tile-block';
   const title=document.createElement('strong');title.textContent=label;box.append(title);
-  const rows=document.createElement('div');rows.className='tile-row';
+  const rows=document.createElement('div');rows.className='tile-row hand-fit-row';
   melds.forEach(meld=>{
     const group=document.createElement('div');group.className='hand-block';
     meld.tiles.forEach(code=>group.append(tileFor(ctx,code)));

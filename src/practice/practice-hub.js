@@ -23,7 +23,7 @@ function nav(){return '<div class="lesson-nav"><a class="secondary" href="#pract
 function tileBlock(ctx,label,codes,className='practice-tile-block'){
   const box=document.createElement('div');box.className=className;
   const title=document.createElement('strong');title.textContent=label;box.append(title);
-  const row=document.createElement('div');row.className='tile-row';codes.forEach(code=>row.append(tile(ctx,code)));box.append(row);
+  const row=document.createElement('div');row.className='tile-row hand-fit-row';codes.forEach(code=>row.append(tile(ctx,code)));box.append(row);
   return box;
 }
 function renderPracticeIndex(app){
@@ -37,7 +37,7 @@ function renderDrawDiscard(app,ctx){
     if(state==='ready'){message.textContent='まず「1枚ツモする」を押してください。';}
     if(state==='drawn'){message.textContent='14枚になりました。捨てたい牌を1枚タップしてください。';}
     if(state==='done'){message.textContent='1枚取って1枚捨てる流れを確認できました。';feedback.className='feedback good';feedback.textContent='正解・不正解のない操作練習です。実際の対局では、何を残すかを考えて捨てます。';}
-    appendTileRow(handBox,hand.map(code=>ctx.tileByCode.get(code)),{interactive:state==='drawn',drawnIndex:state==='drawn'?hand.length-1:-1,onSelect:(_tile,_options,_element,index)=>{if(state==='drawn'){river.push(hand[index]);hand.splice(index,1);state='done';render()}}});
+    appendTileRow(handBox,hand.map(code=>ctx.tileByCode.get(code)),{rowClass:'hand-fit-row',interactive:state==='drawn',drawnIndex:state==='drawn'?hand.length-1:-1,onSelect:(_tile,_options,_element,index)=>{if(state==='drawn'){river.push(hand[index]);hand.splice(index,1);state='done';render()}}});
     river.forEach(code=>riverBox.append(tile(ctx,code)));
     if(state==='ready'){const b=document.createElement('button');b.className='primary';b.type='button';b.textContent='1枚ツモする';b.onclick=()=>{hand.push(DRAW_TILE);state='drawn';render()};actions.append(b)}
     if(state==='done'){const b=document.createElement('button');b.className='secondary';b.type='button';b.textContent='もう一度練習する';b.onclick=()=>{hand=[...INITIAL_HAND];river=[];state='ready';render()};actions.append(b)}
@@ -48,7 +48,7 @@ function renderCalls(app,ctx){
   let index=0;let answered=false;
   const render=()=>{
     const step=CALL_STEPS[index];
-    app.innerHTML='<section class="lesson-head"><div class="eyebrow">対局練習 2</div><h1>鳴き</h1><p class="lead">捨てた人と、手元の牌を見て、鳴けるか判断します。</p></section><section class="practice-surface"><p class="status">'+step.title+'の練習 '+(index+1)+' / '+CALL_STEPS.length+'</p><div class="practice-call-layout"><div id="call-hand"></div><div class="practice-discard"><strong>'+step.from+'の捨て牌</strong><div id="call-discard"></div></div></div><p>'+step.from+'が牌を捨てました。次の判断を選んでください。</p><div class="practice-options" id="call-options"></div><div class="feedback" id="call-feedback" aria-live="polite"></div><div class="action-row" id="call-actions"></div></section>'+nav();
+    app.innerHTML='<section class="lesson-head"><div class="eyebrow">対局練習 2</div><h1>鳴き</h1><p class="lead">捨てた人と、手元の牌を見て、鳴けるか判断します。</p></section><section class="practice-surface"><p class="status">'+step.title+'の練習 '+(index+1)+' / '+CALL_STEPS.length+'</p><p>'+step.from+'が牌を捨てました。次の判断を選んでください。</p><div class="selection-area selection-area-choices"><h3>選択肢</h3><div class="practice-options" id="call-options"></div></div><div class="selection-area selection-area-hand"><h3>手牌と捨て牌</h3><div class="practice-call-layout"><div id="call-hand"></div><div class="practice-discard"><strong>'+step.from+'の捨て牌</strong><div id="call-discard"></div></div></div></div><div class="feedback" id="call-feedback" aria-live="polite"></div><div class="action-row" id="call-actions"></div></section>'+nav();
     app.querySelector('#call-hand').append(tileBlock(ctx,'あなたの手牌',step.hand));
     app.querySelector('#call-discard').append(tile(ctx,step.discard,{drawn:true}));
     const options=app.querySelector('#call-options');const feedback=app.querySelector('#call-feedback');const actions=app.querySelector('#call-actions');
@@ -59,7 +59,7 @@ function renderCalls(app,ctx){
 function renderRiichi(app,ctx){
   let state='question';
   const render=()=>{
-    app.innerHTML='<section class="lesson-head"><div class="eyebrow">対局練習 3</div><h1>リーチとあがり</h1><p class="lead">テンパイしているか、リーチ後にロンできるかを順番に確認します。</p></section><section class="practice-surface"><p class="status">'+(state==='question'?'門前でテンパイしています。どうしますか？':state==='wait'?'リーチ後、他家が5z（白）を捨てました。':'ロンできました。')+'</p><div id="riichi-hand"></div><div class="practice-discard"><strong>待ち牌</strong><div id="riichi-waits"></div></div><div class="practice-options" id="riichi-options"></div><div class="feedback" id="riichi-feedback" aria-live="polite"></div></section>'+nav();
+    app.innerHTML='<section class="lesson-head"><div class="eyebrow">対局練習 3</div><h1>リーチとあがり</h1><p class="lead">テンパイしているか、リーチ後にロンできるかを順番に確認します。</p></section><section class="practice-surface"><p class="status">'+(state==='question'?'門前でテンパイしています。どうしますか？':state==='wait'?'リーチ後、他家が5z（白）を捨てました。':'ロンできました。')+'</p><div class="selection-area selection-area-choices"><h3>選択肢</h3><div class="practice-options" id="riichi-options"></div></div><div class="selection-area selection-area-hand"><h3>手牌と待ち牌</h3><div id="riichi-hand"></div><div class="practice-discard"><strong>待ち牌</strong><div id="riichi-waits"></div></div></div><div class="feedback" id="riichi-feedback" aria-live="polite"></div></section>'+nav();
     app.querySelector('#riichi-hand').append(tileBlock(ctx,'あなたの手牌（13枚）',RIICHI_HAND));
     const waits=app.querySelector('#riichi-waits');['2z','5z'].forEach(code=>waits.append(tile(ctx,code,{drawn:true})));
     const options=app.querySelector('#riichi-options');const feedback=app.querySelector('#riichi-feedback');
@@ -73,7 +73,7 @@ function renderFuriten(app,ctx){
   let index=0;let answered=false;
   const render=()=>{
     const step=FURITEN_STEPS[index];
-    app.innerHTML='<section class="lesson-head"><div class="eyebrow">対局練習 4</div><h1>フリテン</h1><p class="lead">待ち牌があっても、ロンできない状態があります。</p></section><section class="practice-surface"><p class="status">'+step.title+' '+(index+1)+' / '+FURITEN_STEPS.length+'</p><div id="furiten-hand"></div><div class="practice-discard"><strong>自分の河</strong><div id="furiten-river"></div></div><p>'+step.prompt+'</p><div class="practice-options" id="furiten-options"></div><div class="feedback" id="furiten-feedback" aria-live="polite"></div><div class="action-row" id="furiten-actions"></div></section>'+nav();
+    app.innerHTML='<section class="lesson-head"><div class="eyebrow">対局練習 4</div><h1>フリテン</h1><p class="lead">待ち牌があっても、ロンできない状態があります。</p></section><section class="practice-surface"><p class="status">'+step.title+' '+(index+1)+' / '+FURITEN_STEPS.length+'</p><p>'+step.prompt+'</p><div class="selection-area selection-area-choices"><h3>選択肢</h3><div class="practice-options" id="furiten-options"></div></div><div class="selection-area selection-area-hand"><h3>手牌と自分の河</h3><div id="furiten-hand"></div><div class="practice-discard"><strong>自分の河</strong><div id="furiten-river"></div></div></div><div class="feedback" id="furiten-feedback" aria-live="polite"></div><div class="action-row" id="furiten-actions"></div></section>'+nav();
     app.querySelector('#furiten-hand').append(tileBlock(ctx,'あなたの手牌（テンパイ）',step.hand));
     const river=app.querySelector('#furiten-river');step.river.forEach(code=>river.append(tile(ctx,code)));
     const options=app.querySelector('#furiten-options');const feedback=app.querySelector('#furiten-feedback');const actions=app.querySelector('#furiten-actions');

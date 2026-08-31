@@ -202,7 +202,7 @@ function renderHome(ctx){
   const profile=getActiveProfile();
   const name=profile?.name||'';
   const sync=getCloudSyncStatus();
-  app.innerHTML=`<section class="hero profile-hero"><div class="eyebrow">麻雀を知らなくても大丈夫</div><h1>${profile?`${escapeHtml(name)}さん、続きから学びましょう。`:'まず、名前を入力してください。'}</h1><p>名前と学習状態はSupabaseに保存します。同じ名前で開くと、同じ学習記録を使います。ゲームのスコアとは別に管理します。</p><p class="muted">名前だけで共有する方式のため、同じ名前を使う人が記録を変更・解除できます。</p><form id="profile-form" class="profile-form"><label for="profile-name">学ぶ人の名前<input id="profile-name" name="name" type="text" maxlength="40" autocomplete="name" required value="${escapeHtml(name)}" placeholder="例：まさ"></label><p id="profile-status" class="muted">${profile?'名前を変えると、その名前の学習記録へ切り替わります。':'名前を入力するとメニューへ進めます。'}</p><button class="primary" type="submit">${profile?'この名前でメニューへ':'名前を入力して始める'}</button></form><p class="sync-status" data-sync-state="${sync.state}" role="status" aria-live="polite">${escapeHtml(sync.message)}</p></section><section class="panel profile-note"><h2>このサイトでできること</h2><div class="profile-benefits"><span>教材を順番に学ぶ</span><span>問題で確かめる</span><span>対局の流れを練習する</span><span>点数を計算する</span></div></section>`;
+  app.innerHTML=`<section class="hero profile-hero"><div class="eyebrow">麻雀を知らなくても大丈夫</div><h1>${profile?`${escapeHtml(name)}さん、続きから学びましょう。`:'まず、名前を入力してください。'}</h1><p>名前と学習状態はSupabaseに保存します。同じ名前で開くと、同じ学習記録を使います。ゲームのスコアとは別に管理します。</p><p class="muted">名前だけで共有する方式のため、同じ名前を使う人が記録を変更・解除できます。</p><form id="profile-form" class="profile-form"><label for="profile-name">学ぶ人の名前<input id="profile-name" name="name" type="text" maxlength="40" autocomplete="name" required value="${escapeHtml(name)}" placeholder="名前を入力してください"></label><p id="profile-status" class="muted">${profile?'名前を変えると、その名前の学習記録へ切り替わります。':'名前を入力するとメニューへ進めます。'}</p><button class="primary" type="submit">${profile?'この名前でメニューへ':'名前を入力して始める'}</button></form><p class="sync-status" data-sync-state="${sync.state}" role="status" aria-live="polite">${escapeHtml(sync.message)}</p></section><section class="panel profile-note"><h2>このサイトでできること</h2><div class="profile-benefits"><span>教材を順番に学ぶ</span><span>問題で確かめる</span><span>対局の流れを練習する</span><span>点数を計算する</span></div></section>`;
   app.querySelector('#profile-form')?.addEventListener('submit',async event=>{
     event.preventDefault();
     const input=app.querySelector('#profile-name');
@@ -282,6 +282,7 @@ function routeAssetKeys(id,ctx){
     if(id==='lesson-beginner-01')keys.push('waits');
     if(id==='lesson-beginner-02')keys.push('calls');
     if(/^lesson-beginner-0[3-6]$/.test(id))keys.push('beginnerCore','yaku');
+    if(id==='lesson-beginner-05')keys.push('yakuExamples','tiles');
     if(source&&source!=='lessons'&&!keys.includes(source))keys.push(source);
     return keys;
   }

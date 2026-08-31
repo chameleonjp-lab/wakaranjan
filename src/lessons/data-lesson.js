@@ -3,7 +3,8 @@ import {createTile} from '../components/tile.js';
 const LEVEL_NAME={beginner:'初級',intermediate:'中級',advanced:'上級',special:'特例・ルール差編'};
 function tileRow(codes,ctx,label){
   if(!codes?.length)return null;
-  const section=document.createElement('section');section.className='panel';section.innerHTML=`<h2>${label}</h2><div class="hand-scroll"><div class="tile-row data-lesson-tiles"></div></div>`;
+  const isHand=label.includes('手牌');
+  const section=document.createElement('section');section.className='panel';section.innerHTML=`<h2>${label}</h2><div class="${isHand?'hand-fit-scroll':'hand-scroll'}"><div class="tile-row data-lesson-tiles${isHand?' hand-fit-row':''}"></div></div>`;
   const row=section.querySelector('.tile-row');
   for(const code of codes){const tile=ctx.tileByCode.get(code);if(tile)row.append(createTile(tile,{interactive:false}))}
   return section;

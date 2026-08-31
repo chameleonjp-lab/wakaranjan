@@ -23,7 +23,7 @@ export function renderIntro06(app,ctx){
 
     const panel=document.createElement('section');
     panel.className='panel';
-    panel.innerHTML=`<div class="status" aria-live="polite">${message}</div><div class="guided-progress"><span>ツモ</span><span>捨てる</span><span>テンパイ</span><span>リーチ</span><span>ロン</span></div><div class="hand-scroll"><div class="tile-row" id="guided-hand"></div></div><div class="river" id="guided-river" aria-label="自分の河"></div><div class="action-row" id="guided-actions"></div><div class="feedback" id="guided-feedback"></div>`;
+    panel.innerHTML=`<div class="status" aria-live="polite">${message}</div><div class="guided-progress"><span>ツモ</span><span>捨てる</span><span>テンパイ</span><span>リーチ</span><span>ロン</span></div><div class="hand-fit-scroll"><div class="tile-row hand-fit-row" id="guided-hand"></div></div><div class="river" id="guided-river" aria-label="自分の河"></div><div class="action-row" id="guided-actions"></div><div class="feedback" id="guided-feedback"></div>`;
     app.append(panel);
 
     const handEl=panel.querySelector('#guided-hand');

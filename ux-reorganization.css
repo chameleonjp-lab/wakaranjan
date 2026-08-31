@@ -124,3 +124,103 @@ ruby.mahjong-ruby rb{font-weight:inherit}
   .header-settings{padding-inline:7px}
   .menu-card,.level-card,.lookup-grid a{font-size:.93rem}
 }
+
+/* Keep ruby annotations out of the normal line box so the kanji stay aligned. */
+ruby.mahjong-ruby{
+  display:inline-block;
+  position:relative;
+  vertical-align:baseline;
+  line-height:inherit;
+  ruby-position:over;
+  white-space:nowrap;
+  text-decoration:none;
+  z-index:0;
+}
+ruby.mahjong-ruby rb{display:inline;font-weight:inherit}
+ruby.mahjong-ruby rt{
+  position:absolute;
+  left:50%;
+  bottom:calc(100% + .08em);
+  display:block;
+  width:max-content;
+  max-width:none;
+  margin:0;
+  transform:translateX(-50%);
+  color:#765c42;
+  font-size:.56em;
+  font-weight:700;
+  line-height:1;
+  letter-spacing:.02em;
+  white-space:nowrap;
+  pointer-events:none;
+  z-index:1;
+}
+
+/* A displayed hand is a single visual unit. Fit the tiles instead of wrapping or scrolling. */
+.hand-fit-scroll{
+  width:100%;
+  max-width:100%;
+  min-width:0;
+  overflow:visible !important;
+  padding:8px 0 12px;
+}
+.hand-fit-row{
+  display:flex !important;
+  flex-wrap:nowrap !important;
+  align-items:flex-end;
+  gap:clamp(1px,.8vw,5px);
+  width:100% !important;
+  max-width:100%;
+  min-width:0;
+  overflow:visible !important;
+}
+.hand-fit-row>.tile{
+  flex:1 1 0 !important;
+  width:0 !important;
+  min-width:0 !important;
+  max-width:52px;
+  height:auto !important;
+  min-height:0 !important;
+  aspect-ratio:5 / 7;
+  padding:1px;
+  box-sizing:border-box;
+}
+.hand-fit-row>.tile .tile-face{width:100%;height:100%;min-width:0;min-height:0}
+.hand-fit-row>.tile .tile-art{width:100%;height:100%;max-width:none}
+.hand-fit-row>.win-gap{flex:0 0 auto;font-size:1.1rem;padding:0 1px}
+.hand-fit-row>.hand-block{flex:1 1 0;min-width:0}
+
+/* The complete 4-meld hand also stays in one row, with each group sharing the width. */
+.block-hand{
+  display:flex !important;
+  flex-wrap:nowrap !important;
+  width:100%;
+  min-width:0;
+  overflow:visible !important;
+  gap:clamp(2px,1vw,8px);
+}
+.block-hand>.hand-block{
+  flex:1 1 0 !important;
+  min-width:0;
+  gap:1px;
+  padding:2px;
+}
+.block-hand>.hand-block>.tile{
+  flex:1 1 0 !important;
+  width:0 !important;
+  min-width:0 !important;
+  height:auto !important;
+  min-height:0 !important;
+  aspect-ratio:5 / 7;
+  padding:1px;
+}
+.block-hand>.hand-block>.tile .tile-face{width:100%;height:100%;min-width:0;min-height:0}
+.block-hand>.hand-block>.tile .tile-art{width:100%;height:100%;max-width:none}
+
+.selection-area{min-width:0}
+.selection-area+.selection-area{margin-top:16px}
+.selection-area>h3{margin:0 0 8px;font-size:.95rem;color:#526058}
+.problem-choice-area,.problem-hand-area{min-width:0}
+.yaku-card-example{display:grid;gap:5px;margin-top:8px;padding-top:9px;border-top:1px solid #e4ddd1}
+.yaku-card-example>strong{font-size:.78rem;color:#765c42}
+.yaku-example-note{margin:0;color:#526058;font-size:.86rem;line-height:1.55}

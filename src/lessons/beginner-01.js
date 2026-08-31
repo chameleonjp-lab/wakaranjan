@@ -25,7 +25,7 @@ export function renderBeginner01(app,ctx){
     waits.forEach(w=>{
       const card=document.createElement('article');
       card.className='wait-card';
-      card.innerHTML=`<h2>${w.nameJa}<small>${w.readingJa}</small></h2><p>${w.description}</p><div class="wait-shape"><div><strong>待ち部分</strong><div class="shape"></div></div><span class="wait-arrow" aria-hidden="true">→</span><div><strong>来れば完成</strong><div class="answers"></div></div></div><p class="muted">${w.point}</p>`;
+      card.innerHTML=`<h2>${w.nameJa}<small>${w.readingJa}</small></h2><p>${w.description}</p><div class="wait-shape"><div><strong>待ち部分</strong><div class="shape hand-fit-row"></div></div><span class="wait-arrow" aria-hidden="true">→</span><div><strong>来れば完成</strong><div class="answers hand-fit-row"></div></div></div><p class="muted">${w.point}</p>`;
       w.shape.forEach(c=>card.querySelector('.shape').append(tile(ctx,c)));
       w.waits.forEach(c=>card.querySelector('.answers').append(tile(ctx,c)));
       grid.append(card);
@@ -38,7 +38,7 @@ export function renderBeginner01(app,ctx){
     const distractors=ctx.tiles.filter(t=>!current.waits.includes(t.code)).slice(0,3).map(t=>t.code);
     const candidates=[...new Set([...current.waits,...distractors])].slice(0,4);
     candidates.sort(()=>Math.random()-.5);
-    quiz.innerHTML=`<div class="eyebrow">確認 ${quizIndex+1} / ${waits.length}</div><h2>${current.nameJa}：待ち牌をすべて選んでください</h2><div class="shape quiz-shape"></div><div class="tile-grid quiz-candidates"></div><div class="feedback" aria-live="polite"></div><div class="action-row"></div>`;
+    quiz.innerHTML=`<div class="eyebrow">確認 ${quizIndex+1} / ${waits.length}</div><h2>${current.nameJa}：待ち牌をすべて選んでください</h2><div class="selection-area selection-area-choices"><h3>選択肢</h3><div class="tile-grid quiz-candidates"></div></div><div class="selection-area selection-area-hand"><h3>手牌の形</h3><div class="shape quiz-shape hand-fit-row"></div></div><div class="feedback" aria-live="polite"></div><div class="action-row"></div>`;
     current.shape.forEach(c=>quiz.querySelector('.quiz-shape').append(tile(ctx,c)));
     const selected=new Set();
     candidates.forEach(code=>{

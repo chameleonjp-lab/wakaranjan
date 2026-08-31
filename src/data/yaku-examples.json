@@ -1,6 +1,11 @@
 {
   "schemaVersion":1,
   "examples":{
+    "yaku-riichi":{"tiles":["1m","2m","3m","4p","5p","6p","2s","3s","4s","1z","1z","1z","5z","5z"],"winTile":"5z","evaluation":{"riichi":true},"note":"門前でテンパイし、1000点棒を出して宣言する。図は宣言後に完成した手の例。"},
+    "yaku-menzen-tsumo":{"tiles":["1m","2m","3m","4p","5p","6p","2s","3s","4s","1z","1z","1z","5z","5z"],"winTile":"5z","evaluation":{"win":"tsumo"},"note":"門前のまま、自分で最後の牌を引いてあがる。"},
+    "yaku-haku":{"tiles":["5z","5z","5z","1m","2m","3m","4p","5p","6p","2s","3s","4s","7m","7m"],"winTile":"7m","note":"白の刻子が役牌になっている。"},
+    "yaku-hatsu":{"tiles":["6z","6z","6z","1m","2m","3m","4p","5p","6p","2s","3s","4s","7m","7m"],"winTile":"7m","note":"發の刻子が役牌になっている。"},
+    "yaku-chun":{"tiles":["7z","7z","7z","1m","2m","3m","4p","5p","6p","2s","3s","4s","7m","7m"],"winTile":"7m","note":"中の刻子が役牌になっている。"},
     "yaku-pinfu":{"tiles":["1m","2m","3m","4m","5m","6m","2p","3p","4p","6s","7s","8s","5p","5p"],"winTile":"2p","note":"4組すべて順子、役牌でない雀頭、両面待ち。"},
     "yaku-iipeikou":{"tiles":["2m","3m","4m","2m","3m","4m","3p","4p","5p","6s","7s","8s","5p","5p"],"winTile":"5p","note":"門前で同じ順子234萬を2組。"},
     "yaku-tanyao":{"tiles":["2m","3m","4m","3p","4p","5p","4s","5s","6s","6s","7s","8s","5m","5m"],"winTile":"5m","note":"一九牌と字牌を1枚も使わない。"},
