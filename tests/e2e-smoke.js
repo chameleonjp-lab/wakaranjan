@@ -85,6 +85,7 @@ async function visit(browser,base,route,viewport,onReady,beforeGoto){
     await assertHeaderTapTargets(page,route);
     if(onReady)await onReady(page);
     await page.waitForTimeout(40);
+    await assertRubyAnnotationLayout(page,route);
     assert.deepEqual(errors,[],`${route} generated browser errors:\n${errors.join('\n')}`);
     return page;
   }finally{
@@ -156,6 +157,22 @@ async function assertNamedFormControls(page,route){
 async function assertHeaderTapTargets(page,route){
   const sizes=await page.evaluate(()=>Object.fromEntries(['.brand','.header-settings'].map(selector=>[selector,document.querySelector(selector)?.getBoundingClientRect().height||0])));
   for(const [selector,height] of Object.entries(sizes))assert.ok(height>=44,`${route} の ${selector} の操作領域が44px未満です: ${height}`);
+}
+
+async function assertRubyAnnotationLayout(page,route){
+  const issues=await page.evaluate(()=>[...document.querySelectorAll('ruby.mahjong-ruby')].flatMap((ruby,index)=>{
+    const base=ruby.querySelector('rb');
+    const reading=ruby.querySelector('rt');
+    if(!base||!reading)return [];
+    const baseRect=base.getBoundingClientRect();
+    const readingRect=reading.getBoundingClientRect();
+    if(!baseRect.width||!readingRect.width)return [];
+    const epsilon=1;
+    const problems=[];
+    if(readingRect.top>=baseRect.top-epsilon)problems.push('reading is not above base text');
+    return problems.length?[{index,problems,base:[baseRect.top,baseRect.bottom],reading:[readingRect.top,readingRect.bottom]}]:[];
+  }));
+  assert.deepEqual(issues,[],`${route} のルビが行や漢字に重なっています: ${JSON.stringify(issues)}`);
 }
 
 async function assertFavicon(page){
