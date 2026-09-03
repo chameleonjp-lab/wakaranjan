@@ -345,7 +345,7 @@ async function run(){
       assert.match(new URL(page.url()).hash,/#menu$/,'戻る操作でメニューへ戻れません');
     });
     await visit(browser,base,'#problems',{width:402,height:874},async page=>{
-      await page.locator('[data-category="ron-wait"]').click();
+      await page.locator('[data-topic="ron-decision"]').click();
       let foundFixedVisual=false;
       for(let index=0;index<10;index++){
         if(await page.locator('.no-scroll-hand').count()){

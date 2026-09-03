@@ -9,6 +9,13 @@ function tileRow(codes,ctx,label){
   for(const code of codes){const tile=ctx.tileByCode.get(code);if(tile)row.append(createTile(tile,{interactive:false}))}
   return section;
 }
+function quizVisual(lesson,ctx){
+  const codes=lesson.hand||[];if(!codes.length)return null;
+  const visual=document.createElement('div');visual.className='lesson-check-visual';
+  visual.innerHTML='<strong>先に見る：この章の牌姿</strong><div class="hand-fit-scroll"><div class="tile-row hand-fit-row"></div></div>';
+  const row=visual.querySelector('.tile-row');codes.forEach(code=>{const tile=ctx.tileByCode.get(code);if(tile)row.append(createTile(tile,{interactive:false}))});
+  return visual;
+}
 function neighbor(ctx,lesson,delta){
   const same=ctx.lessons.filter(x=>x.level===lesson.level).sort((a,b)=>a.order-b.order);const i=same.findIndex(x=>x.id===lesson.id);return same[i+delta]||null;
 }
@@ -17,9 +24,10 @@ function relatedTerms(quality,ctx){
   const terms=(quality?.termRefs||[]).map(id=>ctx.termById.get(id)).filter(Boolean);if(!terms.length)return null;
   const section=document.createElement('section');section.className='panel';section.innerHTML=`<h2>関連用語</h2><p class="muted">わからない言葉は、ここから用語集を開けます。</p><div class="related-term-links">${terms.map(t=>`<a class="secondary" href="#dictionary?term=${encodeURIComponent(t.id)}">${t.nameJa}<small>${t.readingJa}</small></a>`).join('')}</div>`;return section;
 }
-function renderQuiz(lesson,quality){
-  const questions=[lesson.check,...(quality?.checks||[])].filter(Boolean);const quiz=document.createElement('section');quiz.className='panel lesson-check';quiz.innerHTML='<div class="quiz-meta"></div><h2>確認問題</h2><p class="quiz-prompt"></p><div class="quiz-options"></div><div class="feedback" aria-live="polite"></div>';
+function renderQuiz(lesson,quality,ctx){
+  const questions=[lesson.check,...(quality?.checks||[])].filter(Boolean);const quiz=document.createElement('section');quiz.className='panel lesson-check';quiz.innerHTML='<div class="quiz-meta"></div><h2>確認問題</h2><div class="lesson-check-visual-slot"></div><p class="quiz-prompt"></p><div class="quiz-options"></div><div class="feedback" aria-live="polite"></div>';
   let index=0,score=0;const meta=quiz.querySelector('.quiz-meta'),prompt=quiz.querySelector('.quiz-prompt'),out=quiz.querySelector('.quiz-options'),feedback=quiz.querySelector('.feedback');
+  const visual=quizVisual(lesson,ctx);if(visual)quiz.querySelector('.lesson-check-visual-slot').append(visual);
   const draw=()=>{
     if(index>=questions.length){meta.textContent='確認完了';prompt.innerHTML=`<strong>${questions.length}問中 ${score}問正解</strong>`;out.innerHTML='';feedback.className=`feedback ${score===questions.length?'good':''}`;feedback.innerHTML=score===questions.length?'この章の要点を確認できました。':'間違えた問題の理由を読み直してから、もう一度確認できます。';const row=document.createElement('div');row.className='action-row';const retry=document.createElement('button');retry.type='button';retry.className='secondary';retry.textContent='もう一度確認する';retry.onclick=()=>{index=0;score=0;draw()};row.append(retry);out.append(row);return;
     }
@@ -38,7 +46,7 @@ export function renderDataLesson(app,ctx,lesson){
   if(lesson.example){const s=document.createElement('section');s.className='callout example-callout';s.innerHTML=`<strong>具体例</strong><br>${lesson.example}`;app.append(s)}
   if(quality?.steps?.length){const steps=document.createElement('section');steps.className='panel';steps.innerHTML=`<h2>考え方の手順</h2><ol class="learning-steps">${quality.steps.map((x,i)=>`<li><span>${i+1}</span><p>${x}</p></li>`).join('')}</ol>`;app.append(steps)}
   if(quality?.mistakes?.length){const mistakes=document.createElement('section');mistakes.className='panel';mistakes.innerHTML=`<h2>よくある間違い</h2><div class="mistake-grid">${quality.mistakes.map(x=>`<article class="mistake-card"><strong>注意</strong><p>${x}</p></article>`).join('')}</div>`;app.append(mistakes)}
-  app.append(renderQuiz(lesson,quality));
+  app.append(renderQuiz(lesson,quality,ctx));
   const terms=relatedTerms(quality,ctx);if(terms)app.append(terms);
   const prev=neighbor(ctx,lesson,-1),next=neighbor(ctx,lesson,1),end=endLink(lesson);const nav=document.createElement('div');nav.className='lesson-nav';nav.innerHTML=`${prev?`<a class="secondary" href="#${prev.id}">前へ：${prev.title}</a>`:`<a class="secondary" href="#learn?level=${lesson.level}">${LEVEL_NAME[lesson.level]||'学ぶ'}一覧へ</a>`}${next?`<a class="primary" href="#${next.id}">次へ：${next.title}</a>`:`<a class="primary" href="#${end.href}">${end.label}</a>`}`;app.append(nav);
 }

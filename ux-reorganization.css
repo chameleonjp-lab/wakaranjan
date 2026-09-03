@@ -79,6 +79,27 @@ body{color:var(--wj-ink);overflow-x:hidden}
 .lesson-card small{margin-top:3px}
 .lookup-grid a{min-height:140px}
 
+/* Learner-facing problem and practice menus use buttons for filtered sessions. */
+.feature-grid,.feature-card,.problem-group,.practice-group,.problem-details,.practice-details{min-width:0;max-width:100%}
+.feature-card{overflow-wrap:anywhere;word-break:break-word}
+button.feature-card{width:100%;font:inherit;text-align:left;cursor:pointer;white-space:normal;overflow-wrap:anywhere;-webkit-appearance:none;appearance:none}
+.problem-group,.practice-group{min-width:0}
+.problem-group+.problem-group,.practice-group+.practice-group{margin-top:20px}
+.problem-details,.practice-details{padding:0;border:1px solid var(--wj-line);border-radius:var(--wj-radius);background:var(--wj-paper);box-shadow:0 5px 18px rgba(52,42,28,.04)}
+.problem-details summary,.practice-details summary{min-height:48px;padding:13px 16px;cursor:pointer;font-weight:800;color:var(--wj-green)}
+.problem-details[open] summary,.practice-details[open] summary{border-bottom:1px solid var(--wj-line)}
+.problem-details .feature-grid,.practice-details .feature-grid{padding:14px}
+.session-mistakes{display:grid;gap:10px}
+.session-mistakes h2,.session-mistakes p{margin:0}
+.session-mistake-list{display:grid;gap:10px}
+.session-mistake{display:grid;gap:8px;padding:12px;border:1px solid #d7cebf;border-radius:12px;background:#fff}
+.session-mistake h3{margin:0;font-size:.95rem;line-height:1.5}
+.session-mistake-visual{min-width:0;padding:8px;border-radius:10px;background:#faf7f0}
+.session-mistake-visual .visual-question-block+ .visual-question-block{margin-top:8px}
+.session-mistake-visual .visual-question-block>strong{font-size:.75rem;color:#526058}
+.lesson-check-visual{display:grid;gap:7px;margin:12px 0;padding:10px;border:1px solid #d7cebf;border-radius:12px;background:#faf7f0}
+.lesson-check-visual>strong{font-size:.82rem;color:#526058}
+
 /* Put the reading above Mahjong terms without changing their meaning. */
 ruby.mahjong-ruby{ruby-position:over;text-decoration:none;white-space:nowrap}
 ruby.mahjong-ruby rt{color:#765c42;font-size:.56em;font-weight:700;line-height:1;letter-spacing:.02em;white-space:nowrap}
@@ -206,8 +227,34 @@ ruby.mahjong-ruby rt{
 
 .selection-area{min-width:0}
 .selection-area+.selection-area{margin-top:16px}
-.selection-area>h3{margin:0 0 8px;font-size:.95rem;color:#526058}
+.selection-area>h2,.selection-area>h3{margin:0 0 8px;font-size:.95rem;color:#526058}
 .problem-choice-area,.problem-hand-area{min-width:0}
+.visual-question-tiles [data-focus="true"]{position:relative;outline:2px dashed var(--wj-accent);outline-offset:2px;z-index:1}
+.visual-question-tiles [data-focus="true"]::after{content:"形";position:absolute;top:-7px;right:-5px;padding:1px 4px;border:1px solid var(--wj-accent);border-radius:999px;background:#fff8ef;color:#8a3e2e;font-size:.62rem;font-weight:800;line-height:1.2}
+.visual-question-tiles [data-review="true"]{outline-color:#2d6b4b}
+.guided-progress span.active{outline:2px solid #2d6b4b;outline-offset:1px}
+.guided-progress span.done::before{content:"✓ ";font-weight:800;color:#245f43}
+.practice-wrong-reason{margin:0;padding:8px 10px;border-left:4px dashed #a74d38;background:#fff0e7;color:#7d3c2f;font-weight:700}
+.hand-fit-row>.tile[data-wrong="true"]{position:relative;outline:2px dashed #a74d38;outline-offset:2px}
+.hand-fit-row>.tile[data-wrong="true"]::after{content:"ちがう";position:absolute;left:50%;bottom:-7px;transform:translateX(-50%);padding:1px 4px;border:1px solid #a74d38;border-radius:999px;background:#fff0e7;color:#7d3c2f;font-size:.58rem;font-weight:800;line-height:1.2;white-space:nowrap}
+.shape-check{display:grid;gap:10px;margin-top:18px;padding:14px;border:1px solid #d7cebf;border-radius:14px;background:#f8f5ed}
+.shape-check h3{margin:0;color:var(--wj-green);font-size:1rem}
+.shape-check-tiles{max-width:180px}
+.shape-check .quiz-options{grid-template-columns:repeat(2,minmax(0,1fr))}
+.shape-check .quiz-options button{min-height:48px}
+.compare-note{margin:16px 0 0;padding:10px 12px;border-left:4px solid var(--wj-accent);background:#fff8ef;color:#526058}
+.ron-source{display:flex;align-items:center;gap:10px;margin-top:12px;padding:10px 12px;border:1px dashed #9da79f;border-radius:12px;background:#eef3ee}
+.ron-source strong{font-size:.85rem;color:#526058}
+.ron-source .tile{flex:0 0 auto}
+.visual-decision-grid{display:grid;gap:12px}
+.visual-decision-grid>div{min-width:0}
+.visual-decision-grid>div>strong{display:block;margin-bottom:7px;color:#526058}
+.visual-hand-slot,.score-stick-box{min-width:0;padding:10px;border:1px solid #d7cebf;border-radius:12px;background:#fff}
+.score-stick-box{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:#f8f5ed}
+.score-stick{display:inline-flex;align-items:center;justify-content:center;min-width:86px;min-height:44px;padding:7px 12px;border:2px solid #a74d38;border-radius:7px;background:#c96b4c;color:#fff;font-weight:800;box-shadow:0 3px 0 #87412f}
+.score-stick-box small{color:#526058}
+.win-gap{white-space:nowrap}
+.hand-fit-row>.win-gap{font-size:.72rem;line-height:1.2;font-weight:800;color:#8a3e2e}
 .yaku-card-example{display:grid;gap:5px;margin-top:8px;padding-top:9px;border-top:1px solid #e4ddd1}
 .yaku-card-example>strong{font-size:.78rem;color:#765c42}
 .yaku-example-note{margin:0;color:#526058;font-size:.86rem;line-height:1.55}

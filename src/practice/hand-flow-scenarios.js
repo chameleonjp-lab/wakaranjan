@@ -40,14 +40,14 @@ export const HAND_FLOW_SCENARIOS=Object.freeze({
   }),
   call:Object.freeze({
     label:'鳴き確認',
-    description:'親が5mを捨てると、南家が大明槓する場面から始めます。',
+    description:'親が五萬を捨てると、南家が大明槓する場面から始めます。',
     hint:'親の最後の牌（5m）を捨ててから、「他家の応答を進める」を押してください。',
     deterministicWall:true,
     initialHands:CALL_HANDS
   }),
   riichi:Object.freeze({
     label:'リーチ確認',
-    description:'親の14枚目を捨ててリーチし、応答後に5mをツモする場面です。',
+    description:'親の14枚目を捨ててリーチし、応答後に五萬をツモする場面です。',
     hint:'親の最後の牌を捨て、「リーチを確認」→「他家の応答を進める」を4回行います。',
     deterministicWall:true,
     initialHands:RIICHI_HANDS,

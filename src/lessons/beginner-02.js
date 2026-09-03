@@ -23,7 +23,7 @@ export function renderBeginner02(app,ctx){
   app.append(cards);
 
   const quiz=document.createElement('section');quiz.className='panel';
-  quiz.innerHTML='<h2>練習</h2><p id="call-q"></p><div class="selection-area selection-area-choices"><h3>選択肢</h3><div id="call-options" class="quiz-options"></div></div><div class="selection-area selection-area-hand"><h3>手牌と捨て牌</h3><div id="call-tiles" class="call-question"></div></div><div id="call-feedback" class="feedback" aria-live="polite"></div><div class="action-row"><button id="call-next" class="primary" type="button" hidden>次の問題</button></div>';
+  quiz.innerHTML='<h2>練習</h2><p id="call-q"></p><div class="selection-area selection-area-hand"><h3>先に見る：手牌と捨て牌</h3><div id="call-tiles" class="call-question"></div></div><div class="selection-area selection-area-choices"><h3>選択肢</h3><div id="call-options" class="quiz-options"></div></div><div id="call-feedback" class="feedback" aria-live="polite"></div><div class="action-row"><button id="call-next" class="primary" type="button" hidden>次の問題</button></div>';
   app.append(quiz);
 
   const questions=[
