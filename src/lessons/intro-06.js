@@ -12,6 +12,7 @@ export function renderIntro06(app,ctx){
   let state='ready';
   let hand=[...INITIAL_HAND];
   let river=[];
+  let wrongSelection=null;
   let message='まずは一局を短く体験します。案内に沿って進めてください。';
 
   const rerender=()=>{
@@ -23,16 +24,20 @@ export function renderIntro06(app,ctx){
 
     const panel=document.createElement('section');
     panel.className='panel';
-    panel.innerHTML=`<div class="status" aria-live="polite">${message}</div><div class="guided-progress"><span>ツモ</span><span>捨てる</span><span>テンパイ</span><span>リーチ</span><span>ロン</span></div><div class="hand-fit-scroll"><div class="tile-row hand-fit-row" id="guided-hand"></div></div><div class="river" id="guided-river" aria-label="自分の河"></div><div class="action-row" id="guided-actions"></div><div class="feedback" id="guided-feedback"></div>`;
+    const activeStage={ready:0,drawn:1,tenpai:2,'waiting-riichi':3,'waiting-ron':4,complete:-1}[state];
+    const progress=['ツモ','捨てる','テンパイ','リーチ','ロン'].map((label,index)=>{const done=state==='complete'||(activeStage>=0&&index<activeStage);const active=index===activeStage;return `<span class="${active?'active ':''}${done?'done':''}" ${active?'aria-current="step"':''}>${label}</span>`}).join('');
+    panel.innerHTML=`<div class="status" aria-live="polite">${message}</div><div class="guided-progress">${progress}</div><div class="hand-fit-scroll"><div class="tile-row hand-fit-row" id="guided-hand"></div></div><p id="guided-wrong-reason" class="practice-wrong-reason" ${wrongSelection?'':'hidden'}></p><div class="river" id="guided-river" aria-label="自分の河"></div><div class="action-row" id="guided-actions"></div><div class="feedback" id="guided-feedback"></div>`;
     app.append(panel);
 
     const handEl=panel.querySelector('#guided-hand');
     hand.forEach((code,i)=>{
       const interactive=state==='drawn';
       const node=tileNode(ctx,code,{interactive,drawn:state==='drawn'&&i===hand.length-1});
+      if(wrongSelection?.index===i){node.dataset.wrong='true';node.setAttribute('aria-label',`${ctx.tileByCode.get(code)?.nameJa||code}。この牌ではありません`)}
       if(interactive) node.addEventListener('click',()=>discard(code,i));
       handEl.append(node);
     });
+    if(wrongSelection){const reason=panel.querySelector('#guided-wrong-reason');reason.textContent='この牌ではありません。今回は今ツモした東を捨てると、あと1枚で完成する形になります。';}
     const riverEl=panel.querySelector('#guided-river');
     river.forEach(code=>riverEl.append(tileNode(ctx,code)));
     const actions=panel.querySelector('#guided-actions');
@@ -58,13 +63,13 @@ export function renderIntro06(app,ctx){
   const draw=()=>{if(state!=='ready')return;hand.push(DRAW);state='drawn';message='1枚ツモして14枚になりました。次は1枚捨てます。';rerender()};
   const discard=(code,index)=>{
     if(state!=='drawn')return;
-    if(code!==DISCARD){message='今回は今ツモした東を捨てると、あと1枚で完成する形になります。東を選んでください。';rerender();return;}
-    hand.splice(index,1);river.push(code);state='tenpai';message='東を捨てました。手牌は13枚に戻り、テンパイしました。';rerender();
+    if(code!==DISCARD){wrongSelection={code,index};message='今回は今ツモした東を捨てると、あと1枚で完成する形になります。東を選んでください。';rerender();return;}
+    wrongSelection=null;hand.splice(index,1);river.push(code);state='tenpai';message='東を捨てました。手牌は13枚に戻り、テンパイしました。';rerender();
     setTimeout(()=>{if(state==='tenpai'){state='waiting-riichi';message='門前のテンパイなので、次はリーチを宣言します。';rerender()}},350);
   };
   const riichi=()=>{if(state!=='waiting-riichi')return;state='waiting-ron';message='リーチしました。他家の捨て牌を待ちます。';rerender()};
   const ron=()=>{if(state!=='waiting-ron')return;hand.push(WIN);state='complete';message='ロン。あがりです。';markLessonComplete('lesson-intro-06');rerender()};
-  const reset=()=>{state='ready';hand=[...INITIAL_HAND];river=[];message='もう一度、最初から進めます。';rerender()};
+  const reset=()=>{state='ready';hand=[...INITIAL_HAND];river=[];wrongSelection=null;message='もう一度、最初から進めます。';rerender()};
 
   rerender();
 }

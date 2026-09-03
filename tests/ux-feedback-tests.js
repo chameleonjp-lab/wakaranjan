@@ -8,8 +8,18 @@ const problemHub=read('src/questions/problem-hub.js');
 const practiceHub=read('src/practice/practice-hub.js');
 const fullRound=read('src/practice/full-round.js');
 const eastRound=read('src/practice/east-round.js');
+const beginnerOne=read('src/lessons/beginner-01.js');
+const beginnerCoreSource=read('src/lessons/beginner-core.js');
+const introFour=read('src/lessons/intro-04.js');
+const introFive=read('src/lessons/intro-05.js');
+const introSix=read('src/lessons/intro-06.js');
+const dataLesson=read('src/lessons/data-lesson.js');
+const kanPractice=read('src/practice/kan-practice.js');
+const handFlowScenarios=read('src/practice/hand-flow-scenarios.js');
 const tile=read('src/components/tile.js');
 const ux=read('ux-reorganization.css');
+const catalog=JSON.parse(read('src/data/questions/catalog.json'));
+const visualCatalog=JSON.parse(read('src/data/questions/visual-catalog.json'));
 const examples=JSON.parse(read('src/data/yaku-examples.json')).examples;
 const beginnerYakuIds=JSON.parse(read('src/data/beginner-core.json')).beginnerYakuIds;
 
@@ -19,8 +29,34 @@ assert.match(app,/if\(id==='lesson-beginner-05'\)keys\.push\('yakuExamples'/,'�
 for(const id of beginnerYakuIds)assert.ok(examples[id],`${id} の初級役牌姿例がありません`);
 
 assert.match(beginnerCore,/appendYakuExample\(a,y,ctx\)/,'初級役カードに牌姿例を追加する');
-assert.match(problemHub,/problem-choice-area[\s\S]*problem-hand-area/,'牌姿問題は選択肢を手牌より先に描画する');
-for(const source of [practiceHub,fullRound,eastRound])assert.match(source,/selection-area-choices[\s\S]*selection-area-hand/,'選択問題は選択肢を手牌より先に描画する');
+assert.match(problemHub,/problem-hand-area[\s\S]*problem-choice-area/,'牌姿問題は手牌・場面を選択肢より先に描画する');
+for(const source of [practiceHub,fullRound,eastRound])assert.match(source,/selection-area-hand[\s\S]*selection-area-choices/,'選択問題は手牌・場面を選択肢より先に描画する');
+assert.match(beginnerOne,/selection-area-hand[\s\S]*selection-area-choices/,'待ちの確認は形を選択肢より先に描画する');
+assert.doesNotMatch(problemHub,/Supabaseへ保存/,'問題ハブに保存基盤の説明を表示しない');
+assert.match(problemHub,/data-topic/,'問題ハブから学習者向けの分類で出題できる');
+assert.match(problemHub,/待ち牌（形だけ）[\s\S]*ロンできるか/,'待ち牌とロン可否を別の入口にする');
+assert.match(practiceHub,/practice-group[\s\S]*はじめて[\s\S]*そのあと/,'対局練習を学習順にグループ化する');
+assert.doesNotMatch(practiceHub,/実装済み|状態層|次段階の基盤/,'対局練習ハブに開発者向け状態を表示しない');
+assert.doesNotMatch(practiceHub,/5zを捨て|他家が5z/,'対局練習の本文に牌コードを表示しない');
+for(const q of catalog.questions.filter(q=>q.id.startsWith('q-ron-001'))){assert.equal(q.topic,'text-review','文章で待ちを復習する問題を別トピックにする')}
+for(const q of catalog.questions.filter(q=>q.id.match(/^q-ron-00[6-9]$|^q-ron-01[0-2]$/))){assert.equal(q.topic,'ron-decision','ロン可否の問題を待ちの形から分ける')}
+for(const q of catalog.questions.filter(q=>q.id.match(/^q-ron-01[3-5]$/))){assert.equal(q.topic,'call-decision','鳴きの問題をロン可否から分ける')}
+assert.equal(catalog.questions.find(q=>q.id==='q-ron-016')?.topic,'rule-decision','その他のルール判断を独立させる');
+const visualWait=visualCatalog.questions.filter(q=>q.id.startsWith('q-visual-wait-'));
+assert.ok(visualWait.filter(q=>q.topic==='wait-shape').length>=6,'牌タップの待ち問題を専用入口にそろえる');
+assert.ok(visualWait.filter(q=>q.topic==='ron-decision').length>=2,'牌姿のロン可否問題を専用入口にそろえる');
+for(const q of visualWait.filter(q=>q.topic==='wait-shape'))assert.ok(Array.isArray(q.focusTiles)&&q.focusTiles.length>=1,`${q.id} に待ちの形の焦点がありません`);
+assert.equal(visualCatalog.questions.find(q=>q.id==='q-visual-ron-004')?.doraIndicator,'4m','ドラだけの問題にドラ表示牌を出す');
+assert.match(problemHub,/session-mistakes[\s\S]*この問題をもう一度/,'結果画面から誤答問題を個別にやり直せる');
+assert.match(problemHub,/同じ待ちをもう1問/,'待ちの誤答直後に同じ技能を再確認できる');
+assert.match(introFour,/shapeCheck[\s\S]*確認/,'入門1-4に組の確認問題がある');
+assert.match(introFive,/相手の捨て牌（ロン牌）/,'入門1-5でロン牌を手牌の外に表示する');
+assert.match(introSix,/aria-current="step"[\s\S]*dataset\.wrong/,'入門1-6の進行表示と誤タップ表示を状態に連動させる');
+assert.match(beginnerCoreSource,/visualDecision[\s\S]*1000点棒/,'リーチ教材に牌姿と供託の表示がある');
+assert.match(beginnerCoreSource,/visualDecision[\s\S]*自分の河/,'フリテン教材に自分の河の牌姿がある');
+assert.match(dataLesson,/lesson-check-visual[\s\S]*renderQuiz\(lesson,quality,ctx\)/,'データ教材の確認問題が直上の牌姿を再利用する');
+assert.doesNotMatch(kanPractice,/description:'[^']*(?:[1-9][mps]|[1-7]z)/,'カン練習の説明に牌コードを表示しない');
+assert.doesNotMatch(handFlowScenarios,/description:'[^']*(?:[1-9][mps]|[1-7]z)/,'一局練習の説明に牌コードを表示しない');
 
 assert.match(tile,/options\.rowClass/,'牌列の用途ごとのレイアウト指定を受け取る');
 for(const source of [
@@ -33,7 +69,7 @@ for(const source of [
 
 assert.match(ux,/ruby\.mahjong-ruby\{[\s\S]*ruby-position:over/,'ルビを漢字の上へ表示する');
 assert.match(ux,/ruby\.mahjong-ruby\{[\s\S]*ruby-align:center/,'ルビを漢字の中央へそろえる');
-assert.doesNotMatch(ux,/ruby\.mahjong-ruby rt\{[\s\S]*position:absolute/,'ルビをブラウザごとの標準レイアウトで配置する');
+assert.doesNotMatch(ux,/ruby\.mahjong-ruby rt\{[^}]*position:absolute/,'ルビをブラウザごとの標準レイアウトで配置する');
 assert.match(ux,/\.hand-fit-row\{[\s\S]*flex-wrap:nowrap/,'手牌は折り返さない');
 assert.match(ux,/\.hand-fit-row\{[\s\S]*overflow:visible/, '横一列の手牌を横スクロールにしない');
 

@@ -55,7 +55,7 @@ function generatedFeedback(question){
   const correct=question.choices[answer];
   if(question.category==='ron-wait')return question.choices.map((choice,i)=>i===answer
     ?`その判断で正解です。${question.explanation}`
-    :`「${choice}」ではありません。待ちの形、フリテン、役の有無、鳴ける相手など、設問で指定された条件を1つずつ確認します。正しくは「${correct}」です。`);
+    :`「${choice}」ではありません。${question.topic==='wait-shape'?'手牌の未完成部分だけを見て、何が来れば組になるかを確認します。':question.topic==='call-decision'?'捨てた人の位置と、順子・刻子・槓子のどれを作れるかを確認します。':question.topic==='ron-decision'?'形が完成するか、役があるか、フリテンでないかを順に確認します。':'待ちの形、フリテン、役の有無など、設問で指定された条件を確認します。'}正しくは「${correct}」です。`);
   if(question.category==='yaku-name')return question.choices.map((choice,i)=>i===answer
     ?`その役で正解です。${question.explanation}`
     :`「${choice}」と混同しやすいですが、設問の成立条件には合いません。条件を言葉で確認すると、正しい役は「${correct}」です。`);

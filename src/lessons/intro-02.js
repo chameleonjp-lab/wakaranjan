@@ -25,7 +25,7 @@ export function renderIntro02(root,ctx){
     detail.append(createTile(tile,{red}));
     const copy=document.createElement('div');
     const type=tile.suit==='man'?'萬子':tile.suit==='pin'?'筒子':tile.suit==='sou'?'索子':'字牌';
-    copy.innerHTML=`<h3>${red?'赤':''}${tile.nameJa}</h3><p><strong>${tile.readingJa}</strong></p><p>${type}${tile.number?`の${tile.number}`:''}</p><p class="muted">牌コード：${tile.code}</p>`;
+    copy.innerHTML=`<h3>${red?'赤':''}${tile.nameJa}</h3><p><strong>${tile.readingJa}</strong></p><p>${type}${tile.number?`の${tile.number}`:''}</p>`;
     detail.append(copy);
   }
   function showGroup(key){

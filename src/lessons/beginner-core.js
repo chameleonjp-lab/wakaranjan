@@ -1,7 +1,10 @@
 import {createTile} from '../components/tile.js';
 
-function tile(ctx,code){return createTile(ctx.tileByCode.get(code))}
-function addNav(app,prev,next){const nav=document.createElement('div');nav.className='lesson-nav';nav.innerHTML=`<a class="secondary" href="#${prev}">前へ</a><a class="secondary" href="#${next}">次へ</a>`;app.append(nav)}
+function tile(ctx,code,options={}){return createTile(ctx.tileByCode.get(code),options)}
+const NAV_LABELS={'lesson-beginner-02':'鳴き','lesson-beginner-03':'リーチ','lesson-beginner-04':'フリテン','lesson-beginner-05':'初級役','lesson-beginner-06':'ドラ','lesson-beginner-07':'初級総合一局'};
+function addNav(app,prev,next){const nav=document.createElement('div');nav.className='lesson-nav';nav.innerHTML=`<a class="secondary" href="#${prev}">前へ：${NAV_LABELS[prev]||'前の章'}</a><a class="primary" href="#${next}">次へ：${NAV_LABELS[next]||'次の章'}</a>`;app.append(nav)}
+function visualRow(ctx,codes){const row=document.createElement('div');row.className='tile-row hand-fit-row';codes.forEach(code=>row.append(tile(ctx,code)));return row}
+function visualDecision(ctx,{title,hand,river,handLabel='手牌',riverLabel='自分の河'}){const panel=document.createElement('section');panel.className='panel lesson-visual';panel.innerHTML=`<h2>${title}</h2><div class="visual-decision-grid"><div><strong>${handLabel}</strong><div class="visual-hand-slot"></div></div><div><strong>${riverLabel}</strong><div class="visual-river-slot river"></div></div></div>`;panel.querySelector('.visual-hand-slot').append(visualRow(ctx,hand));panel.querySelector('.visual-river-slot').replaceChildren(...river.map(code=>tile(ctx,code)));return panel}
 function appendYakuExample(card,y,ctx){
   const example=ctx.yakuExamples?.[y.id];
   if(!example)return;
@@ -18,6 +21,8 @@ export function renderBeginner03(app,ctx){
   const data=ctx.beginnerCore.riichi;
   app.innerHTML='<section class="lesson-head"><div class="eyebrow">初級 3</div><h1>リーチ</h1><p class="lead">門前でテンパイしたら、1000点棒を出して「リーチ」と宣言できます。</p></section>';
   const p=document.createElement('section');p.className='panel';p.innerHTML=`<h2>リーチできる条件</h2><ol>${data.requirements.map(x=>`<li>${x}</li>`).join('')}</ol><div class="callout">${data.note}</div><h2>宣言した後</h2><ul>${data.afterDeclaration.map(x=>`<li>${x}</li>`).join('')}</ul>`;app.append(p);
+  const riichi=visualDecision(ctx,{title:'牌で確認：門前テンパイ',hand:['1m','2m','3m','3p','4p','5p','6s','7s','8s','2z','2z','5z','5z'],river:[],riverLabel:'供託するもの'});
+  riichi.querySelector('.visual-river-slot').className='score-stick-box';riichi.querySelector('.score-stick-box').innerHTML='<span class="score-stick" aria-label="1000点棒">1000点棒</span><small>リーチを宣言すると供託します</small>';app.append(riichi);
   quiz(app,[{q:'ポンした手でテンパイしました。リーチできますか？',options:['できる','できない'],answer:1,explain:'ポンすると門前ではないため、通常のリーチはできません。'},{q:'門前でテンパイしています。リーチ宣言で卓に出すものは？',options:['100点棒','1000点棒','5000点棒'],answer:1,explain:'リーチ棒として1000点棒を1本供託します。'},{q:'リーチ後にあがり牌を見逃しました。その後ロンできますか？',options:['できる','できない'],answer:1,explain:'リーチ後の見逃しはフリテンとなり、その局はロンできません。ツモあがりは可能です。'}]);
   addNav(app,'lesson-beginner-02','lesson-beginner-04');
 }
@@ -25,7 +30,8 @@ export function renderBeginner03(app,ctx){
 export function renderBeginner04(app,ctx){
   app.innerHTML='<section class="lesson-head"><div class="eyebrow">初級 4</div><h1>フリテン</h1><p class="lead">待ち牌でも、条件によってはロンできません。これをフリテンと呼びます。</p></section>';
   const grid=document.createElement('div');grid.className='shape-grid';ctx.beginnerCore.furiten.forEach(f=>{const a=document.createElement('article');a.className='shape-card';a.innerHTML=`<h2>${f.name}</h2><p>${f.description}</p><p class="muted">解消：${f.clears}</p>`;grid.append(a)});app.append(grid);
-  const ex=document.createElement('section');ex.className='panel';ex.innerHTML='<h2>一番大事な確認</h2><p>たとえば3萬・6萬待ちで、自分の河に3萬が1枚でもあれば、6萬が出てもロンできません。待ち全体がフリテンとして扱われます。</p><div class="callout">フリテンでもツモあがりはできます。</div>';app.append(ex);
+  const ex=visualDecision(ctx,{title:'一番大事な確認',hand:['1m','2m','3m','4p','5p','6p','2s','3s','4s','6m','7m','5z','5z'],river:['3m','9p','2p']});
+  const note=document.createElement('p');note.innerHTML='この手は<strong>3萬・6萬待ち</strong>です。自分の河に3萬があるため、6萬が出てもロンできません。';ex.append(note);const callout=document.createElement('div');callout.className='callout';callout.textContent='フリテンでもツモあがりはできます。';ex.append(callout);app.append(ex);
   quiz(app,[{q:'3萬・6萬待ち。自分の河に3萬があります。他家が6萬を捨てました。',options:['ロンできる','ロンできない'],answer:1,explain:'自分の待ち牌の一つである3萬を捨てているため、6萬もロンできません。'},{q:'フリテン中に自分であがり牌をツモりました。',options:['ツモあがりできる','あがれない'],answer:0,explain:'フリテンが禁止するのはロンです。ツモあがりはできます。'},{q:'リーチ後にあがり牌を一度見逃しました。',options:['次巡からロンできる','その局はロンできない'],answer:1,explain:'リーチ後の見逃しによるフリテンは、その局では解消しません。'}]);
   addNav(app,'lesson-beginner-03','lesson-beginner-05');
 }

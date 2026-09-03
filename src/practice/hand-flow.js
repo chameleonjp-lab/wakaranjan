@@ -16,6 +16,10 @@ function seatLabel(seat){
   return SEAT_LABEL_MAP[seat]||seat;
 }
 
+function tileName(ctx,code){
+  return ctx?.tileByCode?.get(code)?.nameJa||'牌';
+}
+
 function phaseLabel(phase){
   return {draw:'ツモ待ち',discard:'捨て牌待ち',response:'捨て牌への応答待ち','awaiting-result':'流局確認待ち',completed:'局完了'}[phase]||phase;
 }
@@ -28,12 +32,12 @@ function playerFlags(player){
   return flags.length?flags.join('・'):'通常';
 }
 
-function actionLabel(action){
+function actionLabel(action,ctx){
   if(!action)return 'まだ操作はありません。';
   const seat=action.seat?seatLabel(action.seat):'';
   if(action.type==='deal')return '配牌を完了しました。';
   if(action.type==='draw')return `${seat}が牌を1枚取りました。`;
-  if(action.type==='discard'||action.type==='riichi-discard')return `${seat}が${action.code||'牌'}を捨てました。`+(action.type==='riichi-discard'?' リーチを宣言しました。':'');
+  if(action.type==='discard'||action.type==='riichi-discard')return `${seat}が${tileName(ctx,action.code)}を捨てました。`+(action.type==='riichi-discard'?' リーチを宣言しました。':'');
   if(action.type==='pass-discard')return `${seat}の捨て牌を全員が見送りました。`;
   if(action.type==='call')return `${seat}が${action.callType==='chi'?'チー':'ポン'}しました。`+(action.automatic?'（自動応答）':'');
   if(action.type==='kan')return `${seat}が${action.kanType==='ankan'?'暗槓':action.kanType==='minkan'?'大明槓':'加槓'}しました。`+(action.automatic?'（自動応答）':'');
@@ -48,7 +52,7 @@ function appendMeldSummary(container,ctx,melds){
   melds.forEach(meld=>{
     const group=document.createElement('span');
     group.className='flow-meld';
-    group.textContent=`${meld.type==='chi'?'チー':meld.type==='pon'?'ポン':meld.type==='ankan'?'暗槓':meld.type==='minkan'?'大明槓':'加槓'}：${(meld.tiles||[]).map(tile=>typeof tile==='string'?tile:tile.code).join(' ')}`;
+    group.textContent=`${meld.type==='chi'?'チー':meld.type==='pon'?'ポン':meld.type==='ankan'?'暗槓':meld.type==='minkan'?'大明槓':'加槓'}：${(meld.tiles||[]).map(tile=>tileName(ctx,typeof tile==='string'?tile:tile.code)).join('・')}`;
     container.append(group);
   });
 }
@@ -222,7 +226,7 @@ export function renderHandFlow(app,ctx){
     const status=app.querySelector('.status');
     const stateSummary=document.createElement('div');
     stateSummary.className='flow-state-summary';
-    stateSummary.innerHTML='<div><span>現在の局面</span><strong>'+phaseLabel(state.phase)+'</strong></div><div><span>直前の操作</span><strong>'+actionLabel(state.lastAction)+'</strong></div>'+(state.pendingDiscard?'<div><span>応答待ちの捨て牌</span><strong>'+seatLabel(state.pendingDiscard.seat)+'・'+state.pendingDiscard.code+'</strong></div>':'');
+    stateSummary.innerHTML='<div><span>現在の局面</span><strong>'+phaseLabel(state.phase)+'</strong></div><div><span>直前の操作</span><strong>'+actionLabel(state.lastAction,ctx)+'</strong></div>'+(state.pendingDiscard?'<div><span>応答待ちの捨て牌</span><strong>'+seatLabel(state.pendingDiscard.seat)+'・'+tileName(ctx,state.pendingDiscard.code)+'</strong></div>':'');
     status.insertAdjacentElement('afterend',stateSummary);
     const playerStateBox=document.createElement('div');
     playerStateBox.className='flow-player-grid';

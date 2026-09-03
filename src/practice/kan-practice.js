@@ -28,7 +28,7 @@ const SCENES=[
     type:'kakan',
     title:'加槓',
     turnLabel:'自分のツモ番',
-    description:'すでに公開している2zのポンに、手元の2zを1枚加えます。',
+    description:'すでに公開している南のポンに、手元の南を1枚加えます。',
     hand:['2z','2m','3m','4m','5p','6p','7p','3s','4s','5s','1z','1z','6z','7z'],
     openMelds:[{type:'pon',tiles:['2z','2z','2z'],open:true}],
     ownTurn:true
