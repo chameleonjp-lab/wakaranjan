@@ -80,7 +80,9 @@ body{color:var(--wj-ink);overflow-x:hidden}
 .lookup-grid a{min-height:140px}
 
 /* Learner-facing problem and practice menus use buttons for filtered sessions. */
-button.feature-card{width:100%;font:inherit;text-align:left;cursor:pointer}
+.feature-grid,.feature-card,.problem-group,.practice-group,.problem-details,.practice-details{min-width:0;max-width:100%}
+.feature-card{overflow-wrap:anywhere;word-break:break-word}
+button.feature-card{width:100%;font:inherit;text-align:left;cursor:pointer;white-space:normal;overflow-wrap:anywhere;-webkit-appearance:none;appearance:none}
 .problem-group,.practice-group{min-width:0}
 .problem-group+.problem-group,.practice-group+.practice-group{margin-top:20px}
 .problem-details,.practice-details{padding:0;border:1px solid var(--wj-line);border-radius:var(--wj-radius);background:var(--wj-paper);box-shadow:0 5px 18px rgba(52,42,28,.04)}
