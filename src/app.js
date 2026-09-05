@@ -267,7 +267,7 @@ function routeAssetKeys(id,ctx){
   const terms=id==='home'?[]:['terms','termsExtra'];
   if(id==='home'||id==='menu'||id==='learn'||id==='lookup'||id==='rules'||id==='settings'||id==='print-materials')return terms;
   if(id==='intro-review')return [...terms,'introReview','tiles'];
-  if(id==='beginner-review')return [...terms,'beginnerReview'];
+  if(id==='beginner-review')return [...terms,'beginnerReview','tiles'];
   if(id==='intermediate-review')return [...terms,'intermediateReview'];
   if(id==='problems')return [...terms,'tiles','yaku','problemCatalog','visualCatalog','practicalRules'];
   if(id==='study-record'||id==='teacher-record')return [...terms,'tiles','yaku','problemCatalog','visualCatalog','practicalRules'];

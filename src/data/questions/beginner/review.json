@@ -4,8 +4,8 @@
   "ruleset":"wakaranjan-standard-v1",
   "sessionSize":12,
   "questions":[
-    {"id":"question-beginner-001","lessonRef":"lesson-beginner-01","prompt":"4萬・5萬の両面待ち。待ち牌は？","choices":["3萬だけ","6萬だけ","3萬と6萬"],"answerIndex":2,"explanation":"4・5は3でも6でも順子が完成します。"},
-    {"id":"question-beginner-002","lessonRef":"lesson-beginner-01","prompt":"4筒・6筒の形は何待ち？","choices":["両面待ち","嵌張待ち","単騎待ち"],"answerIndex":1,"explanation":"真ん中の5筒だけで完成する嵌張待ちです。"},
+    {"id":"question-beginner-001","lessonRef":"lesson-beginner-01","prompt":"4萬・5萬の両面待ち。待ち牌は？","presentation":"tiles","answerType":"tile_select","interaction":"tile-pick","handTiles":["4m","5m","1p","2p","3p","7s","8s","9s","2z","2z","2z","6p","6p"],"tileChoices":["2m","3m","4m","6m","7m"],"answerTileCodes":["3m","6m"],"choices":["3萬だけ","6萬だけ","3萬と6萬"],"answerIndex":2,"choiceTileCodes":[["3m"],["6m"],["3m","6m"]],"explanation":"4・5は3でも6でも順子が完成します。"},
+    {"id":"question-beginner-002","lessonRef":"lesson-beginner-01","prompt":"4筒・6筒の形は何待ち？","presentation":"tiles","answerType":"tile_select","interaction":"tile-pick","handTiles":["4p","6p","1m","2m","3m","7s","8s","9s","2z","2z","2z","5m","5m"],"tileChoices":["3p","4p","5p","6p","7p"],"answerTileCodes":["5p"],"choices":["両面待ち","嵌張待ち","単騎待ち"],"answerIndex":1,"explanation":"真ん中の5筒だけで完成する嵌張待ちです。"},
     {"id":"question-beginner-003","lessonRef":"lesson-beginner-01","prompt":"白白・中中のどちらかを3枚組にして完成する待ちは？","choices":["双碰待ち","辺張待ち","両面待ち"],"answerIndex":0,"explanation":"2組の対子のどちらかを刻子にする双碰待ちです。"},
     {"id":"question-beginner-004","lessonRef":"lesson-beginner-02","prompt":"対面が5萬を捨て、手元に3萬・4萬があります。チーできますか？","choices":["できる","できない"],"answerIndex":1,"explanation":"チーに使える捨て牌は上家のものだけです。"},
     {"id":"question-beginner-005","lessonRef":"lesson-beginner-02","prompt":"ポンは誰の捨て牌からできますか？","choices":["上家だけ","対面だけ","他の3人の誰からでも"],"answerIndex":2,"explanation":"同じ牌2枚が手元にあれば、他家3人の誰の捨て牌でもポンできます。"},

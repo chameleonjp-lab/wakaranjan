@@ -15,6 +15,7 @@ const introFive=read('src/lessons/intro-05.js');
 const introSix=read('src/lessons/intro-06.js');
 const dataLesson=read('src/lessons/data-lesson.js');
 const introReview=read('src/questions/intro-review.js');
+const beginnerReview=read('src/questions/beginner-review.js');
 const intermediateScoring=read('src/lessons/intermediate-scoring.js');
 const kanPractice=read('src/practice/kan-practice.js');
 const handFlowScenarios=read('src/practice/hand-flow-scenarios.js');
@@ -62,6 +63,9 @@ assert.match(dataLesson,/lesson-check-visual[\s\S]*renderQuiz\(lesson,quality,ct
 assert.match(introReview,/createTile/,'入門総復習に牌タップの確認問題がある');
 assert.match(introReview,/problem-hand-area[\s\S]*problem-choice-area/,'入門総復習は牌を選択肢より先に表示する');
 assert.match(introReview,/正しい牌を1枚選んでください[\s\S]*正しい牌をすべて選んでください/,'入門総復習は選ぶ枚数を明示する');
+assert.match(beginnerReview,/createTile/,'初級総復習に牌タップの確認問題がある');
+assert.match(beginnerReview,/problem-hand-area[\s\S]*problem-choice-area/,'初級総復習は牌を選択肢より先に表示する');
+assert.match(beginnerReview,/正しい牌を1枚選んでください[\s\S]*正しい牌をすべて選んでください/,'初級総復習は選ぶ枚数を明示する');
 assert.match(problemHub,/score-preset-link[\s\S]*この条件を計算機で確かめる/,'点数問題から条件付き計算機へ移動できる');
 assert.doesNotMatch(app,/href="#practice\?mode=(?:round|east-round)"/,'メニューから一局の個別練習へ分岐させない');
 assert.match(intermediateScoring,/scorePresetFromHash[\s\S]*URLSearchParams/,'点数計算画面が問題の条件を受け取れる');
