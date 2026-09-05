@@ -396,7 +396,7 @@ async function run(){
       assert.equal(await page.locator('#dealer').isChecked(),true,'問題の親子条件を計算機へ引き継げません');
       assert.equal(await page.locator('#win').inputValue(),'tsumo','問題のロン／ツモ条件を計算機へ引き継げません');
       assert.equal(await page.locator('#yakuman').isChecked(),false,'通常役の問題で役満条件が有効になっています');
-      assert.match(await page.locator('#score-result').innerText(),/1300点オール/,'引き継いだ条件の計算結果が表示されません');
+      assert.match(await page.locator('#score-result').innerText(),/1,300点オール/,'引き継いだ条件の計算結果が表示されません');
     });
     await visit(browser,base,'#problems',{width:402,height:874},async page=>{
       await page.locator('[data-category="score"]').click();
