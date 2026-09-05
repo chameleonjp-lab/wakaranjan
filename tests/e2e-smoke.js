@@ -351,9 +351,10 @@ async function run(){
       for(let index=0;index<10;index++){
         if(await page.locator('.no-scroll-hand').count()){
           foundFixedVisual=true;
-          const metrics=await page.locator('.no-scroll-hand').first().evaluate(element=>({scrollWidth:element.scrollWidth,clientWidth:element.clientWidth,overflow:getComputedStyle(element).overflowX}));
+          const metrics=await page.locator('.no-scroll-hand').first().evaluate(element=>({scrollWidth:element.scrollWidth,clientWidth:element.clientWidth,overflow:getComputedStyle(element).overflowX,rows:new Set([...element.children].map(child=>Math.round(child.getBoundingClientRect().top))).size}));
           assert.ok(metrics.scrollWidth<=metrics.clientWidth+1,`牌姿が横スクロール可能です: ${JSON.stringify(metrics)}`);
           assert.equal(metrics.overflow,'visible');
+          assert.equal(metrics.rows,1,`牌姿が複数行に折り返されています: ${JSON.stringify(metrics)}`);
         }
         if(index===0)await page.evaluate(()=>window.scrollTo(0,document.body.scrollHeight));
         const textChoice=page.locator('#problem-options > button');

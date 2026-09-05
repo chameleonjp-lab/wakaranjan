@@ -75,7 +75,7 @@ test('学習状態はゲームスコアと別のSupabase表へ名前で同期す
 
 test('ルビと横スクロール不要の牌姿表示を実装する',()=>{
   const ruby=readText('src/lib/mahjong-ruby.js');const problem=readText('src/questions/problem-hub.js');const css=readText('ux-reorganization.css');
-  assert.match(ruby,/createElement\('ruby'\)/);assert.match(ruby,/麻雀/);assert.match(ruby,/reading/);assert.match(problem,/no-scroll-hand/);assert.match(css,/grid-template-columns:repeat\(7/);assert.match(css,/overflow:visible/);
+  assert.match(ruby,/createElement\('ruby'\)/);assert.match(ruby,/麻雀/);assert.match(ruby,/reading/);assert.match(problem,/no-scroll-hand/);assert.match(css,/visual-question-tiles\.no-scroll-hand\{[\s\S]*display:flex/);assert.match(css,/visual-question-tiles\.no-scroll-hand\{[\s\S]*flex-wrap:nowrap/);assert.match(css,/overflow:visible/);
 });
 
 test('ページごとに共通の戻る・メニュー操作を取り付ける',()=>{
