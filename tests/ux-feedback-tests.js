@@ -38,6 +38,8 @@ assert.doesNotMatch(problemHub,/Supabaseへ保存/,'問題ハブに保存基盤�
 assert.match(problemHub,/data-topic/,'問題ハブから学習者向けの分類で出題できる');
 assert.match(problemHub,/待ち牌（形だけ）[\s\S]*ロンできるか/,'待ち牌とロン可否を別の入口にする');
 assert.match(practiceHub,/practice-group[\s\S]*はじめて[\s\S]*そのあと/,'対局練習を学習順にグループ化する');
+assert.match(practiceHub,/renderRoundMenu[\s\S]*操作を覚える[\s\S]*判断して進める[\s\S]*流れを見る/,'一局系の練習を目的別の1入口にまとめる');
+assert.match(practiceHub,/if\(mode==='round'\)return renderRoundMenu/,'一局の体験メニューへ遷移できる');
 assert.doesNotMatch(practiceHub,/実装済み|状態層|次段階の基盤/,'対局練習ハブに開発者向け状態を表示しない');
 assert.doesNotMatch(practiceHub,/5zを捨て|他家が5z/,'対局練習の本文に牌コードを表示しない');
 for(const q of catalog.questions.filter(q=>q.id.startsWith('q-ron-001'))){assert.equal(q.topic,'text-review','文章で待ちを復習する問題を別トピックにする')}
@@ -61,6 +63,7 @@ assert.match(introReview,/createTile/,'入門総復習に牌タップの確認�
 assert.match(introReview,/problem-hand-area[\s\S]*problem-choice-area/,'入門総復習は牌を選択肢より先に表示する');
 assert.match(introReview,/正しい牌を1枚選んでください[\s\S]*正しい牌をすべて選んでください/,'入門総復習は選ぶ枚数を明示する');
 assert.match(problemHub,/score-preset-link[\s\S]*この条件を計算機で確かめる/,'点数問題から条件付き計算機へ移動できる');
+assert.doesNotMatch(app,/href="#practice\?mode=(?:round|east-round)"/,'メニューから一局の個別練習へ分岐させない');
 assert.match(intermediateScoring,/scorePresetFromHash[\s\S]*URLSearchParams/,'点数計算画面が問題の条件を受け取れる');
 assert.match(intermediateScoring,/id="yakuman"/,'点数計算画面が役満条件を扱える');
 assert.doesNotMatch(kanPractice,/description:'[^']*(?:[1-9][mps]|[1-7]z)/,'カン練習の説明に牌コードを表示しない');

@@ -15,6 +15,7 @@ const practiceRoutes=[
   '#practice?mode=hand-flow&scenario=riichi',
   '#practice?mode=hand-flow&scenario=draw',
   '#practice?mode=round-flow',
+  '#practice?mode=round',
   '#practice?mode=calls',
   '#practice?mode=riichi',
   '#practice?mode=furiten',
@@ -417,6 +418,23 @@ async function run(){
       await page.locator('#draw-actions button').click();
       await page.locator('#draw-hand button.tile').first().click();
       assert.match(await page.locator('#draw-message').innerText(),/確認できました/);
+    });
+    await visit(browser,base,'#practice',{width:402,height:874},async page=>{
+      assert.equal(await page.locator('a[href="#practice?mode=round"]').count(),1,'一局の入口が1つありません');
+      assert.equal(await page.locator('a[href="#practice?mode=hand-flow"]').count(),0,'一局の詳細入口がハブに露出しています');
+      assert.equal(await page.locator('a[href="#lesson-intro-06"]').count(),0,'案内付き一局の個別入口がハブに露出しています');
+    });
+    await visit(browser,base,'#menu',{width:402,height:874},async page=>{
+      assert.equal(await page.locator('a[href="#practice"]').count(),1,'メニューの対局練習入口がありません');
+      assert.equal(await page.locator('a[href="#practice?mode=round"]').count(),0,'メニューから一局の個別入口へ分岐しています');
+      assert.equal(await page.locator('a[href="#practice?mode=east-round"]').count(),0,'メニューから東風戦の個別入口へ分岐しています');
+    });
+    await visit(browser,base,'#practice?mode=round',{width:402,height:874},async page=>{
+      assert.match(await page.locator('h1').innerText(),/一局を体験する/);
+      assert.equal(await page.locator('.practice-round-choice').count(),3,'一局の目的別選択肢が3つありません');
+      assert.equal(await page.locator('a[href="#lesson-intro-06"]').count(),1,'案内付き一局の導線がありません');
+      assert.equal(await page.locator('a[href="#practice?mode=hand-flow"]').count(),1,'実牌で一局の導線がありません');
+      assert.equal(await page.locator('a[href="#practice?mode=east-round"]').count(),1,'模擬東風戦の導線がありません');
     });
     await visit(browser,base,'#practice?mode=east-round',{width:402,height:874},async page=>{
       for(let round=0;round<4;round++){

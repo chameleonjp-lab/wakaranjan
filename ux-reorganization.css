@@ -81,6 +81,14 @@ body{color:var(--wj-ink);overflow-x:hidden}
 
 /* Learner-facing problem and practice menus use buttons for filtered sessions. */
 .feature-grid,.feature-card,.problem-group,.practice-group,.problem-details,.practice-details{min-width:0;max-width:100%}
+.practice-round-menu{padding:16px;border:1px solid var(--wj-line);border-radius:var(--wj-radius);background:var(--wj-paper);box-shadow:0 5px 18px rgba(52,42,28,.04)}
+.practice-round-menu>h2{margin:0 0 12px;font-size:1.05rem}
+.practice-round-choice{display:flex;flex-direction:column;gap:7px}
+.practice-round-choice h3{margin:0;color:var(--wj-green);font-size:1.05rem}
+.practice-round-choice p{margin:0;color:#526058}
+.practice-round-choice .primary{align-self:stretch;margin-top:auto;text-align:center;text-decoration:none}
+.practice-round-links{display:flex;flex-wrap:wrap;gap:8px;margin-top:auto}
+.practice-round-links a{flex:1 1 140px;text-align:center}
 .feature-card{overflow-wrap:anywhere;word-break:break-word}
 button.feature-card{width:100%;font:inherit;text-align:left;cursor:pointer;white-space:normal;overflow-wrap:anywhere;-webkit-appearance:none;appearance:none}
 .problem-group,.practice-group{min-width:0}
