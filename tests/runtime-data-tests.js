@@ -66,6 +66,19 @@ assert.equal(lessons.length,38,'実行時に統合される章数が38章では�
 for(const lesson of lessons){
   for(const prerequisite of lesson.prerequisites||[])assert.equal(lessonIds.has(prerequisite),true,`${lesson.id} の前提ページがありません: ${prerequisite}`);
   for(const code of [...(lesson.hand||[]),...(lesson.river||[])])assert.equal(tileCodes.has(code),true,`${lesson.id} の牌コードがありません: ${code}`);
+  if(lesson.visualCheck){
+    const visual=lesson.visualCheck;
+    assert.equal(visual.presentation,'tiles',`${lesson.id} の視覚確認の表示形式が不正です`);
+    assert.equal(visual.interaction,'tile-pick',`${lesson.id} の視覚確認の操作形式が不正です`);
+    assert.ok(Array.isArray(lesson.hand)&&lesson.hand.length===13,`${lesson.id} の視覚確認には13枚の手牌が必要です`);
+    assert.ok(visual.prompt?.trim()&&visual.explanation?.trim(),`${lesson.id} の視覚確認文が不足しています`);
+    assert.ok(Array.isArray(visual.tileChoices)&&visual.tileChoices.length>=2,`${lesson.id} の視覚確認の選択肢が不足しています`);
+    assert.ok(Array.isArray(visual.answerTileCodes)&&visual.answerTileCodes.length>=1,`${lesson.id} の視覚確認の正解牌がありません`);
+    assert.ok(new Set(visual.tileChoices).size===visual.tileChoices.length,`${lesson.id} の視覚確認の選択肢が重複しています`);
+    assert.ok(visual.answerTileCodes.every(code=>visual.tileChoices.includes(code)),`${lesson.id} の視覚確認の正解牌が選択肢にありません`);
+    assert.ok(visual.answerTileCodes.every(code=>!lesson.hand.includes(code)),`${lesson.id} の視覚確認の待ち牌が手牌に含まれています`);
+    for(const code of [...visual.tileChoices,...visual.answerTileCodes])assert.equal(tileCodes.has(code),true,`${lesson.id} の視覚確認に未定義の牌があります: ${code}`);
+  }
 }
 
 const terms=[...readJson('src/data/terms.json').terms,...readJson('src/data/terms-extra.json').terms];

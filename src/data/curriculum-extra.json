@@ -12,6 +12,7 @@
       ],
       "example":"局面判断は『形 → 役 → フリテン → 点数』の順に見ると混乱しにくくなります。",
       "hand":["1m","2m","3m","4m","5m","6m","2p","3p","4p","6s","7s","5z","5z"],
+      "visualCheck":{"prompt":"この手牌の待ち牌をすべて選んでください。","presentation":"tiles","interaction":"tile-pick","tileChoices":["4s","5s","6s","8s","9s"],"answerTileCodes":["5s","8s"],"explanation":"6索・7索は両面の形です。5索で567索、8索で678索が完成します。"},
       "check":{"prompt":"ロン牌が出たとき、最初に確認したい組み合わせは？","choices":["形・役・フリテン","ドラの枚数だけ","相手の点数だけ","山の残りだけ"],"answerIndex":0,"explanation":"形が完成していても、役なしやフリテンならロンできません。"}
     },
     {

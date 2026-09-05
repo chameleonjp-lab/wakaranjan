@@ -431,6 +431,16 @@ async function run(){
       ['#lesson-beginner-07',{quality:'lesson-quality',content:'curriculum-extra'}],
       ['#lesson-advanced-01',{quality:'lesson-quality-advanced',content:'advanced-special'}]
     ])await assertLessonAssetSelection(browser,base,route,assets);
+    await visit(browser,base,'#lesson-beginner-07',{width:402,height:874},async page=>{
+      const visual=page.locator('.lesson-check-visual');
+      assert.equal(await visual.count(),1,'データ教材の視覚確認に牌姿がありません');
+      const order=await page.evaluate(()=>({visual:document.querySelector('.lesson-check-visual')?.getBoundingClientRect().top??Infinity,choices:document.querySelector('.lesson-check .quiz-options')?.getBoundingClientRect().top??-Infinity}));
+      assert.ok(order.visual<order.choices,`データ教材で牌姿が選択肢より上にありません: ${JSON.stringify(order)}`);
+      assert.equal(await page.locator('.tile-answer-submit').isDisabled(),true,'データ教材で牌未選択でも回答ボタンを押せます');
+      await page.locator('.tile-answer-tile').first().click();
+      await page.locator('.tile-answer-submit').click();
+      assert.match(await page.locator('.lesson-check .feedback').innerText(),/正解|不正解/);
+    });
     for(const route of routes)await visit(browser,base,route,{width:402,height:874},page=>assertNoPageOverflow(page,route,402));
 
     await visit(browser,base,'#practice?mode=draw-discard',{width:402,height:874},async page=>{

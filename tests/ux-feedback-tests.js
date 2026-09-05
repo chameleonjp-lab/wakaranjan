@@ -65,6 +65,8 @@ assert.match(introSix,/aria-current="step"[\s\S]*dataset\.wrong/,'入門1-6の�
 assert.match(beginnerCoreSource,/visualDecision[\s\S]*1000点棒/,'リーチ教材に牌姿と供託の表示がある');
 assert.match(beginnerCoreSource,/visualDecision[\s\S]*自分の河/,'フリテン教材に自分の河の牌姿がある');
 assert.match(dataLesson,/lesson-check-visual[\s\S]*renderQuiz\(lesson,quality,ctx\)/,'データ教材の確認問題が直上の牌姿を再利用する');
+assert.match(dataLesson,/interaction==='tile-pick'[\s\S]*tile-answer-submit/,'データ教材に牌をタップして確認する問題がある');
+assert.match(dataLesson,/正しい牌を1枚選んでください[\s\S]*正しい牌をすべて選んでください/,'データ教材は選ぶ枚数を明示する');
 assert.match(introReview,/createTile/,'入門総復習に牌タップの確認問題がある');
 assert.match(introReview,/problem-hand-area[\s\S]*problem-choice-area/,'入門総復習は牌を選択肢より先に表示する');
 assert.match(introReview,/正しい牌を1枚選んでください[\s\S]*正しい牌をすべて選んでください/,'入門総復習は選ぶ枚数を明示する');
