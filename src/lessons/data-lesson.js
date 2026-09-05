@@ -28,25 +28,196 @@ function sameCodes(left,right){const a=[...(left||[])].sort(),b=[...(right||[])]
 function tileNames(codes,ctx){return (codes||[]).map(code=>ctx.tileByCode.get(code)?.nameJa||code).join('、')}
 function renderQuiz(lesson,quality,ctx){
   const visualQuestion=lesson.visualCheck?{...lesson.visualCheck,interaction:'tile-pick',presentation:'tiles',handTiles:lesson.hand||[]}:null;
-  const questions=[visualQuestion,lesson.check,...(quality?.checks||[])].filter(Boolean);const quiz=document.createElement('section');quiz.className='panel lesson-check';quiz.innerHTML='<div class="quiz-meta"></div><h2>確認問題</h2><div class="lesson-check-visual-slot"></div><p class="quiz-prompt"></p><div class="quiz-options"></div><div class="feedback" aria-live="polite"></div>';
-  let index=0,score=0,answered=false;const meta=quiz.querySelector('.quiz-meta'),prompt=quiz.querySelector('.quiz-prompt'),out=quiz.querySelector('.quiz-options'),feedback=quiz.querySelector('.feedback');
-  const visual=quizVisual(lesson,ctx);if(visual)quiz.querySelector('.lesson-check-visual-slot').append(visual);
-  const appendNext=(label)=>{const actions=document.createElement('div');actions.className='action-row';const next=document.createElement('button');next.type='button';next.className='primary';next.textContent=label;next.onclick=()=>{index++;answered=false;draw()};actions.append(next);feedback.append(actions)};
+  const questions=[visualQuestion,lesson.check,...(quality?.checks||[])].filter(Boolean);
+  const quiz=document.createElement('section');
+  quiz.className='panel lesson-check';
+  quiz.innerHTML='<div class="quiz-meta"></div><h2>確認問題</h2><div class="lesson-check-visual-slot"></div><p class="quiz-prompt"></p><div class="quiz-options"></div><div class="feedback" aria-live="polite"></div>';
+  let index=0,score=0,answered=false,retrying=false;
+  const mistakes=[];
+  const meta=quiz.querySelector('.quiz-meta');
+  const prompt=quiz.querySelector('.quiz-prompt');
+  const out=quiz.querySelector('.quiz-options');
+  const feedback=quiz.querySelector('.feedback');
+  const visual=quizVisual(lesson,ctx);
+  if(visual)quiz.querySelector('.lesson-check-visual-slot').append(visual);
+
+  const recordMistake=(questionIndex,q,selectedCodes=[])=>{
+    const existing=mistakes.find(item=>item.questionIndex===questionIndex);
+    if(existing){existing.selectedCodes=selectedCodes;return}
+    mistakes.push({questionIndex,question:q,selectedCodes});
+  };
+  const renderMistakes=(items)=>{
+    if(!items.length)return;
+    const section=document.createElement('section');
+    section.className='session-mistakes';
+    section.innerHTML='<h3>間違えた問題を見直す</h3><p>最大3問を再掲します。牌や設問をもう一度見て、1問だけやり直せます。</p><div class="session-mistake-list"></div>';
+    const list=section.querySelector('.session-mistake-list');
+    items.slice(0,3).forEach(mistake=>{
+      const card=document.createElement('article');
+      card.className='session-mistake';
+      const title=document.createElement('h3');
+      title.textContent=mistake.question.prompt;
+      card.append(title);
+      if(mistake.question.interaction==='tile-pick'){
+        const visual=quizVisual(lesson,ctx);
+        if(visual){visual.classList.add('session-mistake-visual');card.append(visual)}
+        const detail=document.createElement('p');
+        detail.className='muted';
+        detail.textContent=`選んだ牌：${tileNames(mistake.selectedCodes,ctx)||'なし'}／正解の牌：${tileNames(mistake.question.answerTileCodes,ctx)}`;
+        card.append(detail);
+      }
+      const retry=document.createElement('button');
+      retry.type='button';
+      retry.className='secondary';
+      retry.textContent='この問題をもう一度';
+      retry.onclick=()=>{index=mistake.questionIndex;retrying=true;answered=false;draw()};
+      card.append(retry);
+      list.append(card);
+    });
+    if(items.length>3){
+      const more=document.createElement('p');
+      more.className='muted';
+      more.textContent=`ほかに${items.length-3}問あります。上の「もう一度確認する」で全問をやり直せます。`;
+      section.append(more);
+    }
+    out.append(section);
+  };
+  const appendNext=(label)=>{
+    const actions=document.createElement('div');
+    actions.className='action-row';
+    const next=document.createElement('button');
+    next.type='button';
+    next.className='primary';
+    const retryingNow=retrying;
+    next.textContent=retryingNow?'結果へ':label;
+    next.onclick=()=>{
+      if(retryingNow){retrying=false;index=questions.length}else index++;
+      answered=false;
+      draw();
+    };
+    actions.append(next);
+    feedback.append(actions);
+  };
   const draw=()=>{
-    if(index>=questions.length){meta.textContent='確認完了';prompt.innerHTML=`<strong>${questions.length}問中 ${score}問正解</strong>`;out.innerHTML='';feedback.className=`feedback ${score===questions.length?'good':''}`;feedback.innerHTML=score===questions.length?'この章の要点を確認できました。':'間違えた問題の理由を読み直してから、もう一度確認できます。';const row=document.createElement('div');row.className='action-row';const retry=document.createElement('button');retry.type='button';retry.className='secondary';retry.textContent='もう一度確認する';retry.onclick=()=>{index=0;score=0;draw()};row.append(retry);out.append(row);return;
+    if(index>=questions.length){
+      const outstanding=mistakes.filter(item=>!item.resolved);
+      meta.textContent='確認完了';
+      prompt.innerHTML=`<strong>最初の確認：${questions.length}問中 ${score}問正解</strong>`;
+      out.innerHTML='';
+      feedback.className=`feedback ${outstanding.length?'bad':'good'}`;
+      feedback.textContent=outstanding.length?'間違えた問題を選ぶと、その問題だけもう一度確認できます。':'この章の要点を確認できました。';
+      renderMistakes(outstanding);
+      const row=document.createElement('div');
+      row.className='action-row';
+      const retry=document.createElement('button');
+      retry.type='button';
+      retry.className='secondary';
+      retry.textContent='もう一度確認する';
+      retry.onclick=()=>{index=0;score=0;answered=false;retrying=false;mistakes.length=0;draw()};
+      row.append(retry);
+      out.append(row);
+      return;
     }
-    const q=questions[index];const isVisual=q.interaction==='tile-pick';meta.textContent=`${index+1} / ${questions.length}`;prompt.textContent=q.prompt;out.innerHTML='';out.classList.toggle('tile-answer-options',isVisual);feedback.className='feedback';feedback.textContent='';answered=false;
+    const q=questions[index];
+    const isVisual=q.interaction==='tile-pick';
+    meta.textContent=`${index+1} / ${questions.length}`;
+    prompt.textContent=q.prompt;
+    out.innerHTML='';
+    out.classList.toggle('tile-answer-options',isVisual);
+    feedback.className='feedback';
+    feedback.textContent='';
+    answered=false;
     if(isVisual){
-      const panel=document.createElement('div');panel.className='tile-answer-panel';
-      const instruction=document.createElement('p');instruction.className='tile-answer-instruction';instruction.textContent=q.answerTileCodes?.length===1?'正しい牌を1枚選んでください。':'正しい牌をすべて選んでください。';
-      const palette=document.createElement('div');palette.className='tile-answer-palette';
-      const status=document.createElement('p');status.className='tile-answer-status';status.setAttribute('aria-live','polite');status.textContent='選択中：なし';
-      const selected=new Set();const buttons=[];const submit=document.createElement('button');submit.type='button';submit.className='primary tile-answer-submit';submit.textContent='この牌で回答する';submit.disabled=true;
-      for(const code of q.tileChoices||[]){const tile=ctx.tileByCode.get(code);if(!tile)continue;const button=createTile(tile,{interactive:true,onSelect:(_tile,_red,element)=>{if(answered)return;if(selected.has(code)){selected.delete(code);element.classList.remove('selected')}else{selected.add(code);element.classList.add('selected')}element.setAttribute('aria-pressed',selected.has(code)?'true':'false');status.textContent='選択中：'+(tileNames([...selected],ctx)||'なし');submit.disabled=selected.size===0}});button.classList.add('tile-answer-tile');button.dataset.tileCode=code;buttons.push(button);palette.append(button)}
-      submit.onclick=()=>{if(answered)return;answered=true;const expected=new Set(q.answerTileCodes||[]);const selectedCodes=[...selected];const ok=sameCodes(selectedCodes,q.answerTileCodes);if(ok)score++;feedback.className=`feedback ${ok?'good':'bad'}`;feedback.innerHTML=`<strong>${ok?'正解':'不正解'}</strong><br>${q.explanation}${ok?'':`<br><small>選んだ牌：${tileNames(selectedCodes,ctx)||'なし'}<br>正解の牌：${tileNames(q.answerTileCodes,ctx)}</small>`}`;buttons.forEach(button=>{const code=button.dataset.tileCode;button.disabled=true;if(expected.has(code))button.dataset.correct='true';if(selected.has(code)&&!expected.has(code))button.dataset.wrong='true'});appendNext(index+1===questions.length?'結果を見る':'次の問題')};panel.append(instruction,palette,status,submit);out.append(panel);return;
+      const panel=document.createElement('div');
+      panel.className='tile-answer-panel';
+      const instruction=document.createElement('p');
+      instruction.className='tile-answer-instruction';
+      instruction.textContent=q.answerTileCodes?.length===1?'正しい牌を1枚選んでください。':'正しい牌をすべて選んでください。';
+      const palette=document.createElement('div');
+      palette.className='tile-answer-palette';
+      const status=document.createElement('p');
+      status.className='tile-answer-status';
+      status.setAttribute('aria-live','polite');
+      status.textContent='選択中：なし';
+      const selected=new Set();
+      const buttons=[];
+      const submit=document.createElement('button');
+      submit.type='button';
+      submit.className='primary tile-answer-submit';
+      submit.textContent='この牌で回答する';
+      submit.disabled=true;
+      for(const code of q.tileChoices||[]){
+        const tile=ctx.tileByCode.get(code);
+        if(!tile)continue;
+        const button=createTile(tile,{interactive:true,onSelect:(_tile,_red,element)=>{
+          if(answered)return;
+          if(selected.has(code)){selected.delete(code);element.classList.remove('selected')}
+          else{selected.add(code);element.classList.add('selected')}
+          element.setAttribute('aria-pressed',selected.has(code)?'true':'false');
+          status.textContent='選択中：'+(tileNames([...selected],ctx)||'なし');
+          submit.disabled=selected.size===0;
+        }});
+        button.classList.add('tile-answer-tile');
+        button.dataset.tileCode=code;
+        buttons.push(button);
+        palette.append(button);
+      }
+      submit.onclick=()=>{
+        if(answered)return;
+        answered=true;
+        const expected=new Set(q.answerTileCodes||[]);
+        const selectedCodes=[...selected];
+        const ok=sameCodes(selectedCodes,q.answerTileCodes);
+        if(!retrying){
+          if(ok)score++;
+          else recordMistake(index,q,selectedCodes);
+        }else if(ok){
+          const mistake=mistakes.find(item=>item.questionIndex===index);
+          if(mistake)mistake.resolved=true;
+        }
+        feedback.className=`feedback ${ok?'good':'bad'}`;
+        feedback.innerHTML=`<strong>${ok?'正解':'不正解'}</strong><br>${q.explanation}${ok?'':`<br><small>選んだ牌：${tileNames(selectedCodes,ctx)||'なし'}<br>正解の牌：${tileNames(q.answerTileCodes,ctx)}</small>`}`;
+        buttons.forEach(button=>{
+          const code=button.dataset.tileCode;
+          button.disabled=true;
+          if(expected.has(code))button.dataset.correct='true';
+          if(selected.has(code)&&!expected.has(code))button.dataset.wrong='true';
+        });
+        appendNext(index+1===questions.length?'結果を見る':'次の問題');
+      };
+      panel.append(instruction,palette,status,submit);
+      out.append(panel);
+      return;
     }
-    q.choices.forEach((choice,i)=>{const b=document.createElement('button');b.type='button';b.textContent=choice;b.onclick=()=>{if(answered)return;answered=true;const ok=i===q.answerIndex;if(ok)score++;[...out.children].forEach((el,n)=>{el.disabled=true;if(n===q.answerIndex)el.dataset.correct='true';if(n===i&&!ok)el.dataset.wrong='true'});feedback.className=`feedback ${ok?'good':'bad'}`;feedback.innerHTML=`<strong>${ok?'正解':'不正解'}</strong><br>${q.explanation}`;appendNext(index+1===questions.length?'結果を見る':'次の問題')};out.append(b)});
-  };draw();return quiz;
+    q.choices.forEach((choice,i)=>{
+      const b=document.createElement('button');
+      b.type='button';
+      b.textContent=choice;
+      b.onclick=()=>{
+        if(answered)return;
+        answered=true;
+        const ok=i===q.answerIndex;
+        if(!retrying){
+          if(ok)score++;
+          else recordMistake(index,q);
+        }else if(ok){
+          const mistake=mistakes.find(item=>item.questionIndex===index);
+          if(mistake)mistake.resolved=true;
+        }
+        [...out.children].forEach((el,n)=>{
+          el.disabled=true;
+          if(n===q.answerIndex)el.dataset.correct='true';
+          if(n===i&&!ok)el.dataset.wrong='true';
+        });
+        feedback.className=`feedback ${ok?'good':'bad'}`;
+        feedback.innerHTML=`<strong>${ok?'正解':'不正解'}</strong><br>${q.explanation}`;
+        appendNext(index+1===questions.length?'結果を見る':'次の問題');
+      };
+      out.append(b);
+    });
+  };
+  draw();
+  return quiz;
 }
 
 export function renderDataLesson(app,ctx,lesson){
