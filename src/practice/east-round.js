@@ -96,7 +96,7 @@ export function renderEastRound(app,ctx){
   let index=0;let state='question';let scores={...INITIAL_SCORES};let latestResult=null;let answered=false;
   const render=()=>{
     if(index>=EAST_ROUNDS.length){
-      app.innerHTML='<section class="hero"><div class="eyebrow">模擬東風戦（案内版）</div><h1>4局を終えました。</h1><p>局の進行、親子による支払い、流局を一度に確認できました。</p>'+scoreBoard(scores)+'</section><section class="callout"><strong>この版の範囲</strong><br>牌山を自動で引く本格対局ではなく、固定した局面と結果で流れを学ぶ案内版です。連荘、本場、テンパイ・ノーテンの精算、相手の思考は次の段階で扱います。</section><div class="action-row"><button id="east-restart" class="secondary" type="button">もう一度練習する</button><a class="primary" href="#practice">対局練習へ戻る</a></div>';
+      app.innerHTML='<section class="hero"><div class="eyebrow">模擬東風戦（案内版）</div><h1>4局を終えました。</h1><p>局の進行、親子による支払い、流局を一度に確認できました。</p>'+scoreBoard(scores)+'</section><section class="callout"><strong>今回わかったこと</strong><br>手牌と場面を見て、リーチ・ツモ・ロン・流局の判断を確認しました。親と子では、ツモあがりの支払い方が変わります。</section><div class="action-row"><button id="east-restart" class="secondary" type="button">もう一度練習する</button><a class="primary" href="#practice">対局練習へ戻る</a></div>';
       app.querySelector('#east-restart').onclick=()=>{index=0;state='question';scores={...INITIAL_SCORES};latestResult=null;answered=false;render()};
       return;
     }

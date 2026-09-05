@@ -8,6 +8,7 @@ const problemHub=read('src/questions/problem-hub.js');
 const practiceHub=read('src/practice/practice-hub.js');
 const fullRound=read('src/practice/full-round.js');
 const eastRound=read('src/practice/east-round.js');
+const roundFlow=read('src/practice/round-flow.js');
 const beginnerOne=read('src/lessons/beginner-01.js');
 const beginnerCoreSource=read('src/lessons/beginner-core.js');
 const introFour=read('src/lessons/intro-04.js');
@@ -43,6 +44,10 @@ assert.match(practiceHub,/renderRoundMenu[\s\S]*操作を覚える[\s\S]*判断�
 assert.match(practiceHub,/if\(mode==='round'\)return renderRoundMenu/,'一局の体験メニューへ遷移できる');
 assert.doesNotMatch(practiceHub,/実装済み|状態層|次段階の基盤/,'対局練習ハブに開発者向け状態を表示しない');
 assert.doesNotMatch(practiceHub,/5zを捨て|他家が5z/,'対局練習の本文に牌コードを表示しない');
+assert.match(roundFlow,/今回わかったこと/,'局進行の完了画面に学習内容を表示する');
+assert.doesNotMatch(roundFlow,/次に追加するもの|実際の牌山.*接続/,'局進行の完了画面に開発者向けの実装予定を表示しない');
+assert.match(eastRound,/今回わかったこと/,'模擬東風戦の完了画面に学習内容を表示する');
+assert.doesNotMatch(eastRound,/この版の範囲|次の段階/,'模擬東風戦の完了画面に開発者向けの実装範囲を表示しない');
 for(const q of catalog.questions.filter(q=>q.id.startsWith('q-ron-001'))){assert.equal(q.topic,'text-review','文章で待ちを復習する問題を別トピックにする')}
 for(const q of catalog.questions.filter(q=>q.id.match(/^q-ron-00[6-9]$|^q-ron-01[0-2]$/))){assert.equal(q.topic,'ron-decision','ロン可否の問題を待ちの形から分ける')}
 for(const q of catalog.questions.filter(q=>q.id.match(/^q-ron-01[3-5]$/))){assert.equal(q.topic,'call-decision','鳴きの問題をロン可否から分ける')}

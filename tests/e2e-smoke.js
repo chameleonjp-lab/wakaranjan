@@ -462,10 +462,14 @@ async function run(){
       }
       assert.match(await page.locator('h1').innerText(),/4局.*を終えました/);
       assert.match(await page.locator('#app').innerText(),/模擬東風戦（案内版）/);
+      assert.match(await page.locator('#app').innerText(),/今回わかったこと/);
+      assert.doesNotMatch(await page.locator('#app').innerText(),/この版の範囲|次の段階/);
     });
     await visit(browser,base,'#practice?mode=round-flow',{width:402,height:874},async page=>{
       for(let step=0;step<6;step++)await page.locator('#flow-actions button').click();
       assert.match(await page.locator('h1').innerText(),/局.*の進み方を確認できました/);
+      assert.match(await page.locator('#app').innerText(),/今回わかったこと/);
+      assert.doesNotMatch(await page.locator('#app').innerText(),/次に追加するもの|実際の牌山.*接続/);
     });
     await visit(browser,base,'#practice?mode=kan',{width:402,height:874},async page=>{
       for(let scene=0;scene<3;scene++){
