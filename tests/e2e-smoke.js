@@ -440,6 +440,14 @@ async function run(){
       await page.locator('.tile-answer-tile').first().click();
       await page.locator('.tile-answer-submit').click();
       assert.match(await page.locator('.lesson-check .feedback').innerText(),/正解|不正解/);
+      await page.locator('.lesson-check .feedback .action-row button.primary').click();
+      for(const answerIndex of [0,1,1]){
+        await page.locator('.lesson-check .quiz-options > button').nth(answerIndex).click();
+        await page.locator('.lesson-check .feedback .action-row button.primary').click();
+      }
+      assert.equal(await page.locator('.lesson-check .session-mistake').count(),1,'データ教材の結果画面に誤答問題が再掲されません');
+      await page.locator('.lesson-check .session-mistake button').click();
+      assert.equal(await page.locator('.lesson-check .tile-answer-submit').isDisabled(),true,'誤答問題を個別にやり直すと未選択回答が有効になります');
     });
     for(const route of routes)await visit(browser,base,route,{width:402,height:874},page=>assertNoPageOverflow(page,route,402));
 
