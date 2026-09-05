@@ -22,7 +22,7 @@ const practiceRoutes=[
   '#dictionary?term=term-riichi',
   '#yaku-guide?yaku=yaku-riichi'
 ];
-const widthRoutes=['#home','#menu','#learn','#learn?level=intro','#lookup','#problems','#study-record','#lesson-intro-04','#lesson-intro-05','#automatic-calculator','#practice?mode=draw-discard','#practice?mode=wall','#practice?mode=kan','#practice?mode=hand-flow&scenario=draw','#practice?mode=round-flow','#practice?mode=east-round','#full-round','#settings','#teacher-record','#print-materials'];
+const widthRoutes=['#home','#menu','#learn','#learn?level=intro','#lookup','#problems','#intro-review','#study-record','#lesson-intro-04','#lesson-intro-05','#lesson-intermediate-05?han=2&fu=40&dealer=1&win=tsumo','#automatic-calculator','#practice?mode=draw-discard','#practice?mode=wall','#practice?mode=kan','#practice?mode=hand-flow&scenario=draw','#practice?mode=round-flow','#practice?mode=east-round','#full-round','#settings','#teacher-record','#print-materials'];
 const widths=[320,375,390,402,430];
 const qualityJsonPaths=new Set(['/src/data/lesson-quality.json','/src/data/lesson-quality-advanced.json','/src/data/lesson-quality-core.json']);
 
@@ -370,6 +370,40 @@ async function run(){
       assert.equal(foundFixedVisual,true,'牌姿問題を検査できませんでした');
     },async page=>{
       await page.addInitScript(()=>{Math.random=()=>0.5});
+    });
+    await visit(browser,base,'#intro-review',{width:402,height:874},async page=>{
+      let foundVisual=false;
+      for(let index=0;index<12;index++){
+        const visual=page.locator('#review-visual');
+        if(await visual.count()){
+          foundVisual=true;
+          const order=await page.evaluate(()=>({hand:document.querySelector('.problem-hand-area')?.getBoundingClientRect().top??Infinity,choices:document.querySelector('.problem-choice-area')?.getBoundingClientRect().top??-Infinity}));
+          assert.ok(order.hand<order.choices,`入門総復習で牌が選択肢より上にありません: ${JSON.stringify(order)}`);
+          assert.equal(await page.locator('.tile-answer-submit').isDisabled(),true,'牌未選択でも回答ボタンを押せます');
+          await page.locator('.tile-answer-tile').first().click();
+          await page.locator('.tile-answer-submit').click();
+        }else{
+          await page.locator('#review-options > button').first().click();
+        }
+        await page.locator('#review-actions button').click();
+      }
+      assert.equal(foundVisual,true,'入門総復習の牌タップ問題を検査できませんでした');
+      assert.match(await page.locator('#app').innerText(),/問正解/,'入門総復習の結果画面が表示されません');
+    });
+    await visit(browser,base,'#lesson-intermediate-05?han=2&fu=40&dealer=1&win=tsumo',{width:402,height:874},async page=>{
+      assert.equal(await page.locator('#han').inputValue(),'2','問題の翻数を計算機へ引き継げません');
+      assert.equal(await page.locator('#fu').inputValue(),'40','問題の符を計算機へ引き継げません');
+      assert.equal(await page.locator('#dealer').isChecked(),true,'問題の親子条件を計算機へ引き継げません');
+      assert.equal(await page.locator('#win').inputValue(),'tsumo','問題のロン／ツモ条件を計算機へ引き継げません');
+      assert.equal(await page.locator('#yakuman').isChecked(),false,'通常役の問題で役満条件が有効になっています');
+      assert.match(await page.locator('#score-result').innerText(),/1,300点オール/,'引き継いだ条件の計算結果が表示されません');
+    });
+    await visit(browser,base,'#problems',{width:402,height:874},async page=>{
+      await page.locator('[data-category="score"]').click();
+      await page.locator('#problem-options > button').first().click();
+      const preset=page.locator('#problem-actions a.score-preset-link');
+      assert.equal(await preset.count(),1,'点数問題に計算機プリセットへの導線がありません');
+      assert.match(await preset.getAttribute('href'),/^#lesson-intermediate-05\?han=/,'点数問題の計算機リンクに条件がありません');
     });
     for(const [route,assets] of [
       ['#lesson-intro-04',{quality:'lesson-quality-core'}],

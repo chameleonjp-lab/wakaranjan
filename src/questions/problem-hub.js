@@ -155,6 +155,16 @@ export function renderProblemSession(app,ctx,{category=null,topic=null,wrongOnly
       }else if(q.yakuRef&&ctx.yakuById.has(q.yakuRef)){
         const a=document.createElement('a');a.className='secondary';a.href='#yaku-guide?yaku='+encodeURIComponent(q.yakuRef);a.textContent=questionLabel(q,ctx)+'を役図鑑で見る';actions.append(a);
       }
+      if(q.category==='score'&&q.scoreInput){
+        const input=q.scoreInput;
+        const params=new URLSearchParams({han:String(input.han),fu:String(input.fu),dealer:input.dealer?'1':'0',win:input.win});
+        if(input.yakuman)params.set('yakuman','1');
+        const a=document.createElement('a');
+        a.className='secondary score-preset-link';
+        a.href='#lesson-intermediate-05?'+params.toString();
+        a.textContent='この条件を計算機で確かめる';
+        actions.append(a);
+      }
       if(!ok&&q.interaction==='tile-pick'&&q.topic){
         const related=pool.filter(item=>item.id!==q.id&&item.topic===q.topic&&item.interaction==='tile-pick');
         if(related.length){const retry=document.createElement('button');retry.type='button';retry.className='secondary';retry.textContent='同じ待ちをもう1問';retry.onclick=()=>{session.splice(0,session.length,shuffled(related)[0]);index=0;correct=0;answered=false;wrongSession=[];render()};actions.append(retry)}

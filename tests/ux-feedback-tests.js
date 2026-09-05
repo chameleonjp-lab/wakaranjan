@@ -14,6 +14,8 @@ const introFour=read('src/lessons/intro-04.js');
 const introFive=read('src/lessons/intro-05.js');
 const introSix=read('src/lessons/intro-06.js');
 const dataLesson=read('src/lessons/data-lesson.js');
+const introReview=read('src/questions/intro-review.js');
+const intermediateScoring=read('src/lessons/intermediate-scoring.js');
 const kanPractice=read('src/practice/kan-practice.js');
 const handFlowScenarios=read('src/practice/hand-flow-scenarios.js');
 const tile=read('src/components/tile.js');
@@ -55,6 +57,12 @@ assert.match(introSix,/aria-current="step"[\s\S]*dataset\.wrong/,'入門1-6の�
 assert.match(beginnerCoreSource,/visualDecision[\s\S]*1000点棒/,'リーチ教材に牌姿と供託の表示がある');
 assert.match(beginnerCoreSource,/visualDecision[\s\S]*自分の河/,'フリテン教材に自分の河の牌姿がある');
 assert.match(dataLesson,/lesson-check-visual[\s\S]*renderQuiz\(lesson,quality,ctx\)/,'データ教材の確認問題が直上の牌姿を再利用する');
+assert.match(introReview,/createTile/,'入門総復習に牌タップの確認問題がある');
+assert.match(introReview,/problem-hand-area[\s\S]*problem-choice-area/,'入門総復習は牌を選択肢より先に表示する');
+assert.match(introReview,/正しい牌を1枚選んでください[\s\S]*正しい牌をすべて選んでください/,'入門総復習は選ぶ枚数を明示する');
+assert.match(problemHub,/score-preset-link[\s\S]*この条件を計算機で確かめる/,'点数問題から条件付き計算機へ移動できる');
+assert.match(intermediateScoring,/scorePresetFromHash[\s\S]*URLSearchParams/,'点数計算画面が問題の条件を受け取れる');
+assert.match(intermediateScoring,/id="yakuman"/,'点数計算画面が役満条件を扱える');
 assert.doesNotMatch(kanPractice,/description:'[^']*(?:[1-9][mps]|[1-7]z)/,'カン練習の説明に牌コードを表示しない');
 assert.doesNotMatch(handFlowScenarios,/description:'[^']*(?:[1-9][mps]|[1-7]z)/,'一局練習の説明に牌コードを表示しない');
 

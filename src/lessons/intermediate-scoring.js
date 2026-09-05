@@ -17,4 +17,35 @@ export function renderIntermediate03(app){header(app,3,'親と子・ロンとツ
 
 export function renderIntermediate04(app,ctx){header(app,4,'点数表を読む','満貫以上は符ではなく翻数の区分で点数が決まります。');const rows=ctx.scoringCore.limits.map(x=>`<tr><td>${x.name}</td><td>${x.han}</td><td>${x.childRon.toLocaleString()}点</td><td>${x.dealerRon.toLocaleString()}点</td></tr>`).join('');app.insertAdjacentHTML('beforeend',`<section class="panel"><table class="score-table"><thead><tr><th>区分</th><th>条件</th><th>子ロン</th><th>親ロン</th></tr></thead><tbody>${rows}</tbody></table><div class="callout">ワカランジャン標準では30符4翻と60符3翻も切り上げ満貫です。</div></section>`);quizBlock(app,[{prompt:'6翻はどの区分？',choices:['満貫','跳満','倍満'],answer:1,explanation:'6〜7翻は跳満です。'},{prompt:'子の満貫ロンは？',choices:['8,000点','12,000点','16,000点'],answer:0,explanation:'子の満貫ロンは8,000点です。'}]);nav(app,'lesson-intermediate-03','lesson-intermediate-05')}
 
-export function renderIntermediate05(app){header(app,5,'点数計算を練習する','翻・符・親子・ロンツモを順番に入れて点数を確認します。');app.insertAdjacentHTML('beforeend','<section class="panel"><h2>翻と符から点数を出す練習</h2><p>ここでは、すでに分かっている翻と符から点数を求めることに集中します。牌姿から役・符まで自動で調べたい場合は、ホームの「点数計算」を使えます。</p><div class="score-controls"><label>翻 <select id="han"><option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option><option>6</option><option>8</option><option>11</option><option>13</option></select></label><label>符 <select id="fu"><option>20</option><option>25</option><option selected>30</option><option>40</option><option>50</option><option>60</option><option>70</option></select></label><label><input type="checkbox" id="dealer"> 親</label><label>あがり <select id="win"><option value="ron">ロン</option><option value="tsumo">ツモ</option></select></label><button class="primary" id="calc" type="button">計算する</button></div><div class="feedback" id="score-result" aria-live="polite"></div><div class="action-row"><a class="secondary" href="#automatic-calculator">牌姿から自動計算を試す</a></div></section>');const calc=()=>{const result=calculateScore({han:Number(app.querySelector('#han').value),fu:Number(app.querySelector('#fu').value),dealer:app.querySelector('#dealer').checked,win:app.querySelector('#win').value});app.querySelector('#score-result').className='feedback good';app.querySelector('#score-result').innerHTML=`<strong>${result.limit||`${result.fu}符${result.han}翻`}</strong><br>${formatPayment(result)}`};app.querySelector('#calc').addEventListener('click',calc);calc();nav(app,'lesson-intermediate-04','lesson-intermediate-06')}
+const SCORE_HAN_OPTIONS=[1,2,3,4,5,6,8,11,13];
+const SCORE_FU_OPTIONS=[20,25,30,40,50,60,70];
+
+function scorePresetFromHash(){
+  const hash=location.hash||'';
+  if(!hash.includes('?'))return null;
+  const params=new URLSearchParams(hash.slice(hash.indexOf('?')+1));
+  const win=params.get('win');
+  if(!['ron','tsumo'].includes(win))return null;
+  const dealer=params.get('dealer')==='1';
+  if(params.get('yakuman')==='1')return {han:0,fu:20,dealer,win,yakuman:1};
+  const han=Number(params.get('han'));
+  const fu=Number(params.get('fu'));
+  if(!SCORE_HAN_OPTIONS.includes(han)||!SCORE_FU_OPTIONS.includes(fu))return null;
+  return {han,fu,dealer,win,yakuman:0};
+}
+
+function scoreOptions(values,selected){return values.map(value=>`<option value="${value}" ${value===selected?'selected':''}>${value}</option>`).join('')}
+
+export function renderIntermediate05(app){
+  const preset=scorePresetFromHash();
+  const han=preset&&!preset.yakuman?preset.han:3;
+  const fu=preset&&!preset.yakuman?preset.fu:30;
+  const presetSummary=preset?.yakuman?`役満・${preset.dealer?'親':'子'}・${preset.win==='ron'?'ロン':'ツモ'}`:`${preset?.dealer?'親':'子'}・${preset?.fu||fu}符${preset?.han||han}翻・${preset?.win==='tsumo'?'ツモ':'ロン'}`;
+  const presetNote=preset?`<div class="callout score-preset"><strong>問題の条件を入れました</strong><br>${presetSummary}。必要なら選び直せます。</div>`:'';
+  header(app,5,'点数計算を練習する','翻・符・親子・ロンツモを順番に入れて点数を確認します。');
+  app.insertAdjacentHTML('beforeend',`<section class="panel"><h2>翻と符から点数を出す練習</h2><p>ここでは、すでに分かっている翻と符から点数を求めることに集中します。牌姿から役・符まで自動で調べたい場合は、ホームの「点数計算」を使えます。</p>${presetNote}<div class="score-controls"><label for="han">翻 <select id="han">${scoreOptions(SCORE_HAN_OPTIONS,han)}</select></label><label for="fu">符 <select id="fu">${scoreOptions(SCORE_FU_OPTIONS,fu)}</select></label><label><input type="checkbox" id="dealer" ${preset?.dealer?'checked':''}> 親</label><label for="win">あがり <select id="win"><option value="ron" ${preset?.win!=='tsumo'?'selected':''}>ロン</option><option value="tsumo" ${preset?.win==='tsumo'?'selected':''}>ツモ</option></select></label><label><input type="checkbox" id="yakuman" ${preset?.yakuman?'checked':''}> 役満</label><button class="primary" id="calc" type="button">計算する</button></div><div class="feedback" id="score-result" aria-live="polite"></div><div class="action-row"><a class="secondary" href="#automatic-calculator">牌姿から自動計算を試す</a></div></section>`);
+  const calc=()=>{const result=calculateScore({han:Number(app.querySelector('#han').value),fu:Number(app.querySelector('#fu').value),dealer:app.querySelector('#dealer').checked,win:app.querySelector('#win').value,yakuman:app.querySelector('#yakuman').checked?1:0});app.querySelector('#score-result').className='feedback good';app.querySelector('#score-result').innerHTML=`<strong>${result.limit||`${result.fu}符${result.han}翻`}</strong><br>${formatPayment(result)}`};
+  app.querySelector('#calc').addEventListener('click',calc);
+  calc();
+  nav(app,'lesson-intermediate-04','lesson-intermediate-06');
+}
