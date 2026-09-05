@@ -117,6 +117,30 @@ for(const question of introReview.questions){
     assert.ok(Number.isInteger(question.answerIndex)&&question.answerIndex>=0&&question.answerIndex<question.choices.length,`${question.id} の正解番号が不正です`);
   }
 }
+const beginnerReview=readJson('src/data/questions/beginner/review.json');
+assert.equal(beginnerReview.sessionSize,12,'初級総復習の出題数が12問ではありません');
+assert.equal(beginnerReview.questions.length,18,'初級総復習の問題数が18問ではありません');
+const beginnerReviewIds=uniqueIds(beginnerReview.questions,'初級総復習問題');
+assert.ok(beginnerReview.questions.filter(question=>question.interaction==='tile-pick').length>=2,'初級総復習に牌を使う問題が2問未満です');
+for(const question of beginnerReview.questions){
+  assert.ok(question.prompt?.trim(),`${question.id} の設問がありません`);
+  assert.ok(question.explanation?.trim(),`${question.id} の解説がありません`);
+  assert.equal(lessonIds.has(question.lessonRef),true,`${question.id} の解説参照がありません: ${question.lessonRef}`);
+  if(question.interaction==='tile-pick'){
+    assert.equal(question.presentation,'tiles',`${question.id} の牌表示形式が不正です`);
+    assert.equal(question.answerType,'tile_select',`${question.id} の牌選択形式が不正です`);
+    assert.equal(question.handTiles.length,13,`${question.id} の手牌が13枚ではありません`);
+    assert.ok(Array.isArray(question.tileChoices)&&question.tileChoices.length>=2,`${question.id} の牌選択肢が不足しています`);
+    assert.ok(Array.isArray(question.answerTileCodes)&&question.answerTileCodes.length>=1,`${question.id} の正解牌がありません`);
+    assert.ok(new Set(question.tileChoices).size===question.tileChoices.length,`${question.id} の牌選択肢が重複しています`);
+    assert.ok(question.answerTileCodes.every(code=>question.tileChoices.includes(code)),`${question.id} の正解牌が選択肢にありません`);
+    assert.ok(question.answerTileCodes.every(code=>!question.handTiles.includes(code)),`${question.id} の待ち牌が手牌に含まれています`);
+    for(const code of [...question.handTiles,...question.tileChoices,...question.answerTileCodes])assert.equal(tileCodes.has(code),true,`${question.id} の牌コードがありません: ${code}`);
+  }else{
+    assert.ok(Array.isArray(question.choices)&&question.choices.length>=2,`${question.id} の選択肢が不足しています`);
+    assert.ok(Number.isInteger(question.answerIndex)&&question.answerIndex>=0&&question.answerIndex<question.choices.length,`${question.id} の正解番号が不正です`);
+  }
+}
 const categories=[...catalog.categories,...practical.categories];
 const categoryIds=uniqueIds(categories,'問題カテゴリ');
 const questions=[...catalog.questions,...visual.questions,...practical.questions];
@@ -155,6 +179,7 @@ assert.match(appSource,/QUALITY_ASSET_BY_SOURCE/,'章ごとの品質データ対
 for(const mapping of ["lessons:'coreQuality'","scoringCore:'coreQuality'","advancedSpecial:'advancedQuality'","curriculumExtra:'lessonQuality'"])assert.match(appSource,new RegExp(mapping),mapping+' の品質データ対応がありません');
 assert.match(appSource,/routeAssetKeys\(id,ctx\)/,'章ごとの本文遅延読み込み元がありません');
 assert.match(appSource,/if\(id==='intro-review'\)return \[\.\.\.terms,'introReview','tiles'\]/,'入門総復習で牌データを読み込んでいません');
+assert.match(appSource,/if\(id==='beginner-review'\)return \[\.\.\.terms,'beginnerReview','tiles'\]/,'初級総復習で牌データを読み込んでいません');
 assert.match(appSource,/ensureAssets\(ctx,keys\)/,'画面ごとの遅延読み込み処理がありません');
 assert.match(appSource,/routeAssetKeys/,'ルートごとのデータ資産指定がありません');
 assert.doesNotMatch(appSource,/cache:'no-store'/,'データ資産を毎回キャッシュ無効で読み込んでいます');

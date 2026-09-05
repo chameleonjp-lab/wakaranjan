@@ -23,7 +23,7 @@ const practiceRoutes=[
   '#dictionary?term=term-riichi',
   '#yaku-guide?yaku=yaku-riichi'
 ];
-const widthRoutes=['#home','#menu','#learn','#learn?level=intro','#lookup','#problems','#intro-review','#study-record','#lesson-intro-04','#lesson-intro-05','#lesson-intermediate-05?han=2&fu=40&dealer=1&win=tsumo','#automatic-calculator','#practice?mode=draw-discard','#practice?mode=wall','#practice?mode=kan','#practice?mode=hand-flow&scenario=draw','#practice?mode=round-flow','#practice?mode=east-round','#full-round','#settings','#teacher-record','#print-materials'];
+const widthRoutes=['#home','#menu','#learn','#learn?level=intro','#lookup','#problems','#intro-review','#beginner-review','#study-record','#lesson-intro-04','#lesson-intro-05','#lesson-intermediate-05?han=2&fu=40&dealer=1&win=tsumo','#automatic-calculator','#practice?mode=draw-discard','#practice?mode=wall','#practice?mode=kan','#practice?mode=hand-flow&scenario=draw','#practice?mode=round-flow','#practice?mode=east-round','#full-round','#settings','#teacher-record','#print-materials'];
 const widths=[320,375,390,402,430];
 const qualityJsonPaths=new Set(['/src/data/lesson-quality.json','/src/data/lesson-quality-advanced.json','/src/data/lesson-quality-core.json']);
 
@@ -390,6 +390,25 @@ async function run(){
       }
       assert.equal(foundVisual,true,'入門総復習の牌タップ問題を検査できませんでした');
       assert.match(await page.locator('#app').innerText(),/問正解/,'入門総復習の結果画面が表示されません');
+    });
+    await visit(browser,base,'#beginner-review',{width:402,height:874},async page=>{
+      let foundVisual=false;
+      for(let index=0;index<12;index++){
+        const visual=page.locator('#review-visual');
+        if(await visual.count()){
+          foundVisual=true;
+          const order=await page.evaluate(()=>({hand:document.querySelector('.problem-hand-area')?.getBoundingClientRect().top??Infinity,choices:document.querySelector('.problem-choice-area')?.getBoundingClientRect().top??-Infinity}));
+          assert.ok(order.hand<order.choices,`初級総復習で牌が選択肢より上にありません: ${JSON.stringify(order)}`);
+          assert.equal(await page.locator('.tile-answer-submit').isDisabled(),true,'初級総復習で牌未選択でも回答ボタンを押せます');
+          await page.locator('.tile-answer-tile').first().click();
+          await page.locator('.tile-answer-submit').click();
+        }else{
+          await page.locator('#review-options > button').first().click();
+        }
+        await page.locator('#review-actions button').click();
+      }
+      assert.equal(foundVisual,true,'初級総復習の牌タップ問題を検査できませんでした');
+      assert.match(await page.locator('#app').innerText(),/問正解/,'初級総復習の結果画面が表示されません');
     });
     await visit(browser,base,'#lesson-intermediate-05?han=2&fu=40&dealer=1&win=tsumo',{width:402,height:874},async page=>{
       assert.equal(await page.locator('#han').inputValue(),'2','問題の翻数を計算機へ引き継げません');
