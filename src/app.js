@@ -266,7 +266,7 @@ function renderUnavailable(id,ctx){
 function routeAssetKeys(id,ctx){
   const terms=id==='home'?[]:['terms','termsExtra'];
   if(id==='home'||id==='menu'||id==='learn'||id==='lookup'||id==='rules'||id==='settings'||id==='print-materials')return terms;
-  if(id==='intro-review')return [...terms,'introReview'];
+  if(id==='intro-review')return [...terms,'introReview','tiles'];
   if(id==='beginner-review')return [...terms,'beginnerReview'];
   if(id==='intermediate-review')return [...terms,'intermediateReview'];
   if(id==='problems')return [...terms,'tiles','yaku','problemCatalog','visualCatalog','practicalRules'];
