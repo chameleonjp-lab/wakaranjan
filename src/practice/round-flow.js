@@ -65,7 +65,7 @@ export function renderRoundFlow(app){
 
   const render=()=>{
     if(index>=FLOW_STEPS.length){
-      app.innerHTML='<section class="hero"><div class="eyebrow">局進行の基礎</div><h1>局の進み方を確認できました。</h1><p>親が続く場面、親が交代する場面、本場の増減、東風戦の終了を順番に体験しました。</p>'+scoreBoard(state)+'</section><section class="callout"><strong>次に追加するもの</strong><br>この練習は局の状態だけを扱います。実際の牌山、鳴き、あがり判定、流局時のテンパイ判定は、それぞれの処理と接続していきます。</section><div class="action-row"><button id="flow-restart" class="secondary" type="button">もう一度練習する</button><a class="primary" href="#practice">対局練習へ戻る</a></div>'+nav();
+      app.innerHTML='<section class="hero"><div class="eyebrow">局進行の基礎</div><h1>局の進み方を確認できました。</h1><p>親が続く場面、親が交代する場面、本場の増減、東風戦の終了を順番に体験しました。</p>'+scoreBoard(state)+'</section><section class="callout"><strong>今回わかったこと</strong><br>親があがると同じ局が続き、親でない人があがると次の局へ進みます。流局では、親のテンパイ・ノーテンによって局と本場の進み方が変わります。</section><div class="action-row"><button id="flow-restart" class="secondary" type="button">もう一度練習する</button><a class="primary" href="#practice">対局練習へ戻る</a></div>'+nav();
       app.querySelector('#flow-restart').onclick=reset;
       return;
     }
