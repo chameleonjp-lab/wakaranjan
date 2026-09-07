@@ -29,37 +29,34 @@ export function renderBeginner01(app,ctx){
   let answered=false;
 
   const render=()=>{
+    const current=waits[quizIndex];
     app.innerHTML='';
     const head=document.createElement('section');
     head.className='lesson-head';
-    head.innerHTML='<div class="eyebrow">初級 1</div><h1>待ちの基本</h1><p class="lead">あと1枚で完成する牌を「待ち牌」と呼びます。まずは代表的な5種類を見分けます。</p>';
+    head.innerHTML='<div class="eyebrow">初級 1</div><h1>待ちの基本</h1><p class="lead">あと1枚で完成する牌を「待ち牌」と呼びます。1つの形を見て、すぐに待ち牌を確かめます。</p>';
     app.append(head);
 
     const intro=document.createElement('section');
     intro.className='panel';
-    intro.innerHTML='<p>最初に形を見ます。そのあとで名前を覚えます。待ちの名前は、手牌全体ではなく「どの部分が、どの牌を待っているか」を表します。</p>';
+    intro.innerHTML='<p>最初に<strong>待ち部分</strong>を見ます。そのあとで、何が来れば完成するかを選びます。正解のあとに待ちの名前を覚えます。</p><details class="wait-overview"><summary>5種類の名前を先に一覧で見る</summary><ul></ul></details>';
+    const overview=intro.querySelector('.wait-overview ul');
+    waits.forEach(wait=>{const item=document.createElement('li');item.textContent=`${wait.nameJa}（${wait.readingJa}）`;overview.append(item)});
     app.append(intro);
 
-    const grid=document.createElement('div');
-    grid.className='wait-grid';
-    waits.forEach(w=>{
-      const card=document.createElement('article');
-      card.className='wait-card';
-      card.innerHTML=`<h2>${w.nameJa}<small>${w.readingJa}</small></h2><p>${w.description}</p><div class="wait-shape"><div><strong>待ち部分</strong><div class="shape hand-fit-row"></div></div><span class="wait-arrow" aria-hidden="true">→</span><div><strong>来れば完成</strong><div class="answers hand-fit-row"></div></div></div><p class="muted">${w.point}</p>`;
-      w.shape.forEach(c=>card.querySelector('.shape').append(tile(ctx,c)));
-      w.waits.forEach(c=>card.querySelector('.answers').append(tile(ctx,c)));
-      grid.append(card);
-    });
-    app.append(grid);
+    const lesson=document.createElement('section');
+    lesson.className='panel wait-focus-lesson';
+    lesson.innerHTML=`<div class="eyebrow">形 ${quizIndex+1} / ${waits.length}</div><h2>この形を見てみよう</h2><p>${current.description}</p><div class="wait-shape"><div><strong>待ち部分</strong><div class="shape hand-fit-row"></div></div><span class="wait-arrow" aria-hidden="true">→</span><div><strong>来れば完成する例</strong><div class="answers hand-fit-row"></div></div></div><p class="muted">${current.point}</p>`;
+    current.shape.forEach(code=>lesson.querySelector('.shape').append(tile(ctx,code)));
+    current.waits.forEach(code=>lesson.querySelector('.answers').append(tile(ctx,code)));
+    app.append(lesson);
 
     const quiz=document.createElement('section');
     quiz.className='panel wait-quiz';
-    const current=waits[quizIndex];
     const distractors=nearbyCandidates(ctx,current);
     const candidates=[...new Set([...current.waits,...distractors])].slice(0,4);
     candidates.sort(()=>Math.random()-.5);
-    quiz.innerHTML=`<div class="eyebrow">確認 ${quizIndex+1} / ${waits.length}</div><h2>この形の待ち牌を選んでください</h2><div class="selection-area selection-area-hand"><h3>先に見る：${current.nameJa}</h3><div class="shape quiz-shape hand-fit-row"></div></div><div class="selection-area selection-area-choices"><h3>選択肢</h3><div class="tile-grid quiz-candidates"></div><p class="tile-answer-status">選択中：なし</p></div><div class="feedback" aria-live="polite"></div><div class="action-row"></div>`;
-    current.shape.forEach(c=>quiz.querySelector('.quiz-shape').append(tile(ctx,c)));
+    quiz.innerHTML=`<div class="eyebrow">確認 ${quizIndex+1} / ${waits.length}</div><h2>この形で完成する牌は？</h2><div class="selection-area selection-area-hand"><h3>先に見る：待ち部分</h3><div class="shape quiz-shape hand-fit-row"></div></div><div class="selection-area selection-area-choices"><h3>選択肢</h3><div class="tile-grid quiz-candidates"></div><p class="tile-answer-status">選択中：なし</p></div><div class="feedback" aria-live="polite"></div><div class="action-row"></div>`;
+    current.shape.forEach(code=>quiz.querySelector('.quiz-shape').append(tile(ctx,code)));
     const selected=new Set();
     const selectedStatus=quiz.querySelector('.tile-answer-status');
     candidates.forEach(code=>{
@@ -82,7 +79,7 @@ export function renderBeginner01(app,ctx){
       const fb=quiz.querySelector('.feedback');fb.className=`feedback ${correct?'good':'bad'}`;
       const selectedNames=Array.from(selected).map(code=>ctx.tileByCode.get(code)?.nameJa||code).join('、')||'なし';
       const answerNames=current.waits.map(code=>ctx.tileByCode.get(code)?.nameJa||code).join('、');
-      fb.innerHTML=`<strong>${correct?'正解':'不正解'}</strong><br>${current.point}<br><small>選んだ牌：${selectedNames}<br>正解の牌：${answerNames}</small>`;
+      fb.innerHTML=`<strong>${correct?'正解':'不正解'}</strong><br><strong class="wait-answer-name">待ちの名前：${current.nameJa}（${current.readingJa}）</strong><br>${current.point}<br><small>選んだ牌：${selectedNames}<br>正解の牌：${answerNames}</small>`;
       const next=document.createElement('button');next.className='primary';next.type='button';next.textContent=quizIndex===waits.length-1?'結果を見る':'次の問題';
       next.addEventListener('click',()=>{if(quizIndex<waits.length-1){quizIndex++;answered=false;render()}else showResult()});
       quiz.querySelector('.action-row').replaceChildren(next);

@@ -345,6 +345,18 @@ async function run(){
       await page.locator('.page-back').click();
       assert.match(new URL(page.url()).hash,/#menu$/,'戻る操作でメニューへ戻れません');
     });
+    await visit(browser,base,'#lesson-beginner-01',{width:402,height:874},async page=>{
+      assert.equal(await page.locator('.wait-focus-lesson').count(),1,'待ち教材が1つの形に絞られていません');
+      assert.equal(await page.locator('.wait-overview').evaluate(element=>element.open),false,'待ちの一覧が最初から開いています');
+      assert.equal(await page.locator('.wait-answer-name').count(),0,'答え合わせ前に待ちの名前が表示されています');
+      const order=await page.evaluate(()=>({hand:document.querySelector('.wait-quiz .selection-area-hand')?.getBoundingClientRect().top??Infinity,choices:document.querySelector('.wait-quiz .selection-area-choices')?.getBoundingClientRect().top??-Infinity}));
+      assert.ok(order.hand<order.choices,`待ちの形が選択肢より上にありません: ${JSON.stringify(order)}`);
+      assert.equal(await page.locator('.wait-quiz .quiz-candidates .tile').count(),4,'待ちの候補牌が4枚ありません');
+      assert.equal(await page.locator('.wait-quiz .action-row button').isDisabled(),true,'未選択で答え合わせが有効です');
+      await page.locator('.wait-quiz .quiz-candidates .tile').first().click();
+      await page.locator('.wait-quiz .action-row button').click();
+      assert.equal(await page.locator('.wait-answer-name').count(),1,'答え合わせ後に待ちの名前が表示されません');
+    });
     await visit(browser,base,'#problems',{width:402,height:874},async page=>{
       await page.locator('[data-topic="ron-decision"]').click();
       let foundFixedVisual=false;
