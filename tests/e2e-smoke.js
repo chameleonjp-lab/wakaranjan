@@ -357,6 +357,20 @@ async function run(){
       await page.locator('.wait-quiz .action-row button').click();
       assert.equal(await page.locator('.wait-answer-name').count(),1,'答え合わせ後に待ちの名前が表示されません');
     });
+    await visit(browser,base,'#lesson-beginner-05',{width:402,height:874},async page=>{
+      assert.equal(await page.locator('.yaku-focus').count(),1,'初級役が複数役の一覧表示になっています');
+      const order=await page.evaluate(()=>({hand:document.querySelector('.yaku-focus .selection-area-hand')?.getBoundingClientRect().top??Infinity,choices:document.querySelector('.yaku-focus .selection-area-choices')?.getBoundingClientRect().top??-Infinity}));
+      assert.ok(order.hand<order.choices,`初級役で牌姿が選択肢より上にありません: ${JSON.stringify(order)}`);
+      assert.equal(await page.locator('.yaku-focus-visual .yaku-example-row .tile').count(),13,'初級役の手牌が13枚に分かれていません');
+      assert.equal(await page.locator('.yaku-focus-visual .yaku-focus-win .tile').count(),1,'初級役のあがり牌が手牌の外に表示されていません');
+      assert.equal(await page.locator('.yaku-answer-name').count(),0,'初級役の答え合わせ前に結果表示があります');
+      assert.equal(await page.locator('#yaku-focus-options button').count(),4,'初級役の選択肢が4つありません');
+      await page.locator('#yaku-focus-options button').first().click();
+      assert.equal(await page.locator('.yaku-answer-name').count(),1,'初級役の答え合わせに役名が表示されません');
+      await page.locator('#yaku-focus-actions button').click();
+      const progress=await page.locator('.yaku-focus .eyebrow').evaluate(element=>element.textContent.replace(/ヤク/g,''));
+      assert.match(progress,/役 2 \/ 13/,'初級役を次の1役へ進めません');
+    });
     await visit(browser,base,'#problems',{width:402,height:874},async page=>{
       await page.locator('[data-topic="ron-decision"]').click();
       let foundFixedVisual=false;
