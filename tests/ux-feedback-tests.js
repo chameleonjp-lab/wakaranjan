@@ -36,6 +36,10 @@ assert.match(beginnerCore,/appendYakuExample\(a,y,ctx\)/,'初級役カードに�
 assert.match(problemHub,/problem-hand-area[\s\S]*problem-choice-area/,'牌姿問題は手牌・場面を選択肢より先に描画する');
 for(const source of [practiceHub,fullRound,eastRound])assert.match(source,/selection-area-hand[\s\S]*selection-area-choices/,'選択問題は手牌・場面を選択肢より先に描画する');
 assert.match(beginnerOne,/selection-area-hand[\s\S]*selection-area-choices/,'待ちの確認は形を選択肢より先に描画する');
+assert.match(beginnerOne,/wait-focus-lesson[\s\S]*この形を見てみよう/,'待ちの教材は1つの形を見てから確認する');
+assert.match(beginnerOne,/wait-overview/,'待ちの5種類は必要なときだけ一覧を開ける');
+assert.match(beginnerOne,/class="wait-answer-name"/,'待ちの名前は答え合わせ後に表示する');
+assert.doesNotMatch(beginnerOne,/先に見る：\$\{current\.nameJa\}/,'待ちの名前を選択前に表示して答えを教えない');
 assert.doesNotMatch(problemHub,/Supabaseへ保存/,'問題ハブに保存基盤の説明を表示しない');
 assert.match(problemHub,/data-topic/,'問題ハブから学習者向けの分類で出題できる');
 assert.match(problemHub,/待ち牌（形だけ）[\s\S]*ロンできるか/,'待ち牌とロン可否を別の入口にする');
