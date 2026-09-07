@@ -4,7 +4,7 @@ const LEVEL_NAME={beginner:'初級',intermediate:'中級',advanced:'上級',spec
 function tileRow(codes,ctx,label){
   if(!codes?.length)return null;
   const isHand=label.includes('手牌');
-  const section=document.createElement('section');section.className='panel';section.innerHTML=`<h2>${label}</h2><div class="${isHand?'hand-fit-scroll':'hand-scroll'}"><div class="tile-row data-lesson-tiles${isHand?' hand-fit-row':''}"></div></div>`;
+  const section=document.createElement('section');section.className='panel lesson-content-panel';section.innerHTML=`<div class="panel-role">見る</div><h2>${label}</h2><div class="${isHand?'hand-fit-scroll':'hand-scroll'}"><div class="tile-row data-lesson-tiles${isHand?' hand-fit-row':''}"></div></div>`;
   const row=section.querySelector('.tile-row');
   for(const code of codes){const tile=ctx.tileByCode.get(code);if(tile)row.append(createTile(tile,{interactive:false}))}
   return section;
@@ -12,7 +12,7 @@ function tileRow(codes,ctx,label){
 function quizVisual(lesson,ctx){
   const codes=lesson.hand||[];if(!codes.length)return null;
   const visual=document.createElement('div');visual.className='lesson-check-visual';
-  visual.innerHTML='<strong>先に見る：この章の牌姿</strong><div class="hand-fit-scroll"><div class="tile-row hand-fit-row"></div></div>';
+  visual.innerHTML='<div class="panel-role">見る</div><strong>先に見る：この章の牌姿</strong><div class="hand-fit-scroll"><div class="tile-row hand-fit-row"></div></div>';
   const row=visual.querySelector('.tile-row');codes.forEach(code=>{const tile=ctx.tileByCode.get(code);if(tile)row.append(createTile(tile,{interactive:false}))});
   return visual;
 }
@@ -31,7 +31,7 @@ function renderQuiz(lesson,quality,ctx){
   const questions=[visualQuestion,lesson.check,...(quality?.checks||[])].filter(Boolean);
   const quiz=document.createElement('section');
   quiz.className='panel lesson-check';
-  quiz.innerHTML='<div class="quiz-meta"></div><h2>確認問題</h2><div class="lesson-check-visual-slot"></div><p class="quiz-prompt"></p><div class="quiz-options"></div><div class="feedback" aria-live="polite"></div>';
+  quiz.innerHTML='<div class="panel-role">解く</div><div class="quiz-meta"></div><h2>確認問題</h2><div class="lesson-check-visual-slot"></div><p class="quiz-prompt"></p><div class="quiz-options"></div><div class="feedback" aria-live="polite"></div>';
   let index=0,score=0,answered=false,retrying=false;
   const mistakes=[];
   const meta=quiz.querySelector('.quiz-meta');
@@ -223,13 +223,14 @@ function renderQuiz(lesson,quality,ctx){
 export function renderDataLesson(app,ctx,lesson){
   const level=LEVEL_NAME[lesson.level]||lesson.level;const quality=ctx.lessonQualityById?.get(lesson.id);
   app.innerHTML=`<section class="lesson-head"><div class="eyebrow">${level} ${lesson.order||''}</div><h1>${lesson.title}</h1><p class="lead">${lesson.lead}</p></section>`;
-  if(quality?.objective){const goal=document.createElement('section');goal.className='panel goal-panel';goal.innerHTML=`<div class="eyebrow">この章でできるようになること</div><p>${quality.objective}</p>`;app.append(goal)}
-  const key=document.createElement('section');key.className='panel';key.innerHTML=`<h2>要点</h2><ol class="explain-list">${lesson.points.map(x=>`<li>${x}</li>`).join('')}</ol>`;app.append(key);
+  const flow=document.createElement('ol');flow.className='lesson-flow';flow.setAttribute('aria-label','この章の進み方');flow.innerHTML=`<li><span>1</span><strong>見る</strong><small>要点と例</small></li><li><span>2</span><strong>${lesson.visualCheck?'触る':'考える'}</strong><small>${lesson.visualCheck?'牌を選ぶ':'手順を整理'}</small></li><li><span>3</span><strong>解く</strong><small>確認問題</small></li>`;app.append(flow);
+  if(quality?.objective){const goal=document.createElement('section');goal.className='panel goal-panel lesson-content-panel';goal.innerHTML=`<div class="panel-role">目標</div><div class="eyebrow">この章でできるようになること</div><p>${quality.objective}</p>`;app.append(goal)}
+  const key=document.createElement('section');key.className='panel lesson-content-panel';key.innerHTML=`<div class="panel-role">見る</div><h2>要点</h2><ol class="explain-list">${lesson.points.map(x=>`<li>${x}</li>`).join('')}</ol>`;app.append(key);
   if(lesson.hand)app.append(tileRow(lesson.hand,ctx,'手牌の例'));
   if(lesson.river)app.append(tileRow(lesson.river,ctx,'河の例'));
-  if(lesson.example){const s=document.createElement('section');s.className='callout example-callout';s.innerHTML=`<strong>具体例</strong><br>${lesson.example}`;app.append(s)}
-  if(quality?.steps?.length){const steps=document.createElement('section');steps.className='panel';steps.innerHTML=`<h2>考え方の手順</h2><ol class="learning-steps">${quality.steps.map((x,i)=>`<li><span>${i+1}</span><p>${x}</p></li>`).join('')}</ol>`;app.append(steps)}
-  if(quality?.mistakes?.length){const mistakes=document.createElement('section');mistakes.className='panel';mistakes.innerHTML=`<h2>よくある間違い</h2><div class="mistake-grid">${quality.mistakes.map(x=>`<article class="mistake-card"><strong>注意</strong><p>${x}</p></article>`).join('')}</div>`;app.append(mistakes)}
+  if(lesson.example){const s=document.createElement('section');s.className='callout example-callout lesson-content-panel';s.innerHTML=`<div class="panel-role">具体例</div><strong>具体例</strong><br>${lesson.example}`;app.append(s)}
+  if(quality?.steps?.length){const steps=document.createElement('section');steps.className='panel lesson-content-panel';steps.innerHTML=`<div class="panel-role">考える</div><h2>考え方の手順</h2><ol class="learning-steps">${quality.steps.map((x,i)=>`<li><span>${i+1}</span><p>${x}</p></li>`).join('')}</ol>`;app.append(steps)}
+  if(quality?.mistakes?.length){const mistakes=document.createElement('section');mistakes.className='panel lesson-content-panel';mistakes.innerHTML=`<div class="panel-role">注意</div><h2>よくある間違い</h2><div class="mistake-grid">${quality.mistakes.map(x=>`<article class="mistake-card"><strong>注意</strong><p>${x}</p></article>`).join('')}</div>`;app.append(mistakes)}
   app.append(renderQuiz(lesson,quality,ctx));
   const terms=relatedTerms(quality,ctx);if(terms)app.append(terms);
   const prev=neighbor(ctx,lesson,-1),next=neighbor(ctx,lesson,1),end=endLink(lesson);const nav=document.createElement('div');nav.className='lesson-nav';nav.innerHTML=`${prev?`<a class="secondary" href="#${prev.id}">前へ：${prev.title}</a>`:`<a class="secondary" href="#learn?level=${lesson.level}">${LEVEL_NAME[lesson.level]||'学ぶ'}一覧へ</a>`}${next?`<a class="primary" href="#${next.id}">次へ：${next.title}</a>`:`<a class="primary" href="#${end.href}">${end.label}</a>`}`;app.append(nav);

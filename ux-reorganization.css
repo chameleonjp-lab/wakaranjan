@@ -245,6 +245,13 @@ ruby.mahjong-ruby rt{
 .hand-fit-row>.tile[data-wrong="true"]{position:relative;outline:2px dashed #a74d38;outline-offset:2px}
 .hand-fit-row>.tile[data-wrong="true"]::after{content:"ちがう";position:absolute;left:50%;bottom:-7px;transform:translateX(-50%);padding:1px 4px;border:1px solid #a74d38;border-radius:999px;background:#fff0e7;color:#7d3c2f;font-size:.58rem;font-weight:800;line-height:1.2;white-space:nowrap}
 .shape-check{display:grid;gap:10px;margin-top:18px;padding:14px;border:1px solid #d7cebf;border-radius:14px;background:#f8f5ed}
+.lesson-flow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;list-style:none;padding:0;margin:0 0 18px}
+.lesson-flow li{display:grid;grid-template-columns:auto 1fr;column-gap:7px;align-items:center;padding:9px 8px;border:1px solid #d7cebf;border-radius:12px;background:#fffdf8}
+.lesson-flow li>span{grid-row:span 2;display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:#edf1ec;color:#245f43;font-weight:800;font-size:.8rem}
+.lesson-flow strong{font-size:.82rem;color:#526058}
+.lesson-flow small{font-size:.7rem;color:#657067;line-height:1.3}
+.panel-role{display:inline-block;margin-bottom:7px;padding:2px 8px;border:1px solid #d2d9d2;border-radius:999px;background:#edf1ec;color:#526058;font-size:.72rem;font-weight:800;letter-spacing:.04em}
+.lesson-check>.panel-role{border-color:#e1c58d;background:#fff0d8;color:#8a3e2e}
 .shape-check h3{margin:0;color:var(--wj-green);font-size:1rem}
 .shape-check-tiles{max-width:180px}
 .shape-check .quiz-options{grid-template-columns:repeat(2,minmax(0,1fr))}
