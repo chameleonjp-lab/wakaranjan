@@ -459,6 +459,9 @@ async function run(){
       ['#lesson-advanced-01',{quality:'lesson-quality-advanced',content:'advanced-special'}]
     ])await assertLessonAssetSelection(browser,base,route,assets);
     await visit(browser,base,'#lesson-beginner-07',{width:402,height:874},async page=>{
+      assert.equal(await page.locator('.lesson-flow').count(),1,'データ教材の章の進み方が表示されません');
+      const roles=await page.locator('.panel-role').allTextContents();
+      assert.ok(roles.includes('目標')&&roles.includes('見る')&&roles.includes('解く'),'データ教材のパネル役割ラベルが不足しています');
       const visual=page.locator('.lesson-check-visual');
       assert.equal(await visual.count(),1,'データ教材の視覚確認に牌姿がありません');
       const order=await page.evaluate(()=>({visual:document.querySelector('.lesson-check-visual')?.getBoundingClientRect().top??Infinity,choices:document.querySelector('.lesson-check .quiz-options')?.getBoundingClientRect().top??-Infinity}));
