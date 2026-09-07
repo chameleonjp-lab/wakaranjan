@@ -32,7 +32,10 @@ assert.doesNotMatch(app,/placeholder="例：まさ"/,'古い名前の例が残�
 assert.match(app,/if\(id==='lesson-beginner-05'\)keys\.push\('yakuExamples'/,'初級役に牌姿データを読み込む');
 for(const id of beginnerYakuIds)assert.ok(examples[id],`${id} の初級役牌姿例がありません`);
 
-assert.match(beginnerCore,/appendYakuExample\(a,y,ctx\)/,'初級役カードに牌姿例を追加する');
+assert.match(beginnerCore,/appendYakuExample\([^,]+,[^,]+,ctx\)/,'初級役カードに牌姿例を追加する');
+assert.match(beginnerCore,/yaku-focus-visual[\s\S]*yaku-focus-options/,'初級役は牌姿を見てから役名を選ぶ');
+assert.match(beginnerCore,/displayExampleHand[\s\S]*winTile/,'初級役の牌姿は13枚の手牌とあがり牌を分けて表示する');
+assert.match(beginnerCore,/yaku-answer-name/,'初級役の答え合わせに役名と理由を表示する');
 assert.match(problemHub,/problem-hand-area[\s\S]*problem-choice-area/,'牌姿問題は手牌・場面を選択肢より先に描画する');
 for(const source of [practiceHub,fullRound,eastRound])assert.match(source,/selection-area-hand[\s\S]*selection-area-choices/,'選択問題は手牌・場面を選択肢より先に描画する');
 assert.match(beginnerOne,/selection-area-hand[\s\S]*selection-area-choices/,'待ちの確認は形を選択肢より先に描画する');

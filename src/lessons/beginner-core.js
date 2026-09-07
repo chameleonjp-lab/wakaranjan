@@ -5,17 +5,34 @@ const NAV_LABELS={'lesson-beginner-02':'鳴き','lesson-beginner-03':'リーチ'
 function addNav(app,prev,next){const nav=document.createElement('div');nav.className='lesson-nav';nav.innerHTML=`<a class="secondary" href="#${prev}">前へ：${NAV_LABELS[prev]||'前の章'}</a><a class="primary" href="#${next}">次へ：${NAV_LABELS[next]||'次の章'}</a>`;app.append(nav)}
 function visualRow(ctx,codes){const row=document.createElement('div');row.className='tile-row hand-fit-row';codes.forEach(code=>row.append(tile(ctx,code)));return row}
 function visualDecision(ctx,{title,hand,river,handLabel='手牌',riverLabel='自分の河'}){const panel=document.createElement('section');panel.className='panel lesson-visual';panel.innerHTML=`<h2>${title}</h2><div class="visual-decision-grid"><div><strong>${handLabel}</strong><div class="visual-hand-slot"></div></div><div><strong>${riverLabel}</strong><div class="visual-river-slot river"></div></div></div>`;panel.querySelector('.visual-hand-slot').append(visualRow(ctx,hand));panel.querySelector('.visual-river-slot').replaceChildren(...river.map(code=>tile(ctx,code)));return panel}
+function displayExampleHand(example){const codes=[...(example?.tiles||[])];if(example?.winTile&&codes.length===14){const index=codes.indexOf(example.winTile);if(index>=0)codes.splice(index,1)}return codes}
 function appendYakuExample(card,y,ctx){
   const example=ctx.yakuExamples?.[y.id];
   if(!example)return;
-  const visual=document.createElement('div');visual.className='yaku-card-example';
-  const heading=document.createElement('strong');heading.textContent='牌姿の例';
+  const visual=document.createElement('div');visual.className='yaku-focus-visual';
+  const heading=document.createElement('strong');heading.textContent='牌姿を先に見る';
+  const handLabel=document.createElement('span');handLabel.className='yaku-focus-label';handLabel.textContent='手牌（13枚）';
   const row=document.createElement('div');row.className='tile-row hand-fit-row yaku-example-row';
-  example.tiles.forEach(code=>{const item=ctx.tileByCode.get(code);if(item)row.append(createTile(item,{interactive:false}))});
-  const note=document.createElement('p');note.className='yaku-example-note';note.textContent=example.note;
-  visual.append(heading,row,note);card.append(visual);
+  displayExampleHand(example).forEach(code=>{const item=ctx.tileByCode.get(code);if(item)row.append(createTile(item,{interactive:false}))});
+  const win=document.createElement('div');win.className='yaku-focus-win';
+  const winLabel=document.createElement('span');winLabel.className='yaku-focus-label';winLabel.textContent='あがり牌（完成する牌）';
+  const winTile=ctx.tileByCode.get(example.winTile);if(winTile)win.append(winLabel,createTile(winTile,{interactive:false,drawn:true}));
+  visual.append(heading,handLabel,row,win);card.append(visual);
 }
 function quiz(app,questions){let i=0,score=0;const box=document.createElement('section');box.className='panel';app.append(box);const render=()=>{if(i>=questions.length){box.innerHTML=`<h2>確認終了</h2><p><strong>${questions.length}問中 ${score}問正解</strong></p><button class="primary" type="button" id="retry">もう一度</button>`;box.querySelector('#retry').onclick=()=>{i=0;score=0;render()};return}const q=questions[i];box.innerHTML=`<div class="eyebrow">確認 ${i+1}/${questions.length}</div><h2>${q.q}</h2><div class="quiz-options">${q.options.map((o,n)=>`<button type="button" data-i="${n}">${o}</button>`).join('')}</div><div class="feedback" aria-live="polite"></div>`;const fb=box.querySelector('.feedback');box.querySelectorAll('.quiz-options button').forEach(b=>b.onclick=()=>{const n=Number(b.dataset.i);const ok=n===q.answer;if(ok)score++;box.querySelectorAll('.quiz-options button').forEach((x,j)=>{x.disabled=true;if(j===q.answer)x.dataset.correct='true';else if(j===n)x.dataset.wrong='true'});fb.className=`feedback ${ok?'good':'bad'}`;fb.innerHTML=`<strong>${ok?'正解':'不正解'}</strong><br>${q.explain}<div class="action-row"><button type="button" id="nextq">${i+1===questions.length?'結果を見る':'次の問題'}</button></div>`;fb.querySelector('#nextq').onclick=()=>{i++;render()}})};render()}
+
+function yakuLabel(y){return y.displayNameJa||y.nameJa}
+function yakuOpenLabel(y){return y.openHan===null?'門前限定':`鳴いても成立${y.openHan!==y.closedHan?`（${y.openHan}翻）`:''}`}
+function yakuChoices(yaku,index){
+  const distractors=[];
+  for(let offset=1;distractors.length<3&&offset<yaku.length+1;offset++){
+    const candidate=yaku[(index+offset)%yaku.length];
+    if(candidate&&candidate.id!==yaku[index].id&&!distractors.some(item=>item.id===candidate.id))distractors.push(candidate);
+  }
+  const choices=[yaku[index],...distractors];
+  choices.sort(()=>Math.random()-.5);
+  return choices;
+}
 
 export function renderBeginner03(app,ctx){
   const data=ctx.beginnerCore.riichi;
@@ -37,11 +54,20 @@ export function renderBeginner04(app,ctx){
 }
 
 export function renderBeginner05(app,ctx){
-  const yaku=ctx.yaku.filter(y=>ctx.beginnerCore.beginnerYakuIds.includes(y.id));
-  app.innerHTML='<section class="lesson-head"><div class="eyebrow">初級 5</div><h1>初級役</h1><p class="lead">まず、よく出会う役を「門前限定」「鳴いても成立」に分けて覚えます。</p></section>';
-  const grid=document.createElement('div');grid.className='shape-grid';yaku.forEach(y=>{const a=document.createElement('article');a.className='shape-card';const open=y.openHan===null?'門前限定':`鳴いても成立${y.openHan!==y.closedHan?`（${y.openHan}翻）`:''}`;a.innerHTML=`<div class="eyebrow">${y.closedHan}翻</div><h2>${y.displayNameJa}</h2><p>${y.summary}</p><p class="muted">${open}</p>`;appendYakuExample(a,y,ctx);grid.append(a)});app.append(grid);
-  quiz(app,[{q:'2〜8の数牌だけで作る役は？',options:['タンヤオ','七対子','一気通貫'],answer:0,explain:'タンヤオは1・9・字牌を使わず、2〜8の数牌だけで作ります。'},{q:'白を3枚そろえたとき成立する役は？',options:['ピンフ','役牌 白','一盃口'],answer:1,explain:'白・發・中は3枚組または4枚組にすると、それぞれ役牌になります。'},{q:'同じ牌2枚の組を7組作る特殊な形は？',options:['七対子','対々和','三色同順'],answer:0,explain:'七対子は基本の「4面子1雀頭」とは別の特殊なあがり形です。'},{q:'4つの面子をすべて刻子・槓子で作る役は？',options:['対々和','一気通貫','門前ツモ'],answer:0,explain:'対々和はすべての面子を3枚組または4枚組で作ります。'}]);
-  addNav(app,'lesson-beginner-04','lesson-beginner-06');
+  const yaku=ctx.beginnerCore.beginnerYakuIds.map(id=>ctx.yakuById.get(id)).filter(Boolean);
+  let index=0;let score=0;let answered=false;
+  const showResult=()=>{app.innerHTML=`<section class="hero"><div class="eyebrow">初級5 完了</div><h1>初級役を確認しました</h1><p><strong>${yaku.length}役中 ${score}問正解</strong></p><p>牌姿を見て、役の名前・成立条件・門前限定かどうかを確認しました。</p><div class="action-row"><button class="primary" id="retry-yaku" type="button">もう一度</button><a class="secondary" href="#lesson-beginner-06">次：ドラ</a></div></section>`;app.querySelector('#retry-yaku').onclick=()=>{index=0;score=0;answered=false;render()}};
+  const render=()=>{
+    const current=yaku[index];
+    const choices=yakuChoices(yaku,index);
+    const answerIndex=choices.findIndex(choice=>choice.id===current.id);
+    app.innerHTML='<section class="lesson-head"><div class="eyebrow">初級 5</div><h1>初級役</h1><p class="lead">牌姿を1つずつ見て、成立する役を選びます。答え合わせで、その役の特徴を覚えます。</p></section><section class="panel yaku-focus"><div class="eyebrow">役 '+(index+1)+' / '+yaku.length+'</div><h2>牌姿を見て、成立する役を選んでください</h2><div class="selection-area selection-area-hand"><h3>先に見る：手牌とあがり牌</h3><div id="yaku-focus-visual"></div></div><div class="selection-area selection-area-choices"><h3>選択肢</h3><div class="quiz-options" id="yaku-focus-options"></div></div><div class="feedback" id="yaku-focus-feedback" aria-live="polite"></div><div class="action-row" id="yaku-focus-actions"></div></section>';
+    appendYakuExample(app.querySelector('#yaku-focus-visual'),current,ctx);
+    const options=app.querySelector('#yaku-focus-options');const feedback=app.querySelector('#yaku-focus-feedback');const actions=app.querySelector('#yaku-focus-actions');
+    choices.forEach((choice,choiceIndex)=>{const button=document.createElement('button');button.type='button';button.textContent=yakuLabel(choice);button.onclick=()=>{if(answered)return;answered=true;const ok=choiceIndex===answerIndex;if(ok)score++;[...options.children].forEach((item,itemIndex)=>{item.disabled=true;if(itemIndex===answerIndex)item.dataset.correct='true';else if(itemIndex===choiceIndex)item.dataset.wrong='true'});const example=ctx.yakuExamples?.[current.id];feedback.className='feedback '+(ok?'good':'bad');feedback.innerHTML='<strong>'+(ok?'正解':'不正解')+'</strong><br><strong class="yaku-answer-name">'+yakuLabel(current)+'（'+current.readingJa+'）</strong><br>'+current.summary+'<br><small>'+yakuOpenLabel(current)+'。'+(example?.note||'')+'</small>';const next=document.createElement('button');next.type='button';next.className='primary';next.textContent=index===yaku.length-1?'結果を見る':'次の役';next.onclick=()=>{if(index===yaku.length-1){showResult();return}index++;answered=false;render()};actions.append(next)};options.append(button)});
+    addNav(app,'lesson-beginner-04','lesson-beginner-06');
+  };
+  render();
 }
 
 export function renderBeginner06(app,ctx){

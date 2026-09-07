@@ -263,5 +263,11 @@ ruby.mahjong-ruby rt{
 .win-gap{white-space:nowrap}
 .hand-fit-row>.win-gap{font-size:.72rem;line-height:1.2;font-weight:800;color:#8a3e2e}
 .yaku-card-example{display:grid;gap:5px;margin-top:8px;padding-top:9px;border-top:1px solid #e4ddd1}
+.yaku-focus-visual{display:grid;gap:7px;margin-top:10px;padding:12px;border:1px solid #d7cebf;border-radius:12px;background:#faf7f0}
+.yaku-focus-visual>strong{color:#765c42}
+.yaku-focus-label{display:block;font-size:.8rem;font-weight:800;color:#526058}
+.yaku-focus-win{display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;padding-top:4px;border-top:1px dashed #d7cebf}
+.yaku-focus-win .tile{flex:0 0 auto}
+.yaku-answer-name{display:inline-block;margin:.15rem 0 .2rem}
 .yaku-card-example>strong{font-size:.78rem;color:#765c42}
 .yaku-example-note{margin:0;color:#526058;font-size:.86rem;line-height:1.55}
