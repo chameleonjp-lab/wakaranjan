@@ -368,7 +368,8 @@ async function run(){
       await page.locator('#yaku-focus-options button').first().click();
       assert.equal(await page.locator('.yaku-answer-name').count(),1,'初級役の答え合わせに役名が表示されません');
       await page.locator('#yaku-focus-actions button').click();
-      assert.match(await page.locator('.yaku-focus .eyebrow').innerText(),/役 2 \/ 13/,'初級役を次の1役へ進めません');
+      const progress=await page.locator('.yaku-focus .eyebrow').evaluate(element=>element.textContent.replace(/ヤク/g,''));
+      assert.match(progress,/役 2 \/ 13/,'初級役を次の1役へ進めません');
     });
     await visit(browser,base,'#problems',{width:402,height:874},async page=>{
       await page.locator('[data-topic="ron-decision"]').click();
