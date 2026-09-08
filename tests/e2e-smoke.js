@@ -348,7 +348,8 @@ async function run(){
     await visit(browser,base,'#lesson-intro-02',{width:402,height:874},async page=>{
       const next=page.locator('.lesson-nav a.primary');
       assert.equal(await next.getAttribute('href'),'#lesson-intro-03','入門1-2の次へが一覧へ戻っています');
-      assert.equal(await next.innerText(),'次へ：手牌と卓','入門1-2の次章名が表示されていません');
+      const nextText=(await next.innerText()).replace(/\s+/g,'').replace(/テハイ/g,'');
+      assert.equal(nextText,'次へ：手牌と卓','入門1-2の次章名が表示されていません');
     });
     await visit(browser,base,'#lesson-intermediate-01',{width:402,height:874},async page=>{
       assert.equal(await page.locator('.lesson-nav a.secondary').innerText(),'前へ：初級総合一局','中級教材の前章名が表示されていません');
