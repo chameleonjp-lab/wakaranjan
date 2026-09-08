@@ -7,7 +7,16 @@ function quizBlock(app,questions){
 }
 
 function header(app,n,title,lead){app.innerHTML=`<section class="lesson-head"><div class="eyebrow">中級 ${n}</div><h1>${title}</h1><p class="lead">${lead}</p></section>`}
-function nav(app,prev,next){const nav=document.createElement('div');nav.className='lesson-nav';nav.innerHTML=`<a class="secondary" href="#${prev}">前へ</a><a class="primary" href="#${next}">次へ</a>`;app.append(nav)}
+const NAV_LABELS={
+  'lesson-beginner-07':'初級総合一局',
+  'lesson-intermediate-01':'翻を数える',
+  'lesson-intermediate-02':'符を数える',
+  'lesson-intermediate-03':'親と子・ロンとツモ',
+  'lesson-intermediate-04':'点数表を読む',
+  'lesson-intermediate-05':'点数計算を練習する',
+  'lesson-intermediate-06':'全標準役を見渡す'
+};
+function nav(app,prev,next){const nav=document.createElement('div');nav.className='lesson-nav';nav.innerHTML=`<a class="secondary" href="#${prev}">前へ：${NAV_LABELS[prev]||'前の章'}</a><a class="primary" href="#${next}">次へ：${NAV_LABELS[next]||'次の章'}</a>`;app.append(nav)}
 
 export function renderIntermediate01(app){header(app,1,'翻を数える','役とドラを足して、まず翻数を決めます。');app.insertAdjacentHTML('beforeend','<section class="panel"><h2>翻とは</h2><p>役の強さを数える単位です。リーチは1翻、七対子は2翻のように役ごとに決まっています。</p><div class="callout">ドラは翻を増やしますが、役ではありません。役なし＋ドラだけではあがれません。</div><p>例：リーチ1翻＋タンヤオ1翻＋ドラ1翻＝3翻。</p></section>');quizBlock(app,[{prompt:'リーチ1翻＋タンヤオ1翻＋ドラ2枚。合計は？',choices:['2翻','3翻','4翻'],answer:2,explanation:'1+1+2で4翻です。'},{prompt:'役なしでドラ3枚。あがれる？',choices:['あがれる','あがれない'],answer:1,explanation:'ドラは役ではありません。'}]);nav(app,'lesson-beginner-07','lesson-intermediate-02')}
 

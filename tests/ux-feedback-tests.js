@@ -18,6 +18,7 @@ const dataLesson=read('src/lessons/data-lesson.js');
 const introReview=read('src/questions/intro-review.js');
 const beginnerReview=read('src/questions/beginner-review.js');
 const intermediateScoring=read('src/lessons/intermediate-scoring.js');
+const introTwo=read('src/lessons/intro-02.js');
 const kanPractice=read('src/practice/kan-practice.js');
 const handFlowScenarios=read('src/practice/hand-flow-scenarios.js');
 const tile=read('src/components/tile.js');
@@ -71,6 +72,8 @@ assert.match(introFive,/相手の捨て牌（ロン牌）/,'入門1-5でロン�
 assert.match(introSix,/aria-current="step"[\s\S]*dataset\.wrong/,'入門1-6の進行表示と誤タップ表示を状態に連動させる');
 assert.match(beginnerCoreSource,/visualDecision[\s\S]*1000点棒/,'リーチ教材に牌姿と供託の表示がある');
 assert.match(beginnerCoreSource,/visualDecision[\s\S]*自分の河/,'フリテン教材に自分の河の牌姿がある');
+assert.match(introTwo,/lesson-intro-03[\s\S]*次へ：手牌と卓/,'入門1-2から次の章へ連続して進める');
+assert.match(intermediateScoring,/NAV_LABELS[\s\S]*前へ：\$\{NAV_LABELS\[prev\]\|\|[\s\S]*次へ：\$\{NAV_LABELS\[next\]\|\|/,'中級教材の前後ナビに章名を表示する');
 assert.match(dataLesson,/lesson-check-visual[\s\S]*renderQuiz\(lesson,quality,ctx\)/,'データ教材の確認問題が直上の牌姿を再利用する');
 assert.match(dataLesson,/lesson-flow[\s\S]*見る[\s\S]*解く/,'データ教材に見る・考える・解くの進み方を表示する');
 assert.match(dataLesson,/panel-role[\s\S]*目標[\s\S]*panel-role[\s\S]*見る[\s\S]*panel-role[\s\S]*考える/,'データ教材の各パネルに役割ラベルを付ける');
