@@ -470,6 +470,9 @@ async function run(){
       await page.locator('.tile-answer-tile').first().click();
       await page.locator('.tile-answer-submit').click();
       assert.match(await page.locator('.lesson-check .feedback').innerText(),/正解|不正解/);
+      if((await page.locator('.lesson-check .feedback button.secondary').count())===1){
+        assert.equal(await page.locator('.lesson-check .feedback button.secondary').innerText(),'この章をもう1問','誤答直後の再確認ボタンの文言が学習者向けではありません');
+      }
       await page.locator('.lesson-check .feedback .action-row button.primary').click();
       for(const answerIndex of [0,1,1]){
         await page.locator('.lesson-check .quiz-options > button').nth(answerIndex).click();

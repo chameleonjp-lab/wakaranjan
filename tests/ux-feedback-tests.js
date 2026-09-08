@@ -77,6 +77,7 @@ assert.match(dataLesson,/panel-role[\s\S]*目標[\s\S]*panel-role[\s\S]*見る[\
 assert.match(dataLesson,/interaction==='tile-pick'[\s\S]*tile-answer-submit/,'データ教材に牌をタップして確認する問題がある');
 assert.match(dataLesson,/正しい牌を1枚選んでください[\s\S]*正しい牌をすべて選んでください/,'データ教材は選ぶ枚数を明示する');
 assert.match(dataLesson,/session-mistakes[\s\S]*この問題をもう一度/,'データ教材の結果画面から誤答問題を個別にやり直せる');
+assert.match(dataLesson,/この章をもう1問/,'データ教材の誤答直後に同じ章を再確認できる');
 assert.match(introReview,/createTile/,'入門総復習に牌タップの確認問題がある');
 assert.match(introReview,/problem-hand-area[\s\S]*problem-choice-area/,'入門総復習は牌を選択肢より先に表示する');
 assert.match(introReview,/正しい牌を1枚選んでください[\s\S]*正しい牌をすべて選んでください/,'入門総復習は選ぶ枚数を明示する');
