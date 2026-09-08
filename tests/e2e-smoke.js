@@ -160,6 +160,14 @@ async function assertHeaderTapTargets(page,route){
   for(const [selector,height] of Object.entries(sizes))assert.ok(height>=44,`${route} の ${selector} の操作領域が44px未満です: ${height}`);
 }
 
+async function visibleLabel(locator){
+  return locator.evaluate(element=>{
+    const copy=element.cloneNode(true);
+    copy.querySelectorAll('rt').forEach(reading=>reading.remove());
+    return copy.textContent.replace(/\s+/g,'');
+  });
+}
+
 async function assertRubyAnnotationLayout(page,route){
   const issues=await page.evaluate(()=>[...document.querySelectorAll('ruby.mahjong-ruby')].flatMap((ruby,index)=>{
     const base=ruby.querySelector('rb');
@@ -348,12 +356,11 @@ async function run(){
     await visit(browser,base,'#lesson-intro-02',{width:402,height:874},async page=>{
       const next=page.locator('.lesson-nav a.primary');
       assert.equal(await next.getAttribute('href'),'#lesson-intro-03','入門1-2の次へが一覧へ戻っています');
-      const nextText=(await next.innerText()).replace(/\s+/g,'').replace(/テハイ/g,'');
-      assert.equal(nextText,'次へ：手牌と卓','入門1-2の次章名が表示されていません');
+      assert.equal(await visibleLabel(next),'次へ：手牌と卓','入門1-2の次章名が表示されていません');
     });
     await visit(browser,base,'#lesson-intermediate-01',{width:402,height:874},async page=>{
-      assert.equal(await page.locator('.lesson-nav a.secondary').innerText(),'前へ：初級総合一局','中級教材の前章名が表示されていません');
-      assert.equal(await page.locator('.lesson-nav a.primary').innerText(),'次へ：符を数える','中級教材の次章名が表示されていません');
+      assert.equal(await visibleLabel(page.locator('.lesson-nav a.secondary')),'前へ：初級総合一局','中級教材の前章名が表示されていません');
+      assert.equal(await visibleLabel(page.locator('.lesson-nav a.primary')),'次へ：符を数える','中級教材の次章名が表示されていません');
     });
     await visit(browser,base,'#lesson-beginner-01',{width:402,height:874},async page=>{
       assert.equal(await page.locator('.wait-focus-lesson').count(),1,'待ち教材が1つの形に絞られていません');
