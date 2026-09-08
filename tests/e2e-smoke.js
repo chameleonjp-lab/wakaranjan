@@ -345,6 +345,15 @@ async function run(){
       await page.locator('.page-back').click();
       assert.match(new URL(page.url()).hash,/#menu$/,'戻る操作でメニューへ戻れません');
     });
+    await visit(browser,base,'#lesson-intro-02',{width:402,height:874},async page=>{
+      const next=page.locator('.lesson-nav a.primary');
+      assert.equal(await next.getAttribute('href'),'#lesson-intro-03','入門1-2の次へが一覧へ戻っています');
+      assert.equal(await next.innerText(),'次へ：手牌と卓','入門1-2の次章名が表示されていません');
+    });
+    await visit(browser,base,'#lesson-intermediate-01',{width:402,height:874},async page=>{
+      assert.equal(await page.locator('.lesson-nav a.secondary').innerText(),'前へ：初級総合一局','中級教材の前章名が表示されていません');
+      assert.equal(await page.locator('.lesson-nav a.primary').innerText(),'次へ：符を数える','中級教材の次章名が表示されていません');
+    });
     await visit(browser,base,'#lesson-beginner-01',{width:402,height:874},async page=>{
       assert.equal(await page.locator('.wait-focus-lesson').count(),1,'待ち教材が1つの形に絞られていません');
       assert.equal(await page.locator('.wait-overview').evaluate(element=>element.open),false,'待ちの一覧が最初から開いています');
