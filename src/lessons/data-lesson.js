@@ -26,6 +26,7 @@ function relatedTerms(quality,ctx){
 }
 function sameCodes(left,right){const a=[...(left||[])].sort(),b=[...(right||[])].sort();return a.length===b.length&&a.every((code,index)=>code===b[index])}
 function tileNames(codes,ctx){return (codes||[]).map(code=>ctx.tileByCode.get(code)?.nameJa||code).join('、')}
+function questionGroup(question){return question?.skill||question?.topic||question?.interaction||''}
 function renderQuiz(lesson,quality,ctx){
   const visualQuestion=lesson.visualCheck?{...lesson.visualCheck,interaction:'tile-pick',presentation:'tiles',handTiles:lesson.hand||[]}:null;
   const questions=[visualQuestion,lesson.check,...(quality?.checks||[])].filter(Boolean);
@@ -96,6 +97,27 @@ function renderQuiz(lesson,quality,ctx){
       draw();
     };
     actions.append(next);
+    feedback.append(actions);
+  };
+  const appendRecovery=(question,currentIndex)=>{
+    const group=questionGroup(question);
+    const candidateIndex=questions.findIndex((item,index)=>index>currentIndex&&questionGroup(item)===group);
+    if(candidateIndex<0)return;
+    const actions=document.createElement('div');
+    actions.className='action-row recovery-actions';
+    const retry=document.createElement('button');
+    retry.type='button';
+    retry.className='secondary';
+    retry.textContent='この章をもう1問';
+    retry.onclick=()=>{
+      const [followUp]=questions.splice(candidateIndex,1);
+      questions.splice(index+1,0,followUp);
+      index++;
+      answered=false;
+      retrying=false;
+      draw();
+    };
+    actions.append(retry);
     feedback.append(actions);
   };
   const draw=()=>{
@@ -183,6 +205,7 @@ function renderQuiz(lesson,quality,ctx){
           if(expected.has(code))button.dataset.correct='true';
           if(selected.has(code)&&!expected.has(code))button.dataset.wrong='true';
         });
+        if(!ok&&!retrying)appendRecovery(q,index);
         appendNext(index+1===questions.length?'結果を見る':'次の問題');
       };
       panel.append(instruction,palette,status,submit);
@@ -211,6 +234,7 @@ function renderQuiz(lesson,quality,ctx){
         });
         feedback.className=`feedback ${ok?'good':'bad'}`;
         feedback.innerHTML=`<strong>${ok?'正解':'不正解'}</strong><br>${q.explanation}`;
+        if(!ok&&!retrying)appendRecovery(q,index);
         appendNext(index+1===questions.length?'結果を見る':'次の問題');
       };
       out.append(b);
