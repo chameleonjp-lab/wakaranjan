@@ -1,6 +1,8 @@
 export function validateCoreData({ manifest, tiles, yaku, terms, rules, lessons }) {
   const errors = [];
   const warnings = [];
+  const kanjiPattern = /[\u3400-\u9fff々]/u;
+  const readingPattern = /^[ァ-ヶーぁ-ゖ\s]+$/u;
 
   const push = (condition, code, message) => {
     if (!condition) errors.push({ code, message });
@@ -58,6 +60,14 @@ export function validateCoreData({ manifest, tiles, yaku, terms, rules, lessons 
   push(rulesetIds.has(manifest.ruleset), "manifest-ruleset", `manifest の ruleset が存在しません: ${manifest.ruleset}`);
 
   for (const item of yaku.yaku) {
+    push(Boolean(item.nameJa && item.readingJa), "yaku-label", `役名または読みが不足しています: ${item.id}`);
+    if (item.displayNameJa && item.displayNameJa !== item.nameJa && kanjiPattern.test(item.displayNameJa)) {
+      push(Boolean(item.displayReadingJa && readingPattern.test(item.displayReadingJa)), "yaku-display-reading", `表示用の役名に専用の読みが必要です: ${item.id}`);
+    }
+    for (const alias of item.aliases ?? []) {
+      if (kanjiPattern.test(alias)) push(Boolean(item.aliasReadings?.[alias] && readingPattern.test(item.aliasReadings[alias])), "yaku-alias-reading", `漢字の役別名に専用の読みが必要です: ${item.id} / ${alias}`);
+    }
+    for (const alias of Object.keys(item.aliasReadings ?? {})) push(item.aliases?.includes(alias), "yaku-alias-reference", `役別名の読みが別名一覧にありません: ${item.id} / ${alias}`);
     push(["normal", "yakuman"].includes(item.category), "yaku-category", `役カテゴリが不正です: ${item.id}`);
     push(item.standard === true, "yaku-standard", `標準役データに standard=false が混入しています: ${item.id}`);
     if (item.category === "normal") {
@@ -75,6 +85,10 @@ export function validateCoreData({ manifest, tiles, yaku, terms, rules, lessons 
 
   for (const term of terms.terms) {
     push(Boolean(term.nameJa && term.readingJa && term.readingKana && term.shortDescription), "term-required", `用語の必須項目が不足しています: ${term.id}`);
+    for (const alias of term.aliases ?? []) {
+      if (kanjiPattern.test(alias)) push(Boolean(term.aliasReadings?.[alias] && readingPattern.test(term.aliasReadings[alias])), "term-alias-reading", `漢字の用語別名に専用の読みが必要です: ${term.id} / ${alias}`);
+    }
+    for (const alias of Object.keys(term.aliasReadings ?? {})) push(term.aliases?.includes(alias), "term-alias-reference", `用語別名の読みが別名一覧にありません: ${term.id} / ${alias}`);
     for (const ref of term.relatedTerms ?? []) push(termIds.has(ref), "term-reference", `${term.id} の関連用語が存在しません: ${ref}`);
     for (const ref of term.lessonRefs ?? []) push(lessonIds.has(ref), "term-lesson-reference", `${term.id} の学習ページ参照が存在しません: ${ref}`);
   }

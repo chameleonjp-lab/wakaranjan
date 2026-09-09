@@ -97,21 +97,24 @@ src/data/
 
 ```json
 {
-  "id": "yaku-riichi",
-  "nameJa": "立直",
-  "displayNameJa": "リーチ",
-  "readingJa": "リーチ",
+  "id": "yaku-menzen-tsumo",
+  "nameJa": "門前清自摸和",
+  "displayNameJa": "門前ツモ",
+  "displayReadingJa": "メンゼンツモ",
+  "readingJa": "メンゼンチンツモホー",
   "category": "normal",
   "closedHan": 1,
   "openHan": null,
   "yakumanValue": 0,
   "standard": true,
   "lessonLevel": "beginner",
-  "summary": "門前でテンパイしたときに宣言する役。",
-  "aliases": ["立直"],
+  "summary": "門前のままツモあがりする役。",
+  "aliases": ["ツモ"],
   "relatedTerms": ["term-menzen", "term-tenpai"]
 }
 ```
+
+`displayNameJa` が正式名称と異なるときは、表示名専用の `displayReadingJa` を持たせる。別名の読みが正式名称と異なる場合は `aliasReadings` に別名ごとの読みを登録する。読みがない、またはカタカナだけの表記にはルビを付けない。
 
 ### 5.1 翻数
 
@@ -142,6 +145,7 @@ src/data/
   "shortDescription": "同じ種類で数字が3つ続く組。",
   "description": "...",
   "aliases": [],
+  "aliasReadings": {},
   "relatedTerms": ["term-mentsu", "term-kotsu"],
   "lessonRefs": ["lesson-intro-04"]
 }

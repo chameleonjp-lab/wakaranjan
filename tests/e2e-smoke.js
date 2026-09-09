@@ -169,21 +169,73 @@ async function visibleLabel(locator){
 }
 
 async function assertRubyAnnotationLayout(page,route){
-  const issues=await page.evaluate(()=>[...document.querySelectorAll('ruby.mahjong-ruby')].flatMap((ruby,index)=>{
-    const base=ruby.querySelector('rb');
-    const reading=ruby.querySelector('rt');
-    if(!base||!reading)return [];
-    const baseRect=base.getBoundingClientRect();
-    const readingRect=reading.getBoundingClientRect();
-    if(!baseRect.width||!readingRect.width)return [];
-    const epsilon=1;
-    const problems=[];
-    if(readingRect.top>=baseRect.top-epsilon)problems.push('reading is not above base text');
-    return problems.length?[{index,problems,base:[baseRect.top,baseRect.bottom],reading:[readingRect.top,readingRect.bottom]}]:[];
-  }));
-  assert.deepEqual(issues,[],`${route} のルビが行や漢字に重なっています: ${JSON.stringify(issues)}`);
+  const issues=await page.evaluate(()=>{
+    const kanji=/[\u3400-\u9fff々]/u;
+    const katakana=/^[ァ-ヶー\s]+$/u;
+    const rubies=[...document.querySelectorAll('ruby.mahjong-ruby')];
+    const results=rubies.flatMap((ruby,index)=>{
+      const base=ruby.querySelector('rb');
+      const reading=ruby.querySelector('rt');
+      if(!base||!reading)return [{index,problems:['rb/rt is missing']}];
+      const baseText=base.textContent?.trim()||'';
+      const readingText=reading.textContent?.trim()||'';
+      const baseRect=base.getBoundingClientRect();
+      const readingRect=reading.getBoundingClientRect();
+      const rubyRect=ruby.getBoundingClientRect();
+      if(!rubyRect.width&&!rubyRect.height)return [];
+      const baseStyle=getComputedStyle(base);
+      const readingStyle=getComputedStyle(reading);
+      const problems=[];
+      if(!kanji.test(baseText))problems.push('kana-only base has an unnecessary ruby');
+      if(!katakana.test(readingText))problems.push('reading is not katakana');
+      if(!baseRect.width||!baseRect.height||!readingRect.width||!readingRect.height)problems.push('ruby text has no size');
+      if(readingRect.top>=baseRect.top-1)problems.push('reading is not above base text');
+      if(readingRect.bottom>baseRect.top+1)problems.push('reading overlaps base text');
+      if(baseRect.top<rubyRect.top-1||baseRect.bottom>rubyRect.bottom+1)problems.push('base text is outside ruby line box');
+      const fontSize=parseFloat(baseStyle.fontSize);
+      const readingFontSize=parseFloat(readingStyle.fontSize);
+      const readingLineHeight=parseFloat(readingStyle.lineHeight);
+      if(Number.isFinite(fontSize)&&(baseRect.height<fontSize*.7||baseRect.height>fontSize*1.8))problems.push('base text height is out of range');
+      if(Number.isFinite(readingFontSize)&&Number.isFinite(readingLineHeight)&&readingLineHeight<readingFontSize*.9)problems.push('reading line-height is too short');
+      return problems.length?[{index,baseText,readingText,problems,base:[baseRect.top,baseRect.bottom],reading:[readingRect.top,readingRect.bottom]}]:[];
+    });
+    const groups=new Map();
+    for(const ruby of rubies){
+      const base=ruby.querySelector('rb');
+      if(!base)continue;
+      const rect=base.getBoundingClientRect();
+      const fontSize=getComputedStyle(base).fontSize;
+      const parentKey=[...document.querySelectorAll('*')].indexOf(ruby.parentElement);
+      const bucketKey=String(parentKey)+':'+fontSize;
+      const bucket=groups.get(bucketKey)||[];
+      bucket.push({top:rect.top,bottom:rect.bottom,fontSize});
+      groups.set(bucketKey,bucket);
+    }
+    for(const [bucketKey,bucket] of groups){
+      const sorted=bucket.map(item=>item.top).sort((a,b)=>a-b);
+      const sameLineDistance=Math.max(8,parseFloat(bucket[0]?.fontSize||'16')*1.2);
+      for(let i=1;i<sorted.length;i++){
+        if(sorted[i]-sorted[i-1]<sameLineDistance&&sorted[i]-sorted[i-1]>1.5){
+          results.push({bucketKey,problems:['same-line base text is vertically misaligned'],tops:sorted});
+          break;
+        }
+      }
+    }
+    return results;
+  });
+  assert.deepEqual(issues,[],route+' のルビが不要・不正・重なり・高さずれになっています: '+JSON.stringify(issues));
 }
 
+async function assertRubyCoverage(page,route){
+  const missing=await page.evaluate(()=>{
+    const kanji=/[\u3400-\u9fff々]/u;
+    return [...document.querySelectorAll('.glossary-card strong,.yaku-card strong')].filter(element=>{
+      const baseText=element.textContent?.replace(/[ァ-ヶー\s]/g,'')||'';
+      return kanji.test(baseText)&&!element.querySelector('ruby.mahjong-ruby');
+    }).map(element=>element.textContent?.trim()||'');
+  });
+  assert.deepEqual(missing,[],route+' の用語名・役名に必要なルビがありません: '+JSON.stringify(missing));
+}
 async function assertFavicon(page){
   const favicon=await page.evaluate(async()=>{
     const link=document.querySelector('link[rel~="icon"]');
@@ -348,6 +400,8 @@ async function run(){
       assert.ok(readings.length>0,'麻雀用語のルビが表示されていません');
       assert.ok(readings.every(reading=>/^[ァ-ヶー\s]+$/.test(reading)),`カタカナ以外のルビがあります: ${readings.join(', ')}`);
     });
+    await visit(browser,base,'#dictionary',{width:402,height:874},page=>assertRubyCoverage(page,'#dictionary'));
+    await visit(browser,base,'#yaku-guide',{width:402,height:874},page=>assertRubyCoverage(page,'#yaku-guide'));
     await visit(browser,base,'#learn?level=intro',{width:402,height:874},async page=>{
       assert.equal(await page.locator('.page-toolbar').count(),1,'ページ上部の共通ナビゲーションがありません');
       await page.locator('.page-back').click();
@@ -529,7 +583,7 @@ async function run(){
         await page.locator('#east-actions button').click();
       }
       assert.match(await page.locator('h1').innerText(),/4局.*を終えました/);
-      assert.match(await page.locator('#app').innerText(),/模擬東風戦（案内版）/);
+      assert.match(await visibleLabel(page.locator('.hero .eyebrow')),/模擬東風戦（案内版）/);
       assert.match(await page.locator('#app').innerText(),/今回わかったこと/);
       assert.doesNotMatch(await page.locator('#app').innerText(),/この版の範囲|次の段階/);
     });

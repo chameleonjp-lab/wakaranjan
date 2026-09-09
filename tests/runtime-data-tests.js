@@ -191,8 +191,8 @@ assert.match(appSource,/lessonIndexById/,'教材索引から本文データを�
 assert.match(appSource,/QUALITY_ASSET_BY_SOURCE/,'章ごとの品質データ対応表がありません');
 for(const mapping of ["lessons:'coreQuality'","scoringCore:'coreQuality'","advancedSpecial:'advancedQuality'","curriculumExtra:'lessonQuality'"])assert.match(appSource,new RegExp(mapping),mapping+' の品質データ対応がありません');
 assert.match(appSource,/routeAssetKeys\(id,ctx\)/,'章ごとの本文遅延読み込み元がありません');
-assert.match(appSource,/if\(id==='intro-review'\)return \[\.\.\.terms,'introReview','tiles'\]/,'入門総復習で牌データを読み込んでいません');
-assert.match(appSource,/if\(id==='beginner-review'\)return \[\.\.\.terms,'beginnerReview','tiles'\]/,'初級総復習で牌データを読み込んでいません');
+assert.match(appSource,/if\(id==='intro-review'\)return \[\.\.\.terms,'introReview','tiles','yaku'\]/,'入門総復習で牌・役データを読み込んでいません');
+assert.match(appSource,/if\(id==='beginner-review'\)return \[\.\.\.terms,'beginnerReview','tiles','yaku'\]/,'初級総復習で牌・役データを読み込んでいません');
 assert.match(appSource,/ensureAssets\(ctx,keys\)/,'画面ごとの遅延読み込み処理がありません');
 assert.match(appSource,/routeAssetKeys/,'ルートごとのデータ資産指定がありません');
 assert.doesNotMatch(appSource,/cache:'no-store'/,'データ資産を毎回キャッシュ無効で読み込んでいます');

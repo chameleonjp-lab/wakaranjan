@@ -22,7 +22,7 @@ function neighbor(ctx,lesson,delta){
 function endLink(lesson){if(lesson.level==='intro')return {href:'learn?level=intro',label:'入門一覧へ'};if(lesson.level==='beginner')return {href:'beginner-review',label:'初級の総復習へ'};if(lesson.level==='intermediate')return {href:'intermediate-review',label:'中級の総復習へ'};if(lesson.level==='advanced')return {href:'learn?level=advanced',label:'上級一覧へ'};if(lesson.level==='special')return {href:'learn?level=special',label:'特例一覧へ'};return {href:'learn',label:'学ぶへ戻る'}}
 function relatedTerms(quality,ctx){
   const terms=(quality?.termRefs||[]).map(id=>ctx.termById.get(id)).filter(Boolean);if(!terms.length)return null;
-  const section=document.createElement('section');section.className='panel';section.innerHTML=`<h2>関連用語</h2><p class="muted">わからない言葉は、ここから用語集を開けます。</p><div class="related-term-links">${terms.map(t=>`<a class="secondary" href="#dictionary?term=${encodeURIComponent(t.id)}">${t.nameJa}<small>${t.readingJa}</small></a>`).join('')}</div>`;return section;
+  const section=document.createElement('section');section.className='panel';section.innerHTML=`<h2>関連用語</h2><p class="muted">わからない言葉は、ここから用語集を開けます。</p><div class="related-term-links">${terms.map(t=>`<a class="secondary" href="#dictionary?term=${encodeURIComponent(t.id)}">${t.nameJa}</a>`).join('')}</div>`;return section;
 }
 function sameCodes(left,right){const a=[...(left||[])].sort(),b=[...(right||[])].sort();return a.length===b.length&&a.every((code,index)=>code===b[index])}
 function tileNames(codes,ctx){return (codes||[]).map(code=>ctx.tileByCode.get(code)?.nameJa||code).join('、')}

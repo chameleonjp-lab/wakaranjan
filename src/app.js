@@ -266,19 +266,19 @@ function renderUnavailable(id,ctx){
 function routeAssetKeys(id,ctx){
   const terms=id==='home'?[]:['terms','termsExtra'];
   if(id==='home'||id==='menu'||id==='learn'||id==='lookup'||id==='rules'||id==='settings'||id==='print-materials')return terms;
-  if(id==='intro-review')return [...terms,'introReview','tiles'];
-  if(id==='beginner-review')return [...terms,'beginnerReview','tiles'];
-  if(id==='intermediate-review')return [...terms,'intermediateReview'];
+  if(id==='intro-review')return [...terms,'introReview','tiles','yaku'];
+  if(id==='beginner-review')return [...terms,'beginnerReview','tiles','yaku'];
+  if(id==='intermediate-review')return [...terms,'intermediateReview','yaku'];
   if(id==='problems')return [...terms,'tiles','yaku','problemCatalog','visualCatalog','practicalRules'];
   if(id==='study-record'||id==='teacher-record')return [...terms,'tiles','yaku','problemCatalog','visualCatalog','practicalRules'];
   if(id==='dictionary')return [...terms,'yaku'];
   if(id==='yaku-guide')return [...terms,'tiles','yaku','yakuExamples'];
   if(id==='automatic-calculator')return [...terms,'tiles','yaku'];
-  if(id==='practice'||id==='full-round')return [...terms,'tiles'];
+  if(id==='practice'||id==='full-round')return [...terms,'tiles','yaku'];
   if(id.startsWith('lesson-')){
     const source=ctx?.lessonIndexById?.get(id)?.source;
     const quality=QUALITY_ASSET_BY_SOURCE[source]||'lessonQuality';
-    const keys=[quality,...terms,'tiles'];
+    const keys=[quality,...terms,'tiles','yaku'];
     if(id==='lesson-beginner-01')keys.push('waits');
     if(id==='lesson-beginner-02')keys.push('calls');
     if(/^lesson-beginner-0[3-6]$/.test(id))keys.push('beginnerCore','yaku');
