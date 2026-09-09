@@ -154,14 +154,14 @@ ruby.mahjong-ruby{
   ruby-align:center;
   white-space:nowrap;
   text-decoration:none;
-  line-height:1.25;
+  line-height:1.5;
 }
 ruby.mahjong-ruby rb{font-weight:inherit}
 ruby.mahjong-ruby rt{
   font-family:inherit;
   font-size:.58em;
   font-weight:700;
-  line-height:1;
+  line-height:1.2;
   letter-spacing:.02em;
   white-space:nowrap;
   color:#765c42;
