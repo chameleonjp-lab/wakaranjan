@@ -16,7 +16,13 @@ runs:
       run: npm install --no-save --no-package-lock playwright@1.62.1
     - name: Install Chromium and WebKit
       shell: bash
-      run: npx playwright install --with-deps chromium webkit
+      run: |
+        for chrome_source in /etc/apt/sources.list.d/*; do
+          if [ -f "$chrome_source" ] && grep -q 'dl.google.com/linux/chrome' "$chrome_source"; then
+            sudo rm -f "$chrome_source"
+          fi
+        done
+        npx playwright install --with-deps chromium webkit
     - name: Prepare exact Pages site
       shell: bash
       run: npm run prepare:pages -- "${{ inputs.site-dir }}"
