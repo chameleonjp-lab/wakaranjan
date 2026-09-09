@@ -583,7 +583,7 @@ async function run(){
         await page.locator('#east-actions button').click();
       }
       assert.match(await page.locator('h1').innerText(),/4局.*を終えました/);
-      assert.match(await visibleLabel(page.locator('h1')),/模擬東風戦（案内版）/);
+      assert.match(await visibleLabel(page.locator('.hero .eyebrow')),/模擬東風戦（案内版）/);
       assert.match(await page.locator('#app').innerText(),/今回わかったこと/);
       assert.doesNotMatch(await page.locator('#app').innerText(),/この版の範囲|次の段階/);
     });
