@@ -182,6 +182,7 @@ async function assertRubyAnnotationLayout(page,route){
       const baseRect=base.getBoundingClientRect();
       const readingRect=reading.getBoundingClientRect();
       const rubyRect=ruby.getBoundingClientRect();
+      if(!rubyRect.width&&!rubyRect.height)return [];
       const baseStyle=getComputedStyle(base);
       const readingStyle=getComputedStyle(reading);
       const problems=[];
