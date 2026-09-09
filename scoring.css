@@ -36,9 +36,7 @@
 .kana-nav{display:flex;gap:6px;overflow-x:auto;padding:10px 0}
 .kana-nav button{min-height:44px;border:1px solid #aaa193;border-radius:999px;background:#fff;padding:7px 12px;white-space:nowrap}
 .kana-nav button.active{background:#173d2b;color:#fff}
-.glossary-reading{font-size:.8rem;color:#6a716d}
 .yaku-card-top{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
-.yaku-card-top span{font-size:.8rem;color:#6a716d}
 .yaku-tags,.yaku-meta{display:flex;gap:6px;flex-wrap:wrap}
 .yaku-tags span,.yaku-meta span{display:inline-flex;border-radius:999px;background:#f2eee5;padding:5px 8px;font-size:.78rem}
 .yaku-example-row{overflow-x:auto;padding:4px 0 8px}

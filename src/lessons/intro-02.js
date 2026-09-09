@@ -1,10 +1,10 @@
 import {createTile} from '../components/tile.js';
 
 const GROUPS=[
-  ['man','萬子（マンズ）','一萬から九萬まで。数字の牌です。'],
-  ['pin','筒子（ピンズ）','一筒から九筒まで。丸い模様を使う数字の牌です。'],
-  ['sou','索子（ソーズ）','一索から九索まで。竹のような模様を使う数字の牌です。'],
-  ['honor','字牌（ジハイ）','東・南・西・北・白・發・中の7種類です。']
+  ['man','萬子','一萬から九萬まで。数字の牌です。'],
+  ['pin','筒子','一筒から九筒まで。丸い模様を使う数字の牌です。'],
+  ['sou','索子','一索から九索まで。竹のような模様を使う数字の牌です。'],
+  ['honor','字牌','東・南・西・北・白・發・中の7種類です。']
 ];
 
 export function renderIntro02(root,ctx){
@@ -25,7 +25,7 @@ export function renderIntro02(root,ctx){
     detail.append(createTile(tile,{red}));
     const copy=document.createElement('div');
     const type=tile.suit==='man'?'萬子':tile.suit==='pin'?'筒子':tile.suit==='sou'?'索子':'字牌';
-    copy.innerHTML=`<h3>${red?'赤':''}${tile.nameJa}</h3><p><strong>${tile.readingJa}</strong></p><p>${type}${tile.number?`の${tile.number}`:''}</p>`;
+    copy.innerHTML=`<h3>${red?'赤':''}${tile.nameJa}</h3><p>${type}${tile.number?`の${tile.number}`:''}</p>`;
     detail.append(copy);
   }
   function showGroup(key){

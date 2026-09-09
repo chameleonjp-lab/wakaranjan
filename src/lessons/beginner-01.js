@@ -40,7 +40,7 @@ export function renderBeginner01(app,ctx){
     intro.className='panel';
     intro.innerHTML='<p>最初に<strong>待ち部分</strong>を見ます。そのあとで、何が来れば完成するかを選びます。正解のあとに待ちの名前を覚えます。</p><details class="wait-overview"><summary>5種類の名前を先に一覧で見る</summary><ul></ul></details>';
     const overview=intro.querySelector('.wait-overview ul');
-    waits.forEach(wait=>{const item=document.createElement('li');item.textContent=`${wait.nameJa}（${wait.readingJa}）`;overview.append(item)});
+    waits.forEach(wait=>{const item=document.createElement('li');item.textContent=wait.nameJa;overview.append(item)});
     app.append(intro);
 
     const lesson=document.createElement('section');
@@ -79,7 +79,7 @@ export function renderBeginner01(app,ctx){
       const fb=quiz.querySelector('.feedback');fb.className=`feedback ${correct?'good':'bad'}`;
       const selectedNames=Array.from(selected).map(code=>ctx.tileByCode.get(code)?.nameJa||code).join('、')||'なし';
       const answerNames=current.waits.map(code=>ctx.tileByCode.get(code)?.nameJa||code).join('、');
-      fb.innerHTML=`<strong>${correct?'正解':'不正解'}</strong><br><strong class="wait-answer-name">待ちの名前：${current.nameJa}（${current.readingJa}）</strong><br>${current.point}<br><small>選んだ牌：${selectedNames}<br>正解の牌：${answerNames}</small>`;
+      fb.innerHTML=`<strong>${correct?'正解':'不正解'}</strong><br><strong class="wait-answer-name">待ちの名前：${current.nameJa}</strong><br>${current.point}<br><small>選んだ牌：${selectedNames}<br>正解の牌：${answerNames}</small>`;
       const next=document.createElement('button');next.className='primary';next.type='button';next.textContent=quizIndex===waits.length-1?'結果を見る':'次の問題';
       next.addEventListener('click',()=>{if(quizIndex<waits.length-1){quizIndex++;answered=false;render()}else showResult()});
       quiz.querySelector('.action-row').replaceChildren(next);

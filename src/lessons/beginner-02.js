@@ -8,7 +8,7 @@ export function renderBeginner02(app,ctx){
 
   const intro=document.createElement('section');
   intro.className='panel';
-  intro.innerHTML='<p>他の人が捨てた牌を使って組を作り、その組を公開することを<strong>鳴き</strong>と呼びます。正式には<strong>副露（フーロ）</strong>です。</p><div class="callout">チーだけは「誰からでも」できません。自分の左側の人、上家の捨て牌だけを使えます。</div>';
+  intro.innerHTML='<p>他の人が捨てた牌を使って組を作り、その組を公開することを<strong>鳴き</strong>と呼びます。正式には<strong>副露</strong>です。</p><div class="callout">チーだけは「誰からでも」できません。自分の左側の人、上家の捨て牌だけを使えます。</div>';
   app.append(intro);
 
   const cards=document.createElement('div');cards.className='call-grid';
