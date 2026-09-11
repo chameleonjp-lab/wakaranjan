@@ -448,6 +448,7 @@ async function run(){
       for(let index=0;index<10;index++){
         if(await page.locator('.no-scroll-hand').count()){
           foundFixedVisual=true;
+          assert.equal(await page.locator('.visual-win-tile').count(),1,'ロン判断の牌姿にあがり牌が表示されていません');
           const metrics=await page.locator('.no-scroll-hand').first().evaluate(element=>({scrollWidth:element.scrollWidth,clientWidth:element.clientWidth,overflow:getComputedStyle(element).overflowX,rows:new Set([...element.children].map(child=>Math.round(child.getBoundingClientRect().top))).size}));
           assert.ok(metrics.scrollWidth<=metrics.clientWidth+1,`牌姿が横スクロール可能です: ${JSON.stringify(metrics)}`);
           assert.equal(metrics.overflow,'visible');
@@ -522,6 +523,28 @@ async function run(){
       const preset=page.locator('#problem-actions a.score-preset-link');
       assert.equal(await preset.count(),1,'点数問題に計算機プリセットへの導線がありません');
       assert.match(await preset.getAttribute('href'),/^#lesson-intermediate-05\?han=/,'点数問題の計算機リンクに条件がありません');
+    });
+    await visit(browser,base,'#problems',{width:402,height:874},async page=>{
+      await page.locator('#adaptive-review').click();
+      assert.match(await visibleLabel(page.locator('.lesson-head .eyebrow')),/^苦手：待ち牌（形だけ）/,'苦手練習の対象分類が表示されていません');
+      assert.equal(await page.locator('.tile-answer-submit').count(),1,'苦手練習が待ち牌の牌タップ問題から始まりません');
+      assert.equal(await page.locator('#problem-options > button').count(),0,'苦手練習に別形式の選択肢が混ざっています');
+    },async page=>{
+      await page.evaluate(()=>{
+        localStorage.setItem('wakaranjan-question-stats-v2:profile-1',JSON.stringify({version:2,questions:{'q-visual-wait-001':{correct:0,wrong:3},'q-visual-ron-001':{correct:0,wrong:1}}}));
+        localStorage.setItem('wakaranjan-misconceptions-v2:profile-1',JSON.stringify({version:2,items:{}}));
+      });
+    });
+    await visit(browser,base,'#problems',{width:402,height:874},async page=>{
+      await page.locator('#wrong-review').click();
+      assert.match(await visibleLabel(page.locator('.lesson-head .eyebrow')),/^間違えた問題：待ち牌（形だけ）/,'誤答復習が待ち牌とロン可否を混ぜています');
+      assert.equal(await page.locator('.tile-answer-submit').count(),1,'誤答復習の対象分類が牌タップ問題になっていません');
+    },async page=>{
+      await page.evaluate(()=>{
+        localStorage.setItem('wakaranjan-wrong-question-ids-v2:profile-1',JSON.stringify({version:2,ids:['q-visual-wait-001','q-visual-ron-001']}));
+        localStorage.setItem('wakaranjan-question-stats-v2:profile-1',JSON.stringify({version:2,questions:{}}));
+        localStorage.setItem('wakaranjan-misconceptions-v2:profile-1',JSON.stringify({version:2,items:{}}));
+      });
     });
     for(const [route,assets] of [
       ['#lesson-intro-04',{quality:'lesson-quality-core'}],

@@ -51,6 +51,22 @@ test('ロン可否問題は形・役・河フリテンの条件と一致する',
   }
 });
 
+test('ロン判断の牌姿は設問で使うあがり牌を表示する',()=>{
+  for(const [id,winTile] of Object.entries(contracts.ronDisplayTiles)){
+    const q=byId.get(id);assert.ok(q,id);
+    assert.equal(q.topic,'ron-decision',`${id}: topic`);
+    assert.equal(q.winTile,winTile,`${id}: winTile`);
+  }
+  for(const q of visual.filter(item=>item.topic==='ron-decision'))assert.ok(contracts.ronDisplayTiles[q.id],`${q.id}: display contract is missing`);
+});
+
+test('ロン判断の牌姿は設問文と同じ待ちを持つ',()=>{
+  for(const [id,expected] of Object.entries(contracts.ronWaits)){
+    const q=byId.get(id);assert.ok(q,id);
+    assert.deepEqual(waitsFor(q.handTiles),sorted(expected),id);
+  }
+});
+
 test('役図鑑と共有している役名問題は同じ牌姿を使う',()=>{
   for(const id of contracts.mirroredYakuQuestionIds){
     const q=byId.get(id);assert.ok(q,id);const ex=examples[q.yakuRef];assert.ok(ex,`${id}: ${q.yakuRef}`);

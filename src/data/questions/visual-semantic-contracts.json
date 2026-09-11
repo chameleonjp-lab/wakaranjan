@@ -16,6 +16,30 @@
     "q-visual-ron-003": {"winTile":"5m","riichi":true,"hasYaku":true,"furiten":true,"canRon":false},
     "q-visual-ron-005": {"winTile":"5m","riichi":false,"hasYaku":true,"furiten":false,"canRon":true}
   },
+  "ronDisplayTiles": {
+    "q-visual-wait-006":"8m",
+    "q-visual-wait-007":"8m",
+    "q-visual-ron-001":"5m",
+    "q-visual-ron-002":"5m",
+    "q-visual-ron-003":"5m",
+    "q-visual-ron-004":"5m",
+    "q-visual-ron-005":"5m",
+    "q-visual-ron-006":"3m",
+    "q-visual-ron-007":"6s",
+    "q-visual-ron-008":"5m"
+  },
+  "ronWaits": {
+    "q-visual-wait-006":["5m","8m"],
+    "q-visual-wait-007":["5m","8m"],
+    "q-visual-ron-001":["5m"],
+    "q-visual-ron-002":["5m"],
+    "q-visual-ron-003":["5m"],
+    "q-visual-ron-004":["5m"],
+    "q-visual-ron-005":["5m"],
+    "q-visual-ron-006":["3m"],
+    "q-visual-ron-007":["6s","9s"],
+    "q-visual-ron-008":["5m"]
+  },
   "mirroredYakuQuestionIds": [
     "q-visual-yaku-001",
     "q-visual-yaku-002",
