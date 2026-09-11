@@ -41,7 +41,7 @@ export const HAND_FLOW_SCENARIOS=Object.freeze({
   call:Object.freeze({
     label:'鳴き確認',
     description:'親が五萬を捨てると、南家が大明槓する場面から始めます。',
-    hint:'親の最後の牌（5m）を捨ててから、「他家の応答を進める」を押してください。',
+    hint:'親の最後の牌（五萬）を捨ててから、「他家の応答を進める」を押してください。',
     deterministicWall:true,
     initialHands:CALL_HANDS
   }),

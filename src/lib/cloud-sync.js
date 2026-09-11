@@ -20,7 +20,7 @@ let pendingSnapshot=null;
 let syncTimer=null;
 let retryTimer=null;
 let inFlight=null;
-let status={state:'idle',message:'Supabase同期はまだ実行していません。'};
+let status={state:'idle',message:'オンライン保存はまだ実行していません。'};
 const loadedNames=new Set();
 const loadingNames=new Map();
 
@@ -125,7 +125,7 @@ async function request(url,options={}){
     const response=await fetch(url,{...options,signal:controller.signal,headers:requestHeaders(options.headers||{})});
     if(!response.ok){
       const detail=(await response.text()).slice(0,240);
-      throw new Error(`Supabase同期に失敗しました（${response.status}）${detail?`：${detail}`:''}`);
+      throw new Error(`オンライン保存に失敗しました（${response.status}）${detail?`：${detail}`:''}`);
     }
     return response;
   }finally{clearTimeout(timeout)}
@@ -167,14 +167,14 @@ export async function synchronizeActiveProfileFromCloud({force=false}={}){
   const profile=getActiveProfile();
   if(!profile)return {ok:false,skipped:true,reason:'no-profile'};
   if(!isCloudSyncAvailable()){
-    if(isBrowser()&&isDisabled())setStatus('disabled','テスト用にSupabase同期を無効にしています。');
+    if(isBrowser()&&isDisabled())setStatus('disabled','オンライン保存を一時停止しています。');
     return {ok:false,skipped:true,reason:'disabled'};
   }
   if(!force&&loadedNames.has(profile.nameKey))return {ok:true,source:'cached'};
   if(loadingNames.has(profile.nameKey))return loadingNames.get(profile.nameKey);
   const profileKey=profile.nameKey;
   const task=(async()=>{
-    setStatus('loading',`${profile.name}さんの学習記録をSupabaseから読み込んでいます。`);
+    setStatus('loading',`${profile.name}さんの学習記録をオンラインから読み込んでいます。`);
     try{
       const remote=await readRemote(profileKey);
       const current=getActiveProfile();
@@ -186,10 +186,10 @@ export async function synchronizeActiveProfileFromCloud({force=false}={}){
         if(snapshot)await writeRemote(snapshot);
       }
       loadedNames.add(profileKey);
-      setStatus('synced',`${current.name}さんの学習記録をSupabaseと同期しました。`);
+      setStatus('synced',`${current.name}さんの学習記録をオンラインと同期しました。`);
       return {ok:true,source:remote?'cloud':'created'};
     }catch(error){
-      setStatus('error','Supabaseと同期できませんでした。端末内の記録を使い、通信が戻ったら再試行します。');
+      setStatus('error','オンラインと同期できませんでした。端末内の記録を使い、通信が戻ったら再試行します。');
       return {ok:false,error};
     }finally{loadingNames.delete(profileKey)}
   })();
@@ -219,15 +219,15 @@ export async function flushCloudSync(){
   const snapshot=pendingSnapshot;
   pendingSnapshot=null;
   inFlight=(async()=>{
-    setStatus('syncing',`${snapshot.displayName}さんの学習記録をSupabaseへ保存しています。`);
+    setStatus('syncing',`${snapshot.displayName}さんの学習記録をオンラインへ保存しています。`);
     try{
       await writeRemote(snapshot);
       if(retryTimer){clearTimeout(retryTimer);retryTimer=null}
-      setStatus('synced',`${snapshot.displayName}さんの学習記録をSupabaseと同期しました。`);
+      setStatus('synced',`${snapshot.displayName}さんの学習記録をオンラインと同期しました。`);
       return {ok:true};
     }catch(error){
       if(!pendingSnapshot)pendingSnapshot=snapshot;
-      setStatus('error','Supabaseへ保存できませんでした。端末内の記録は保持しています。');
+      setStatus('error','オンラインへ保存できませんでした。端末内の記録は保持しています。');
       scheduleRetry();
       return {ok:false,error};
     }
