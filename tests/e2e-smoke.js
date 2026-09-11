@@ -473,7 +473,11 @@ async function run(){
     });
     await visit(browser,base,'#problems',{width:402,height:874},async page=>{
       await page.locator('[data-topic="wait-shape"]').click();
-      const focusNotes=await page.locator('.visual-focus-note').allTextContents();
+      const focusNotes=await page.locator('.visual-focus-note').evaluateAll(elements=>elements.map(element=>{
+        const copy=element.cloneNode(true);
+        copy.querySelectorAll('rt').forEach(reading=>reading.remove());
+        return copy.textContent.replace(/\s+/g,'');
+      }));
       const prompt=await page.locator('.lesson-head h1').innerText();
       assert.ok(focusNotes.some(note=>/待ちの形/.test(note)),`待ちの形を示す説明がありません: notes=${JSON.stringify(focusNotes)}, prompt=${JSON.stringify(prompt)}`);
       assert.ok(await page.locator('[data-focus-label="待ち"]').count(),'待ちの焦点牌にラベルがありません');
