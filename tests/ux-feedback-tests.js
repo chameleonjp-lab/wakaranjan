@@ -3,6 +3,9 @@ import {readFileSync} from 'node:fs';
 
 const read=path=>readFileSync(path,'utf8');
 const app=read('src/app.js');
+const studyRecord=read('src/tools/study-record.js');
+const teacherRecord=read('src/tools/teacher-record.js');
+const cloudSync=read('src/lib/cloud-sync.js');
 const beginnerCore=read('src/lessons/beginner-core.js');
 const problemHub=read('src/questions/problem-hub.js');
 const practiceHub=read('src/practice/practice-hub.js');
@@ -45,8 +48,11 @@ assert.match(beginnerOne,/wait-overview/,'待ちの5種類は必要なときだ�
 assert.match(beginnerOne,/class="wait-answer-name"/,'待ちの名前は答え合わせ後に表示する');
 assert.doesNotMatch(beginnerOne,/先に見る：\$\{current\.nameJa\}/,'待ちの名前を選択前に表示して答えを教えない');
 assert.doesNotMatch(problemHub,/Supabaseへ保存/,'問題ハブに保存基盤の説明を表示しない');
+for(const source of [app,studyRecord,teacherRecord,cloudSync])assert.doesNotMatch(source,/Supabase/,'学習UIの同期状態に保存基盤名を表示しない');
+assert.match(app,/名前と学習状態はオンラインに保存します/,'ホームに学習者向けの保存説明を表示する');
 assert.match(problemHub,/data-topic/,'問題ハブから学習者向けの分類で出題できる');
 assert.match(problemHub,/待ち牌（形だけ）[\s\S]*ロンできるか/,'待ち牌とロン可否を別の入口にする');
+assert.match(problemHub,/文章で待ちを復習[\s\S]*文章でロンを復習/,'待ちの文章問題とロン可否の文章問題を分ける');
 assert.match(problemHub,/selectWeakestScope[\s\S]*filterByScope/,'苦手・誤答復習を1つの分類へ絞る');
 assert.match(problemHub,/待ち牌とロン可否は混ざりません/,'苦手練習のセッション分類を学習者へ約束する');
 assert.match(practiceHub,/practice-group[\s\S]*はじめて[\s\S]*そのあと/,'対局練習を学習順にグループ化する');
@@ -59,7 +65,7 @@ assert.doesNotMatch(roundFlow,/次に追加するもの|実際の牌山.*接続/
 assert.match(eastRound,/今回わかったこと/,'模擬東風戦の完了画面に学習内容を表示する');
 assert.doesNotMatch(eastRound,/この版の範囲|次の段階/,'模擬東風戦の完了画面に開発者向けの実装範囲を表示しない');
 for(const q of catalog.questions.filter(q=>q.id.startsWith('q-ron-001'))){assert.equal(q.topic,'text-review','文章で待ちを復習する問題を別トピックにする')}
-for(const q of catalog.questions.filter(q=>q.id.match(/^q-ron-00[6-9]$|^q-ron-01[0-2]$/))){assert.equal(q.topic,'ron-decision','ロン可否の問題を待ちの形から分ける')}
+for(const q of catalog.questions.filter(q=>q.id.match(/^q-ron-00[6-9]$|^q-ron-01[0-2]$/))){assert.equal(q.topic,'text-ron-review','文章でロンを復習する問題を牌姿のロン判断から分ける')}
 for(const q of catalog.questions.filter(q=>q.id.match(/^q-ron-01[3-5]$/))){assert.equal(q.topic,'call-decision','鳴きの問題をロン可否から分ける')}
 assert.equal(catalog.questions.find(q=>q.id==='q-ron-016')?.topic,'rule-decision','その他のルール判断を独立させる');
 const visualWait=visualCatalog.questions.filter(q=>q.id.startsWith('q-visual-wait-'));
@@ -78,6 +84,7 @@ assert.match(introTwo,/lesson-intro-03[\s\S]*次へ：手牌と卓/,'入門1-2�
 assert.match(intermediateScoring,/NAV_LABELS[\s\S]*前へ：\$\{NAV_LABELS\[prev\]\|\|[\s\S]*次へ：\$\{NAV_LABELS\[next\]\|\|/,'中級教材の前後ナビに章名を表示する');
 assert.match(dataLesson,/lesson-check-visual[\s\S]*renderQuiz\(lesson,quality,ctx\)/,'データ教材の確認問題が直上の牌姿を再利用する');
 assert.match(dataLesson,/lesson-flow[\s\S]*見る[\s\S]*解く/,'データ教材に見る・考える・解くの進み方を表示する');
+assert.match(dataLesson,/quiz-prompt[\s\S]*lesson-check-visual-slot[\s\S]*quiz-options/,'データ教材は設問、視覚資料、選択肢の順に表示する');
 assert.match(dataLesson,/panel-role[\s\S]*目標[\s\S]*panel-role[\s\S]*見る[\s\S]*panel-role[\s\S]*考える/,'データ教材の各パネルに役割ラベルを付ける');
 assert.match(dataLesson,/interaction==='tile-pick'[\s\S]*tile-answer-submit/,'データ教材に牌をタップして確認する問題がある');
 assert.match(dataLesson,/正しい牌を1枚選んでください[\s\S]*正しい牌をすべて選んでください/,'データ教材は選ぶ枚数を明示する');
@@ -95,6 +102,7 @@ assert.match(intermediateScoring,/scorePresetFromHash[\s\S]*URLSearchParams/,'�
 assert.match(intermediateScoring,/id="yakuman"/,'点数計算画面が役満条件を扱える');
 assert.doesNotMatch(kanPractice,/description:'[^']*(?:[1-9][mps]|[1-7]z)/,'カン練習の説明に牌コードを表示しない');
 assert.doesNotMatch(handFlowScenarios,/description:'[^']*(?:[1-9][mps]|[1-7]z)/,'一局練習の説明に牌コードを表示しない');
+assert.doesNotMatch(handFlowScenarios,/hint:'[^']*(?:[1-9][mps]|[1-7]z)/,'一局練習の案内に牌コードを表示しない');
 
 assert.match(tile,/options\.rowClass/,'牌列の用途ごとのレイアウト指定を受け取る');
 for(const source of [

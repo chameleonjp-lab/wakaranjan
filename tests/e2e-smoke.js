@@ -471,6 +471,12 @@ async function run(){
     },async page=>{
       await page.addInitScript(()=>{Math.random=()=>0.5});
     });
+    await visit(browser,base,'#problems',{width:402,height:874},async page=>{
+      await page.locator('.problem-details summary').click();
+      await page.locator('[data-topic="text-ron-review"]').click();
+      assert.equal(await page.locator('.problem-hand-area:not([hidden])').count(),0,'文章でロンを復習する入口に牌姿問題が混ざっています');
+      assert.equal(await page.locator('#problem-options > button').count(),4,'文章でロンを復習する問題の選択肢が表示されません');
+    });
     await visit(browser,base,'#intro-review',{width:402,height:874},async page=>{
       let foundVisual=false;
       for(let index=0;index<12;index++){
@@ -558,8 +564,8 @@ async function run(){
       assert.ok(roles.includes('目標')&&roles.includes('見る')&&roles.includes('解く'),'データ教材のパネル役割ラベルが不足しています');
       const visual=page.locator('.lesson-check-visual');
       assert.equal(await visual.count(),1,'データ教材の視覚確認に牌姿がありません');
-      const order=await page.evaluate(()=>({visual:document.querySelector('.lesson-check-visual')?.getBoundingClientRect().top??Infinity,choices:document.querySelector('.lesson-check .quiz-options')?.getBoundingClientRect().top??-Infinity}));
-      assert.ok(order.visual<order.choices,`データ教材で牌姿が選択肢より上にありません: ${JSON.stringify(order)}`);
+      const order=await page.evaluate(()=>({prompt:document.querySelector('.lesson-check .quiz-prompt')?.getBoundingClientRect().top??Infinity,visual:document.querySelector('.lesson-check-visual')?.getBoundingClientRect().top??Infinity,choices:document.querySelector('.lesson-check .quiz-options')?.getBoundingClientRect().top??-Infinity}));
+      assert.ok(order.prompt<order.visual&&order.visual<order.choices,`データ教材が設問、牌姿、選択肢の順に並んでいません: ${JSON.stringify(order)}`);
       assert.equal(await page.locator('.tile-answer-submit').isDisabled(),true,'データ教材で牌未選択でも回答ボタンを押せます');
       await page.locator('.tile-answer-tile').first().click();
       await page.locator('.tile-answer-submit').click();
@@ -667,7 +673,8 @@ async function run(){
     });
     await visit(browser,base,'#teacher-record',{width:402,height:874},async page=>{
       assert.match(await page.locator('h1').innerText(),/学習状況の確認/);
-      assert.match(await page.locator('#app').innerText(),/Supabase/);
+      assert.match(await page.locator('#app').innerText(),/オンライン/);
+      assert.doesNotMatch(await page.locator('#app').innerText(),/Supabase/);
     });
     await visit(browser,base,'#print-materials',{width:402,height:874},async page=>{
       const title=(await page.locator('h1').innerText()).replace(/\s+/g,'');
@@ -696,7 +703,7 @@ async function run(){
     });
     await visit(browser,base,'#study-record',{width:402,height:874},async page=>{
       let accepted=false;
-      page.once('dialog',async dialog=>{accepted=dialog.message().includes('Supabase');await dialog.accept()});
+      page.once('dialog',async dialog=>{accepted=dialog.message().includes('オンライン');await dialog.accept()});
       await page.locator('#clear-all-study-record').click();
       await page.locator('text=学習状況を解除しました。').waitFor({state:'visible',timeout:10000});
       assert.equal(accepted,true,'学習状況解除の確認ダイアログが表示されません');

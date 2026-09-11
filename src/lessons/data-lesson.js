@@ -32,7 +32,7 @@ function renderQuiz(lesson,quality,ctx){
   const questions=[visualQuestion,lesson.check,...(quality?.checks||[])].filter(Boolean);
   const quiz=document.createElement('section');
   quiz.className='panel lesson-check';
-  quiz.innerHTML='<div class="panel-role">解く</div><div class="quiz-meta"></div><h2>確認問題</h2><div class="lesson-check-visual-slot"></div><p class="quiz-prompt"></p><div class="quiz-options"></div><div class="feedback" aria-live="polite"></div>';
+  quiz.innerHTML='<div class="panel-role">解く</div><div class="quiz-meta"></div><h2>確認問題</h2><p class="quiz-prompt"></p><div class="lesson-check-visual-slot"></div><div class="quiz-options"></div><div class="feedback" aria-live="polite"></div>';
   let index=0,score=0,answered=false,retrying=false;
   const mistakes=[];
   const meta=quiz.querySelector('.quiz-meta');

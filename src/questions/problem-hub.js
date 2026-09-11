@@ -10,8 +10,8 @@ const WRONG_KEY=LEARNING_STORAGE_KEYS.wrongQuestionIds;
 const STATS_KEY=LEARNING_STORAGE_KEYS.questionStats;
 const MISCONCEPTION_KEY=LEARNING_STORAGE_KEYS.misconceptions;
 const RECORD_VERSION=2;
-const TOPIC_NAMES={'wait-shape':'待ち牌（形）','ron-decision':'ロンできるか','text-review':'文章で待ちを復習','call-decision':'鳴き・リーチの判断','rule-decision':'その他のルール判断'};
-const TOPIC_ORDER=['wait-shape','ron-decision','text-review','call-decision','rule-decision'];
+const TOPIC_NAMES={'wait-shape':'待ち牌（形）','ron-decision':'ロンできるか','text-review':'文章で待ちを復習','text-ron-review':'文章でロンを復習','call-decision':'鳴き・リーチの判断','rule-decision':'その他のルール判断'};
+const TOPIC_ORDER=['wait-shape','ron-decision','text-review','text-ron-review','call-decision','rule-decision'];
 function shuffled(items){const copy=[...items];for(let i=copy.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[copy[i],copy[j]]=[copy[j],copy[i]]}return copy}
 function validQuestionIds(data){return new Set((data?.questions||[]).map(q=>q.id).filter(id=>typeof id==='string'))}
 function normalizeWrong(value,ids){if(!value||typeof value!=='object'||Array.isArray(value)||value.version!==RECORD_VERSION||!Array.isArray(value.ids))return new Set();return new Set(value.ids.filter(id=>typeof id==='string'&&ids.has(id)))}
@@ -75,6 +75,7 @@ export function renderProblemHub(app,ctx){
   </div></section>
   <details class="problem-details"><summary>その他の確認問題</summary><div class="feature-grid">
     ${card('文章で待ちを復習','牌姿を文章で短く確認します。',topicCount('text-review'),'text-review')}
+    ${card('文章でロンを復習','役・フリテンなどの条件を文章で確認します。',topicCount('text-ron-review'),'text-ron-review')}
     ${card('鳴き・リーチの判断','相手の位置や門前かどうかを見て判断します。',topicCount('call-decision'),'call-decision')}
     ${card('実戦での判断','本場・供託・牌効率・守備を確認します。',categoryCount('practical'),'practical')}
     ${card('ルールの違い','本サイトの標準ルールと、採用が分かれる項目を確認します。',categoryCount('rule-diff'),'rule-diff')}
