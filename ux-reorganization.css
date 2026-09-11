@@ -158,6 +158,9 @@ ruby.mahjong-ruby{
 }
 ruby.mahjong-ruby rb{font-weight:inherit}
 ruby.mahjong-ruby rt{
+  /* Keep the reading clear of the base glyph while native ruby reserves the line box. */
+  position:relative;
+  top:-.25em;
   font-family:inherit;
   font-size:.58em;
   font-weight:700;
