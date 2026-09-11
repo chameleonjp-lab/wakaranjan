@@ -115,7 +115,13 @@ for(const source of [
 
 assert.match(ux,/ruby\.mahjong-ruby\{[\s\S]*ruby-position:over/,'ルビを漢字の上へ表示する');
 assert.match(ux,/ruby\.mahjong-ruby\{[\s\S]*ruby-align:center/,'ルビを漢字の中央へそろえる');
-assert.doesNotMatch(ux,/ruby\.mahjong-ruby rt\{[^}]*position:absolute/,'ルビをブラウザごとの標準レイアウトで配置する');
+assert.doesNotMatch(ux,/ruby\.mahjong-ruby rt\{[^}]*position:absolute/,'ルビを絶対配置で重ねない');
+assert.match(problemHub,/data-focus-label/,'牌姿の焦点に学習者向けラベルを付ける');
+assert.match(ux,/visual-focus-note[\s\S]*content:attr\(data-focus-label\)/,'牌姿の焦点を文字ラベルでも識別できる');
+assert.match(ux,/practice-discard-row[\s\S]*minmax\(44px/,'捨て牌操作の牌を44px以上に保つ');
+assert.match(practiceHub,/state==='drawn'\?'practice-discard-row':'hand-fit-row'/,'捨て牌操作時だけ大きい牌列を使う');
+assert.match(read('src/practice/wall-practice.js'),/turn==='discard'\?'practice-discard-row':'hand-fit-row'/,'牌山練習の捨て牌操作を大きくする');
+assert.match(read('src/practice/hand-flow.js'),/canDiscard\?'practice-discard-row':'hand-fit-row'/,'一局練習の捨て牌操作を大きくする');
 assert.match(ux,/\.hand-fit-row\{[\s\S]*flex-wrap:nowrap/,'手牌は折り返さない');
 assert.match(ux,/\.hand-fit-row\{[\s\S]*overflow:visible/, '横一列の手牌を横スクロールにしない');
 

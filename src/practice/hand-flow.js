@@ -260,7 +260,7 @@ export function renderHandFlow(app,ctx){
       state.players[seat].river.forEach(tile=>row.append(createTile(ctx.tileByCode.get(tile.code),{red:tile.red})));
       riverBox.append(block);
     });
-    appendTileRow(handBox,player.hand.map(tile=>physicalItem(ctx,tile)),{rowClass:'hand-fit-row',
+    appendTileRow(handBox,player.hand.map(tile=>physicalItem(ctx,tile)),{rowClass:canDiscard?'practice-discard-row':'hand-fit-row',
       interactive:canDiscard,
       drawnIndex:canDiscard?player.hand.findIndex(tile=>tile.id===state.drawnTileId):-1,
       onSelect:(_tile,_options,_element,index)=>{

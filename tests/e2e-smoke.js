@@ -472,6 +472,17 @@ async function run(){
       await page.addInitScript(()=>{Math.random=()=>0.5});
     });
     await visit(browser,base,'#problems',{width:402,height:874},async page=>{
+      await page.locator('[data-topic="wait-shape"]').click();
+      const focusNotes=await page.locator('.visual-focus-note').evaluateAll(elements=>elements.map(element=>{
+        const copy=element.cloneNode(true);
+        copy.querySelectorAll('rt').forEach(reading=>reading.remove());
+        return copy.textContent.replace(/\s+/g,'');
+      }));
+      const prompt=await page.locator('.lesson-head h1').innerText();
+      assert.ok(focusNotes.some(note=>/待ちの形/.test(note)),`待ちの形を示す説明がありません: notes=${JSON.stringify(focusNotes)}, prompt=${JSON.stringify(prompt)}`);
+      assert.ok(await page.locator('[data-focus-label="待ち"]').count(),'待ちの焦点牌にラベルがありません');
+    });
+    await visit(browser,base,'#problems',{width:402,height:874},async page=>{
       await page.locator('.problem-details summary').click();
       await page.locator('[data-topic="text-ron-review"]').click();
       assert.equal(await page.locator('.problem-hand-area:not([hidden])').count(),0,'文章でロンを復習する入口に牌姿問題が混ざっています');
@@ -586,8 +597,21 @@ async function run(){
 
     await visit(browser,base,'#practice?mode=draw-discard',{width:402,height:874},async page=>{
       await page.locator('#draw-actions button').click();
+      const layout=await page.locator('#draw-hand .practice-discard-row').evaluate(element=>{
+        const tiles=[...element.querySelectorAll('.tile')];
+        return {scrollWidth:element.scrollWidth,clientWidth:element.clientWidth,rows:new Set(tiles.map(tile=>Math.round(tile.getBoundingClientRect().top))).size,minWidth:Math.min(...tiles.map(tile=>tile.getBoundingClientRect().width))};
+      });
+      assert.ok(layout.scrollWidth<=layout.clientWidth+1,`捨て牌操作の牌列が横にはみ出しています: ${JSON.stringify(layout)}`);
+      assert.ok(layout.rows>1,`捨て牌操作の牌が1行に詰め込まれています: ${JSON.stringify(layout)}`);
+      assert.ok(layout.minWidth>=43.5,`捨て牌操作の牌が44px未満です: ${JSON.stringify(layout)}`);
       await page.locator('#draw-hand button.tile').first().click();
       assert.match(await page.locator('#draw-message').innerText(),/確認できました/);
+    });
+    await visit(browser,base,'#practice?mode=draw-discard',{width:320,height:874},async page=>{
+      await page.locator('#draw-actions button').click();
+      const layout=await page.locator('#draw-hand .practice-discard-row').evaluate(element=>({scrollWidth:element.scrollWidth,clientWidth:element.clientWidth,rows:new Set([...element.querySelectorAll('.tile')].map(tile=>Math.round(tile.getBoundingClientRect().top))).size}));
+      assert.ok(layout.scrollWidth<=layout.clientWidth+1,`320px幅で捨て牌操作の牌列が横にはみ出しています: ${JSON.stringify(layout)}`);
+      assert.ok(layout.rows>1,`320px幅で捨て牌操作の牌が折り返されていません: ${JSON.stringify(layout)}`);
     });
     await visit(browser,base,'#practice',{width:402,height:874},async page=>{
       assert.equal(await page.locator('a[href="#practice?mode=round"]').count(),1,'一局の入口が1つありません');

@@ -158,6 +158,7 @@ ruby.mahjong-ruby{
 }
 ruby.mahjong-ruby rb{font-weight:inherit}
 ruby.mahjong-ruby rt{
+  /* Keep the reading clear of the base glyph while native ruby reserves the line box. */
   position:relative;
   top:-.25em;
   font-family:inherit;
@@ -203,6 +204,35 @@ ruby.mahjong-ruby rt{
 .hand-fit-row>.win-gap{flex:0 0 auto;font-size:1.1rem;padding:0 1px}
 .hand-fit-row>.hand-block{flex:1 1 0;min-width:0}
 
+/* Selecting a discard is an operation, so keep each tile large enough to tap. */
+.practice-discard-row{
+  display:grid !important;
+  grid-template-columns:repeat(7,minmax(44px,1fr));
+  gap:8px 4px;
+  align-items:end;
+  width:100% !important;
+  max-width:100%;
+  min-width:0;
+  overflow:visible !important;
+}
+.practice-discard-row>.tile{
+  width:auto !important;
+  min-width:44px !important;
+  max-width:none;
+  height:auto !important;
+  min-height:0 !important;
+  aspect-ratio:5 / 7;
+  padding:2px;
+}
+.practice-discard-row>.tile .tile-face{width:100%;height:100%;min-width:0;min-height:0}
+.practice-discard-row>.tile .tile-art{width:100%;height:100%;max-width:none}
+@media(max-width:410px){
+  .practice-discard-row{grid-template-columns:repeat(6,minmax(44px,1fr))}
+}
+@media(max-width:350px){
+  .practice-discard-row{grid-template-columns:repeat(5,minmax(44px,1fr))}
+}
+
 /* The complete 4-meld hand also stays in one row, with each group sharing the width. */
 .block-hand{
   display:flex !important;
@@ -235,7 +265,8 @@ ruby.mahjong-ruby rt{
 .selection-area>h2,.selection-area>h3{margin:0 0 8px;font-size:.95rem;color:#526058}
 .problem-choice-area,.problem-hand-area{min-width:0}
 .visual-question-tiles [data-focus="true"]{position:relative;outline:2px dashed var(--wj-accent);outline-offset:2px;z-index:1}
-.visual-question-tiles [data-focus="true"]::after{content:"形";position:absolute;top:-7px;right:-5px;padding:1px 4px;border:1px solid var(--wj-accent);border-radius:999px;background:#fff8ef;color:#8a3e2e;font-size:.62rem;font-weight:800;line-height:1.2}
+.visual-focus-note{margin:0;color:#8a3e2e;font-size:.8rem;font-weight:800}
+.visual-question-tiles [data-focus="true"]::after{content:attr(data-focus-label);position:absolute;top:-7px;right:-5px;padding:1px 4px;border:1px solid var(--wj-accent);border-radius:999px;background:#fff8ef;color:#8a3e2e;font-size:.62rem;font-weight:800;line-height:1.2}
 .visual-question-tiles [data-review="true"]{outline-color:#2d6b4b}
 .guided-progress span.active{outline:2px solid #2d6b4b;outline-offset:1px}
 .guided-progress span.done::before{content:"✓ ";font-weight:800;color:#245f43}
