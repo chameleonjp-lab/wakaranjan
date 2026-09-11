@@ -226,7 +226,7 @@ ruby.mahjong-ruby rt{
 }
 .practice-discard-row>.tile .tile-face{width:100%;height:100%;min-width:0;min-height:0}
 .practice-discard-row>.tile .tile-art{width:100%;height:100%;max-width:none}
-@media(max-width:390px){
+@media(max-width:410px){
   .practice-discard-row{grid-template-columns:repeat(6,minmax(44px,1fr))}
 }
 @media(max-width:350px){
