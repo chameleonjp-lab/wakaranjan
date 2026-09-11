@@ -55,7 +55,7 @@ export function renderWallPractice(app,ctx){
       feedback.textContent='最後にツモった牌は少し浮いて表示されます。';
     }
 
-    appendTileRow(handBox,hand.map(tile=>physicalItem(ctx,tile)),{rowClass:'hand-fit-row',
+    appendTileRow(handBox,hand.map(tile=>physicalItem(ctx,tile)),{rowClass:turn==='discard'?'practice-discard-row':'hand-fit-row',
       interactive:turn==='discard',
       drawnIndex:turn==='discard'?hand.length-1:-1,
       onSelect:(_tile,_options,_element,index)=>{
