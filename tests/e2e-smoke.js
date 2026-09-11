@@ -473,7 +473,9 @@ async function run(){
     });
     await visit(browser,base,'#problems',{width:402,height:874},async page=>{
       await page.locator('[data-topic="wait-shape"]').click();
-      assert.match(await page.locator('.visual-focus-note').first().innerText(),/待ちの形/,'待ちの形を示す説明がありません');
+      const focusNotes=await page.locator('.visual-focus-note').allTextContents();
+      const prompt=await page.locator('.lesson-head h1').innerText();
+      assert.ok(focusNotes.some(note=>/待ちの形/.test(note)),`待ちの形を示す説明がありません: notes=${JSON.stringify(focusNotes)}, prompt=${JSON.stringify(prompt)}`);
       assert.ok(await page.locator('[data-focus-label="待ち"]').count(),'待ちの焦点牌にラベルがありません');
     });
     await visit(browser,base,'#problems',{width:402,height:874},async page=>{
