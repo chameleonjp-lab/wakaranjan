@@ -35,4 +35,10 @@ test('待ち牌の直接選択問題を6問以上含む',()=>{
     }
   }
 });
+test('ロン可否の牌姿はあがり牌を別表示できる',()=>{
+  for(const q of visual.filter(q=>q.topic==='ron-decision')){
+    assert.equal(q.handTiles.length,13,`${q.id}: hand must remain a 13-tile waiting hand`);
+    assert.ok(typeof q.winTile==='string'&&q.winTile,`${q.id}: winTile is not displayed`);
+  }
+});
 console.log(`\n${passed} visual problem tests passed.`);

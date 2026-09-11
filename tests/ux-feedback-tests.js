@@ -47,6 +47,8 @@ assert.doesNotMatch(beginnerOne,/先に見る：\$\{current\.nameJa\}/,'待ち�
 assert.doesNotMatch(problemHub,/Supabaseへ保存/,'問題ハブに保存基盤の説明を表示しない');
 assert.match(problemHub,/data-topic/,'問題ハブから学習者向けの分類で出題できる');
 assert.match(problemHub,/待ち牌（形だけ）[\s\S]*ロンできるか/,'待ち牌とロン可否を別の入口にする');
+assert.match(problemHub,/selectWeakestScope[\s\S]*filterByScope/,'苦手・誤答復習を1つの分類へ絞る');
+assert.match(problemHub,/待ち牌とロン可否は混ざりません/,'苦手練習のセッション分類を学習者へ約束する');
 assert.match(practiceHub,/practice-group[\s\S]*はじめて[\s\S]*そのあと/,'対局練習を学習順にグループ化する');
 assert.match(practiceHub,/renderRoundMenu[\s\S]*操作を覚える[\s\S]*判断して進める[\s\S]*流れを見る/,'一局系の練習を目的別の1入口にまとめる');
 assert.match(practiceHub,/if\(mode==='round'\)return renderRoundMenu/,'一局の体験メニューへ遷移できる');

@@ -4,6 +4,7 @@ import {misconceptionOf,misconceptionKeysFor,MISCONCEPTION_LABELS} from './misco
 import {getActiveProfile,profileStorageKey} from '../lib/profile.js';
 import {scrollAppToTop} from '../lib/navigation.js';
 import {LEARNING_STORAGE_KEYS,queueCloudSync} from '../lib/cloud-sync.js';
+import {filterByScope,selectWeakestScope} from './session-scope.js';
 
 const WRONG_KEY=LEARNING_STORAGE_KEYS.wrongQuestionIds;
 const STATS_KEY=LEARNING_STORAGE_KEYS.questionStats;
@@ -79,8 +80,8 @@ export function renderProblemHub(app,ctx){
     ${card('ルールの違い','本サイトの標準ルールと、採用が分かれる項目を確認します。',categoryCount('rule-diff'),'rule-diff')}
     ${card('その他のルール判断','頭ハネなど、対局中のルール判断を確認します。',topicCount('rule-decision'),'rule-decision')}
   </div></details>
-  <section class="panel"><h2>苦手を優先して練習</h2><p>間違えた回数と、繰り返している勘違いをもとに出題します。</p><div class="action-row"><button id="adaptive-review" class="primary" type="button">苦手・勘違い優先10問</button></div><div class="skill-summary">${summary.map(s=>`<div><strong>${s.name}</strong><span>${s.total?`${s.rate}%（${s.total}回答）`:'まだ記録なし'}</span></div>`).join('')}</div>${top.length?`<h3>繰り返している勘違い</h3><div class="skill-summary">${top.map(([key,count])=>`<div><strong>${MISCONCEPTION_LABELS[key]||key}</strong><span>${count}回</span></div>`).join('')}</div>`:''}</section>
-  <section class="panel"><h2>間違えた問題</h2><p>${wrong.size?`${wrong.size}問が復習待ちです。正解するまで残ります。`:'現在、復習待ちの問題はありません。'}</p><div class="action-row"><button id="wrong-review" class="primary" type="button" ${wrong.size?'':'disabled'}>間違えた問題だけ解く</button>${wrong.size?'<button id="clear-wrong" class="secondary" type="button">復習記録を消す</button>':''}<button id="clear-stats" class="secondary" type="button">正答記録を消す</button>${top.length?'<button id="clear-misconceptions" class="secondary" type="button">勘違い記録を消す</button>':''}</div></section>
+  <section class="panel"><h2>苦手を優先して練習</h2><p>間違えた回数と、繰り返している勘違いが多い<strong>同じ種類</strong>の問題を最大10問出します。待ち牌とロン可否は混ざりません。</p><div class="action-row"><button id="adaptive-review" class="primary" type="button">苦手・勘違い優先（最大10問）</button></div><div class="skill-summary">${summary.map(s=>`<div><strong>${s.name}</strong><span>${s.total?`${s.rate}%（${s.total}回答）`:'まだ記録なし'}</span></div>`).join('')}</div>${top.length?`<h3>繰り返している勘違い</h3><div class="skill-summary">${top.map(([key,count])=>`<div><strong>${MISCONCEPTION_LABELS[key]||key}</strong><span>${count}回</span></div>`).join('')}</div>`:''}</section>
+  <section class="panel"><h2>間違えた問題</h2><p>${wrong.size?`${wrong.size}問が復習待ちです。同じ種類を優先して復習します。別の種類は一覧から選べます。`:'現在、復習待ちの問題はありません。'}</p><div class="action-row"><button id="wrong-review" class="primary" type="button" ${wrong.size?'':'disabled'}>間違えた問題だけ解く</button>${wrong.size?'<button id="clear-wrong" class="secondary" type="button">復習記録を消す</button>':''}<button id="clear-stats" class="secondary" type="button">正答記録を消す</button>${top.length?'<button id="clear-misconceptions" class="secondary" type="button">勘違い記録を消す</button>':''}</div></section>
   <div class="lesson-nav"><a class="secondary" href="#menu">メニューへ戻る</a></div>`;
   app.querySelectorAll('[data-topic]').forEach(b=>b.onclick=()=>renderProblemSession(app,ctx,{topic:b.dataset.topic}));
   app.querySelectorAll('[data-category]').forEach(b=>b.onclick=()=>renderProblemSession(app,ctx,{category:b.dataset.category}));
@@ -93,11 +94,13 @@ export function renderProblemHub(app,ctx){
 
 export function renderProblemSession(app,ctx,{category=null,topic=null,wrongOnly=false,adaptive=false}={}){
   const data=ctx.problemCatalog;const wrong=loadWrong(data);const stats=loadStats(data);const misconceptions=loadMisconceptions();
-  let pool=data.questions.filter(q=>wrongOnly?wrong.has(q.id):adaptive?true:topic?q.topic===topic:q.category===category);
+  const candidates=data.questions.filter(q=>wrongOnly?wrong.has(q.id):adaptive?true:topic?q.topic===topic:q.category===category);
+  const sessionScope=adaptive||wrongOnly?selectWeakestScope(candidates,{stats,misconceptions,order:TOPIC_ORDER,misconceptionKeysFor}):null;
+  let pool=sessionScope?filterByScope(candidates,sessionScope):candidates;
   if(!pool.length){renderProblemHub(app,ctx);return}
   const size=wrongOnly?Math.min(20,pool.length):Math.min(data.sessionSize||10,pool.length);
   const session=adaptive?adaptiveSample(pool,size,stats,misconceptions):shuffled(pool).slice(0,size);let index=0,correct=0,answered=false,wrongSession=[];
-  const cat=data.categories.find(c=>c.id===category);const topicTitles={...TOPIC_NAMES,'wait-shape':'待ち牌（形だけ）'};const title=wrongOnly?'間違えた問題の復習':adaptive?'苦手・勘違い優先練習':topicTitles[topic]||cat?.name||'問題';
+  const cat=data.categories.find(c=>c.id===category);const topicTitles={...TOPIC_NAMES,'wait-shape':'待ち牌（形だけ）'};const selectedScope=topic||category||sessionScope;const scopeTitle=topicTitles[selectedScope]||data.categories.find(c=>c.id===selectedScope)?.name||selectedScope;const title=wrongOnly?`間違えた問題：${scopeTitle||'復習'}`:adaptive?`苦手：${scopeTitle||'優先練習'}`:topicTitles[topic]||cat?.name||'問題';
   const render=()=>{
     scrollAppToTop();
     const q=clarifyQuestion(session[index]);
